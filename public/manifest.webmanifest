@@ -1,0 +1,19 @@
+{
+  "name": "The Lawrence Loop",
+  "short_name": "Lawrence Loop",
+  "description": "Family plans, car clashes, kit reminders and the things we forget.",
+  "display": "standalone",
+  "start_url": "/",
+  "scope": "/",
+  "theme_color": "#f7efe2",
+  "background_color": "#f7efe2",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icons/app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

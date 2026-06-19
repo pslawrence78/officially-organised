@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">The Lawrence Loop</title>
+  <rect width="512" height="512" rx="112" fill="#f7efe2"/>
+  <circle cx="256" cy="256" r="154" fill="none" stroke="#b85c38" stroke-width="48"/>
+  <path d="M183 190v144h92c37 0 67-30 67-67s-30-67-67-67h-36" fill="none" stroke="#3d352f" stroke-linecap="round" stroke-linejoin="round" stroke-width="42"/>
+  <circle cx="183" cy="190" r="24" fill="#d99b6c"/>
+</svg>

@@ -1,0 +1,52 @@
+# Documentation index
+
+The documents in this folder define **The Lawrence Loop**, a private, mobile-first family logistics PWA. They progress from early product discovery through the validated product definition, technical architecture, and implementation plan.
+
+## Start here
+
+- **To understand the product:** read [Product Specification v0.2](03-product-specification-v0.2.md).
+- **To understand how it should be built:** read [Technical Architecture v0.1](04-technical-architecture-v0.1.md).
+- **To begin implementation:** follow [Build Plan v0.1](05-build-plan-v0.1.md), starting with Tranche 0 (formerly Milestone A).
+
+## Document map
+
+| # | Document | Purpose | Status |
+|---|---|---|---|
+| 01 | [Early Product Specification v0.1](01-early-product-specification-v0.1.md) | Establishes the original problem, household use cases, product principles, MVP boundary, and open questions. | Historical context |
+| 02 | [Core Data Model and Realistic Week Test v0.1](02-core-data-model-and-realistic-week-test-v0.1.md) | Develops the core entities and stress-tests them against a realistic family week. | Supporting rationale |
+| 03 | [Product Specification v0.2](03-product-specification-v0.2.md) | Defines the current product scope, users, workflows, screens, data concepts, conflict rules, and acceptance criteria. | Current product source of truth |
+| 04 | [Technical Architecture v0.1](04-technical-architecture-v0.1.md) | Defines the local-first PWA architecture, stack, storage, offline behaviour, domain logic, testing, security, and future extension paths. | Current technical source of truth |
+| 05 | [Build Plan v0.1](05-build-plan-v0.1.md) | Converts the specification and architecture into phased deliverables, acceptance tests, development prompts, milestones, and the MVP definition of done. | Current delivery source of truth |
+
+## Reading order
+
+For a complete understanding, read the documents in numeric order. For day-to-day product and implementation decisions, use **03 -> 04 -> 05**. Documents 01 and 02 explain how those decisions were reached.
+
+If documents disagree, prefer the later document for its area of authority:
+
+1. Product behaviour and scope: document 03.
+2. Engineering decisions: document 04.
+3. Implementation sequence and acceptance: document 05.
+
+## Topic guide
+
+| Topic | Best source |
+|---|---|
+| Product purpose, users, scope, and principles | [Product Specification, sections 2-7](03-product-specification-v0.2.md#2-product-summary) |
+| Data model and why each field exists | [Core Data Model and Realistic Week Test](02-core-data-model-and-realistic-week-test-v0.1.md#2-core-data-model) |
+| Current product data definitions | [Product Specification, section 9](03-product-specification-v0.2.md#9-core-data-model) |
+| User workflows and screens | [Product Specification, sections 12-13](03-product-specification-v0.2.md#12-core-workflows) |
+| Conflict and reminder behaviour | [Product Specification, sections 14-15](03-product-specification-v0.2.md#14-conflict-detection-rules) |
+| Framework, storage, PWA, and offline design | [Technical Architecture, sections 2-7](04-technical-architecture-v0.1.md#2-core-architecture-decision) |
+| Recurrence, conflicts, reminders, and import/export implementation | [Technical Architecture, sections 9-12](04-technical-architecture-v0.1.md#9-recurrence-architecture) |
+| Proposed source folder structure | [Technical Architecture, section 24](04-technical-architecture-v0.1.md#24-folder-structure) |
+| Build phases and per-phase acceptance criteria | [Build Plan, section 5](05-build-plan-v0.1.md#5-build-phases) |
+| Full MVP acceptance suite | [Build Plan, section 7](05-build-plan-v0.1.md#7-mvp-acceptance-test-suite) |
+| Recommended first implementation boundary | [Build Plan, section 10](05-build-plan-v0.1.md#10-recommended-first-implementation-boundary) |
+| Milestone order and MVP definition of done | [Build Plan, sections 11-12](05-build-plan-v0.1.md#11-recommended-milestone-order) |
+
+## Current implementation boundary
+
+The implemented foundation is known as **Tranche 0** (formerly Milestone A): React, TypeScript, Vite, the PWA foundation, mobile-first shell, navigation, theme, IndexedDB setup, seed family records, placeholder pages, and the initial architecture.
+
+When adding a document, retain the numeric prefix, include its version in the filename, and update this index with its purpose, status, and authority.

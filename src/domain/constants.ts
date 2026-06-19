@@ -1,0 +1,84 @@
+import type { EventCategory, EventStatus, PlaceType } from "./types";
+
+export const DATABASE_NAME = "lawrence_loop_db";
+export const DATABASE_SCHEMA_VERSION = 2;
+export const APP_DATA_SCHEMA = "lawrence-loop-data-v2";
+export const HOUSEHOLD_TIME_ZONE = "Europe/London";
+
+export const EVENT_CATEGORIES: EventCategory[] = [
+  "school",
+  "club",
+  "lesson",
+  "birthday_party",
+  "playdate",
+  "family_social",
+  "medical",
+  "dentist",
+  "vet",
+  "work",
+  "travel",
+  "baby_group",
+  "photography",
+  "dog_care",
+  "household_admin",
+  "reminder_only",
+];
+
+export const CATEGORY_LABELS: Record<EventCategory, string> = {
+  school: "School",
+  club: "Club",
+  lesson: "Lesson",
+  birthday_party: "Birthday party",
+  playdate: "Playdate",
+  family_social: "Family social",
+  medical: "Medical",
+  dentist: "Dentist",
+  vet: "Vet",
+  work: "Work",
+  travel: "Travel",
+  baby_group: "Baby Group",
+  photography: "Photography",
+  dog_care: "Dog care",
+  household_admin: "Household admin",
+  reminder_only: "Reminder only",
+};
+
+export const EVENT_STATUSES: EventStatus[] = [
+  "planned",
+  "confirmed",
+  "tentative",
+  "cancelled",
+  "completed",
+];
+
+export const STATUS_LABELS: Record<EventStatus, string> = {
+  planned: "Planned",
+  confirmed: "Confirmed",
+  tentative: "Tentative",
+  cancelled: "Cancelled",
+  completed: "Completed",
+};
+
+export const PLACE_TYPES: PlaceType[] = [
+  "home",
+  "school",
+  "club",
+  "medical",
+  "vet",
+  "office",
+  "social",
+  "travel",
+  "other",
+];
+
+export const PLACE_TYPE_LABELS: Record<PlaceType, string> = {
+  home: "Home",
+  school: "School",
+  club: "Club",
+  medical: "Medical",
+  vet: "Vet",
+  office: "Office",
+  social: "Social",
+  travel: "Travel",
+  other: "Other",
+};
