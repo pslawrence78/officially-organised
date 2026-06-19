@@ -23,6 +23,7 @@ function eventInput(title: string, start: string, end: string): FamilyEventInput
     allDay: false,
     participants: ["member_seb"],
     responsibleAdults: ["member_phil"],
+    prepTasks: [],
   };
 }
 

@@ -15,6 +15,8 @@ export function EventCard({ event, familyMembers, place }: EventCardProps) {
   const namesFor = (ids: string[]) => ids.map((id) => familyMembers.find((member) => member.id === id)?.displayName ?? "Unknown");
   const participantNames = namesFor(event.participants);
   const responsibleNames = namesFor(event.responsibleAdults);
+  const openPrep = event.prepTasks.filter((task) => task.status === "open");
+  const criticalPrep = openPrep.filter((task) => task.priority === "critical");
 
   return (
     <Link className={`event-card event-card--${event.status}`} to={`/events/${event.id}`}>
@@ -31,6 +33,7 @@ export function EventCard({ event, familyMembers, place }: EventCardProps) {
         <p><strong>With</strong> {participantNames.join(", ")}</p>
         {responsibleNames.length > 0 ? <p><strong>Responsible</strong> {responsibleNames.join(", ")}</p> : null}
         {event.placeId ? <p className="event-card__place"><Icon name="place" /> {place?.name ?? "Place unavailable"}</p> : null}
+        {openPrep.length ? <p className={`event-card__prep${criticalPrep.length ? " event-card__prep--critical" : ""}`}><Icon name="prep" /> {openPrep.length} prep task{openPrep.length === 1 ? "" : "s"} open{criticalPrep.length ? ` · ${criticalPrep.length} critical` : ""}</p> : null}
       </div>
       <Icon className="event-card__chevron" name="chevron" />
     </Link>

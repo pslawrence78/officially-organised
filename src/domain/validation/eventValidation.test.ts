@@ -21,6 +21,7 @@ const validInput: FamilyEventInput = {
   placeId: place.id,
   participants: ["member_seb"],
   responsibleAdults: ["member_phil"],
+  prepTasks: [],
 };
 
 describe("event validation", () => {

@@ -42,7 +42,7 @@ export class LawrenceLoopDatabase extends Dexie {
       auditLog: "&id, timestamp, entityType, entityId",
     });
 
-    this.version(DATABASE_SCHEMA_VERSION)
+    this.version(2)
       .stores({
         places: "&id, name, placeType",
         events: "&id, startAt, endAt, category, status",
@@ -64,6 +64,22 @@ export class LawrenceLoopDatabase extends Dexie {
           place.placeType ??= "other";
           place.createdAt ??= migratedAt;
           place.updatedAt ??= migratedAt;
+        });
+
+        await transaction.table("settings").put({
+          id: "app_data_schema",
+          value: "lawrence-loop-data-v2",
+          description: "Current application data schema identifier",
+        });
+      });
+
+    this.version(DATABASE_SCHEMA_VERSION)
+      .stores({
+        events: "&id, startAt, endAt, category, status",
+      })
+      .upgrade(async (transaction) => {
+        await transaction.table("events").toCollection().modify((event) => {
+          event.prepTasks ??= [];
         });
 
         await transaction.table("settings").put({

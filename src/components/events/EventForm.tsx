@@ -22,6 +22,7 @@ import {
   localDateTimeToIso,
 } from "../../utils/dates";
 import { MemberSelector } from "./MemberSelector";
+import { PrepTaskEditor } from "../prep/PrepTaskEditor";
 
 interface EventFormProps {
   event?: FamilyEvent;
@@ -48,6 +49,7 @@ export function EventForm({ event, familyMembers, places }: EventFormProps) {
   const [placeSaveError, setPlaceSaveError] = useState("");
   const [participants, setParticipants] = useState(event?.participants ?? []);
   const [responsibleAdults, setResponsibleAdults] = useState(event?.responsibleAdults ?? []);
+  const [prepTasks, setPrepTasks] = useState(event?.prepTasks ?? []);
   const [notes, setNotes] = useState(event?.notes ?? "");
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [saveError, setSaveError] = useState("");
@@ -79,6 +81,7 @@ export function EventForm({ event, familyMembers, places }: EventFormProps) {
       placeId: placeId || undefined,
       participants,
       responsibleAdults,
+      prepTasks,
       notes: notes || undefined,
     };
     const validationErrors = validateEventInput(input, familyMembers, availablePlaces);
@@ -168,6 +171,8 @@ export function EventForm({ event, familyMembers, places }: EventFormProps) {
       </label>
 
       {addingPlace ? <section className="inline-create" aria-label="Add a new place"><div className="form-grid"><label className="form-field"><span>New place name</span><input onChange={(e) => setNewPlaceName(e.target.value)} placeholder="e.g. Beavers HQ" value={newPlaceName} /></label><label className="form-field"><span>Type</span><select onChange={(e) => setNewPlaceType(e.target.value as (typeof PLACE_TYPES)[number])} value={newPlaceType}>{PLACE_TYPES.map((value) => <option key={value} value={value}>{PLACE_TYPE_LABELS[value]}</option>)}</select></label></div>{placeSaveError ? <span className="field-error">{placeSaveError}</span> : null}<button className="button button--secondary" onClick={addPlaceInline} type="button">Add and select place</button></section> : null}
+
+      <PrepTaskEditor adults={adults} error={errors.prepTasks} onChange={setPrepTasks} tasks={prepTasks} />
 
       <label className="form-field">
         <span>Notes (optional)</span>

@@ -1,8 +1,8 @@
-import type { EventCategory, EventStatus, PlaceType } from "./types";
+import type { EventCategory, EventStatus, PlaceType, PrepTaskPriority, PrepTaskStatus } from "./types";
 
 export const DATABASE_NAME = "lawrence_loop_db";
-export const DATABASE_SCHEMA_VERSION = 2;
-export const APP_DATA_SCHEMA = "lawrence-loop-data-v2";
+export const DATABASE_SCHEMA_VERSION = 3;
+export const APP_DATA_SCHEMA = "lawrence-loop-data-v3";
 export const HOUSEHOLD_TIME_ZONE = "Europe/London";
 
 export const EVENT_CATEGORIES: EventCategory[] = [
@@ -81,4 +81,18 @@ export const PLACE_TYPE_LABELS: Record<PlaceType, string> = {
   social: "Social",
   travel: "Travel",
   other: "Other",
+};
+
+export const PREP_TASK_STATUSES: PrepTaskStatus[] = ["open", "done", "skipped"];
+export const PREP_TASK_STATUS_LABELS: Record<PrepTaskStatus, string> = {
+  open: "Open",
+  done: "Done",
+  skipped: "Skipped",
+};
+
+export const PREP_TASK_PRIORITIES: PrepTaskPriority[] = ["normal", "important", "critical"];
+export const PREP_TASK_PRIORITY_LABELS: Record<PrepTaskPriority, string> = {
+  normal: "Normal",
+  important: "Important",
+  critical: "Critical",
 };

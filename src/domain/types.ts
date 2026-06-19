@@ -40,6 +40,26 @@ export type PlaceType =
   | "travel"
   | "other";
 
+export type PrepTaskStatus = "open" | "done" | "skipped";
+export type PrepTaskPriority = "normal" | "important" | "critical";
+
+export interface PrepTask {
+  id: string;
+  title: string;
+  ownerIds: string[];
+  dueAt?: string;
+  priority: PrepTaskPriority;
+  status: PrepTaskStatus;
+  blocksEvent: boolean;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type PrepTaskInput = Omit<PrepTask, "createdAt" | "updatedAt">;
+export type NewPrepTaskInput = Omit<PrepTask, "id" | "createdAt" | "updatedAt">;
+export type PrepTaskUpdates = Partial<NewPrepTaskInput>;
+
 export interface Household {
   id: string;
   name: string;
@@ -111,6 +131,7 @@ export interface FamilyEvent {
   placeId?: string;
   participants: string[];
   responsibleAdults: string[];
+  prepTasks: PrepTask[];
   notes?: string;
   seriesId?: string;
   templateId?: string;
@@ -122,6 +143,11 @@ export type FamilyEventInput = Omit<FamilyEvent, "id" | "createdAt" | "updatedAt
 export type FamilyEventUpdates = Partial<FamilyEventInput>;
 export type PlaceInput = Omit<Place, "id" | "createdAt" | "updatedAt">;
 export type PlaceUpdates = Partial<PlaceInput>;
+
+export interface PrepTaskWithEvent {
+  task: PrepTask;
+  event: FamilyEvent;
+}
 
 export interface EventSeriesRecord {
   id: string;

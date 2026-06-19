@@ -1,5 +1,6 @@
 import { EVENT_CATEGORIES, EVENT_STATUSES } from "../constants";
 import type { FamilyEventInput, FamilyMember, Place } from "../types";
+import { validatePrepTasks } from "./prepTaskValidation";
 
 export type ValidationErrors = Record<string, string>;
 
@@ -24,6 +25,8 @@ export function validateEventInput(
   if (input.participants.some((id) => !memberIds.has(id))) errors.participants = "One of the selected participants is unavailable.";
   if (input.responsibleAdults.some((id) => !adultIds.has(id))) errors.responsibleAdults = "Responsibility can only be assigned to an adult.";
   if (input.placeId && !places.some((place) => place.id === input.placeId)) errors.placeId = "The selected place is unavailable.";
+  const prepTaskError = validatePrepTasks(input.prepTasks, familyMembers);
+  if (prepTaskError) errors.prepTasks = prepTaskError;
 
   return errors;
 }

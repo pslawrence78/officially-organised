@@ -1,5 +1,6 @@
 import { validateEventInput, EventValidationError } from "../../domain/validation/eventValidation";
-import type { FamilyEvent, FamilyEventInput, FamilyEventUpdates } from "../../domain/types";
+import { cleanPrepTask } from "../../domain/validation/prepTaskValidation";
+import type { AuditLogEntry, FamilyEvent, FamilyEventInput, FamilyEventUpdates, PrepTask } from "../../domain/types";
 import { dateKeyToIsoStart, isoToDateKey, addDaysToDateKey } from "../../utils/dates";
 import { createId } from "../../utils/ids";
 import { db } from "../db";
@@ -20,6 +21,7 @@ export async function createEvent(input: FamilyEventInput): Promise<FamilyEvent>
     ...input,
     title: input.title.trim(),
     notes: input.notes?.trim() || undefined,
+    prepTasks: input.prepTasks.map((task) => cleanPrepTask(task)),
     id: createId("event"),
     createdAt: timestamp,
     updatedAt: timestamp,
@@ -27,14 +29,22 @@ export async function createEvent(input: FamilyEventInput): Promise<FamilyEvent>
 
   await db.transaction("rw", [db.events, db.auditLog], async () => {
     await db.events.add(event);
-    await db.auditLog.add({
+    const auditEntries: AuditLogEntry[] = [{
       id: createId("audit"),
       entityType: "event",
       entityId: event.id,
       action: "created",
       timestamp,
       summary: `Created ${event.title}`,
-    });
+    }, ...event.prepTasks.map((task) => ({
+      id: createId("audit"),
+      entityType: "prepTask",
+      entityId: task.id,
+      action: "created",
+      timestamp,
+      summary: `Added ${task.title} to ${event.title}`,
+    }))];
+    await db.auditLog.bulkAdd(auditEntries);
   });
 
   return event;
@@ -54,6 +64,7 @@ export async function updateEvent(id: string, updates: FamilyEventUpdates): Prom
     placeId: "placeId" in updates ? updates.placeId : existing.placeId,
     participants: updates.participants ?? existing.participants,
     responsibleAdults: updates.responsibleAdults ?? existing.responsibleAdults,
+    prepTasks: updates.prepTasks ?? existing.prepTasks,
     notes: "notes" in updates ? updates.notes : existing.notes,
     seriesId: "seriesId" in updates ? updates.seriesId : existing.seriesId,
     templateId: "templateId" in updates ? updates.templateId : existing.templateId,
@@ -66,22 +77,44 @@ export async function updateEvent(id: string, updates: FamilyEventUpdates): Prom
     ...input,
     title: input.title.trim(),
     notes: input.notes?.trim() || undefined,
+    prepTasks: input.prepTasks.map((task) => cleanPrepTask(task)),
     updatedAt: timestamp,
   };
 
   await db.transaction("rw", [db.events, db.auditLog], async () => {
     await db.events.put(event);
-    await db.auditLog.add({
+    const auditEntries: AuditLogEntry[] = [{
       id: createId("audit"),
       entityType: "event",
       entityId: id,
       action: "updated",
       timestamp,
       summary: `Updated ${event.title}`,
-    });
+    }, ...prepTaskAuditEntries(existing.prepTasks, event.prepTasks, event.title, timestamp)];
+    await db.auditLog.bulkAdd(auditEntries);
   });
 
   return event;
+}
+
+function prepTaskAuditEntries(previous: PrepTask[], current: PrepTask[], eventTitle: string, timestamp: string): AuditLogEntry[] {
+  const previousById = new Map(previous.map((task) => [task.id, task]));
+  const currentById = new Map(current.map((task) => [task.id, task]));
+  const entries: AuditLogEntry[] = [];
+
+  for (const task of current) {
+    const oldTask = previousById.get(task.id);
+    if (!oldTask) {
+      entries.push({ id: createId("audit"), entityType: "prepTask", entityId: task.id, action: "created", timestamp, summary: `Added ${task.title} to ${eventTitle}` });
+    } else if (JSON.stringify(oldTask) !== JSON.stringify(task)) {
+      entries.push({ id: createId("audit"), entityType: "prepTask", entityId: task.id, action: "updated", timestamp, summary: `Updated ${task.title} for ${eventTitle}` });
+    }
+  }
+
+  for (const task of previous) {
+    if (!currentById.has(task.id)) entries.push({ id: createId("audit"), entityType: "prepTask", entityId: task.id, action: "deleted", timestamp, summary: `Removed ${task.title} from ${eventTitle}` });
+  }
+  return entries;
 }
 
 export async function deleteEvent(id: string): Promise<void> {

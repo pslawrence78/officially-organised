@@ -3,8 +3,9 @@ import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { ErrorState, LoadingState } from "../components/common/AsyncState";
 import { Badge } from "../components/common/Badge";
 import { Icon } from "../components/common/Icon";
+import { PrepTaskCard } from "../components/prep/PrepTaskCard";
 import { CATEGORY_LABELS, STATUS_LABELS } from "../domain/constants";
-import { deleteEvent, getEventById, getFamilyMembers, getPlaces } from "../data/repositories";
+import { deleteEvent, getEventById, getFamilyMembers, getPlaces, setPrepTaskStatus } from "../data/repositories";
 import { useRepositoryQuery } from "../hooks/useRepositoryQuery";
 import { formatEventTime, formatLongDate, isoToDateKey } from "../utils/dates";
 
@@ -13,6 +14,7 @@ export function EventDetailPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const [deleting, setDeleting] = useState(false);
+  const [refreshVersion, setRefreshVersion] = useState(0);
   const state = useRepositoryQuery(async () => {
     const [event, familyMembers, places] = await Promise.all([
       getEventById(eventId),
@@ -20,7 +22,7 @@ export function EventDetailPage() {
       getPlaces(),
     ]);
     return { event, familyMembers, places };
-  }, [eventId]);
+  }, [eventId, refreshVersion]);
 
   if (state.loading) return <LoadingState label="Opening the event…" />;
   if (state.error) return <ErrorState />;
@@ -55,6 +57,7 @@ export function EventDetailPage() {
           {event.notes ? <div><dt>Notes</dt><dd className="detail-list__notes">{event.notes}</dd></div> : null}
         </dl>
       </article>
+      <section className="event-prep-section"><div className="section-heading"><div><p className="eyebrow">Operational memory</p><h2>Preparation</h2></div><Link className="button button--secondary" to={`/events/${event.id}/edit`}><Icon name="edit" /> Edit tasks</Link></div>{event.prepTasks.length ? <div className="prep-task-list">{event.prepTasks.map((task) => <PrepTaskCard familyMembers={familyMembers} item={{ task, event }} key={task.id} onStatusChange={async (status) => { await setPrepTaskStatus(event.id, task.id, status); setRefreshVersion((value) => value + 1); }} />)}</div> : <p className="section-empty-copy">No preparation tasks attached to this event.</p>}</section>
       <div className="detail-actions">
         <Link className="button button--primary" to={`/events/${event.id}/edit`}><Icon name="edit" /> Edit event</Link>
         <button className="button button--danger" disabled={deleting} onClick={confirmDelete} type="button"><Icon name="trash" /> {deleting ? "Deleting…" : "Delete"}</button>

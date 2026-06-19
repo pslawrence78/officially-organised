@@ -20,6 +20,7 @@ function inputForDate(title: string, dateKey: string): FamilyEventInput {
     allDay: false,
     participants: ["member_phil"],
     responsibleAdults: [],
+    prepTasks: [],
   };
 }
 
@@ -68,5 +69,18 @@ describe("event views", () => {
     };
     render(<MemoryRouter><EventCard event={event} familyMembers={seedFamilyMembers} /></MemoryRouter>);
     expect(screen.getByText("Place unavailable")).toBeInTheDocument();
+  });
+
+  it("event cards surface open and critical preparation", () => {
+    const timestamp = new Date().toISOString();
+    const event: FamilyEvent = {
+      ...inputForDate("Prepared event", currentDateKey()),
+      id: "event_with_prep",
+      prepTasks: [{ id: "prep_critical", title: "Buy present", ownerIds: ["member_beck"], priority: "critical", status: "open", blocksEvent: true, createdAt: timestamp, updatedAt: timestamp }],
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    };
+    render(<MemoryRouter><EventCard event={event} familyMembers={seedFamilyMembers} /></MemoryRouter>);
+    expect(screen.getByText("1 prep task open · 1 critical")).toBeInTheDocument();
   });
 });
