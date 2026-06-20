@@ -3,6 +3,8 @@ import type { EventCategory, EventStatus, PlaceType, PrepTaskPriority, PrepTaskS
 export const DATABASE_NAME = "lawrence_loop_db";
 export const DATABASE_SCHEMA_VERSION = 6;
 export const APP_DATA_SCHEMA = "lawrence-loop-data-v6";
+export const EXPORT_DATA_SCHEMA = "officially-organised-data-v1";
+export const EXPORT_SCHEMA_VERSION = 1;
 export const HOUSEHOLD_TIME_ZONE = "Europe/London";
 export const FAMILY_CAR_RESOURCE_ID = "resource_family_car";
 

@@ -1,6 +1,6 @@
 # Documentation index
 
-The documents in this folder define **The Lawrence Loop**, a private, mobile-first family logistics PWA. They progress from early product discovery through the validated product definition, technical architecture, and implementation plan.
+The documents in this folder define **Officially Organised**, a private, mobile-first family logistics PWA. They progress from early product discovery through the validated product definition, technical architecture, and implementation plan.
 
 ## Start here
 
@@ -18,6 +18,7 @@ The documents in this folder define **The Lawrence Loop**, a private, mobile-fir
 | 04 | [Technical Architecture v0.1](04-technical-architecture-v0.1.md) | Defines the local-first PWA architecture, stack, storage, offline behaviour, domain logic, testing, security, and future extension paths. | Current technical source of truth |
 | 05 | [Build Plan v0.1](05-build-plan-v0.1.md) | Converts the specification and architecture into phased deliverables, acceptance tests, development prompts, milestones, and the MVP definition of done. | Current delivery source of truth |
 | 06 | [Tranche 6: Routines and Recurrence v0.1](06-tranche-6-routines-and-recurrence-v0.1.md) | Records the implemented recurrence model, integration, validation and known limits. | Implemented |
+| 07 | [Tranche 7: Import, Export and Local Data Safety v0.1](07-tranche-7-import-export-local-data-safety-v0.1.md) | Records the versioned backup format, validation, transactional restore, reset and privacy posture. | Implemented |
 
 ## Reading order
 
@@ -48,6 +49,6 @@ If documents disagree, prefer the later document for its area of authority:
 
 ## Current implementation boundary
 
-The application is implemented through **Tranche 6**, including local-first event routines and virtual recurrence across operational views. See document 06 for the current boundary.
+The application is implemented through **Tranche 7**, including versioned local backup, validated transactional restore and protected reset. See document 07 for the current boundary.
 
 When adding a document, retain the numeric prefix, include its version in the filename, and update this index with its purpose, status, and authority.
