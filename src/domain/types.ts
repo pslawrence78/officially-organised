@@ -150,6 +150,7 @@ export interface FamilyEvent {
   resourceNeeds: ResourceNeed[];
   notes?: string;
   seriesId?: string;
+  occurrenceDate?: string;
   templateId?: string;
   createdAt: string;
   updatedAt: string;
@@ -191,9 +192,80 @@ export interface Conflict {
   resourceId?: string;
 }
 
-export interface EventSeriesRecord {
+export type RecurrenceFrequency = "weekly" | "fortnightly" | "monthly";
+export type Weekday = "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
+export type EventSeriesStatus = "active" | "paused" | "archived";
+
+export interface ResourceNeedTemplate {
   id: string;
-  name: string;
+  resourceId: string;
+  needStatus: ResourceNeedStatus;
+  beforeStartMinutes: number;
+  afterEndMinutes: number;
+  allocatedTo?: string;
+  notes?: string;
+}
+
+export interface PrepTaskTemplate {
+  id: string;
+  title: string;
+  ownerIds: string[];
+  dueOffsetMinutes: number;
+  priority: PrepTaskPriority;
+  blocksEvent: boolean;
+  notes?: string;
+}
+
+export interface EventSeriesException {
+  id: string;
+  occurrenceDate: string;
+  type: "cancelled" | "moved" | "changed";
+  movedToDate?: string;
+  movedToStartTime?: string;
+  movedToDurationMinutes?: number;
+  responsibleAdults?: string[];
+  placeId?: string;
+  resourceNeeds?: ResourceNeed[];
+  prepTasks?: PrepTask[];
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface EventSeries {
+  id: string;
+  title: string;
+  category: EventCategory;
+  status: EventSeriesStatus;
+  recurrence: {
+    frequency: RecurrenceFrequency;
+    dayOfWeek?: Weekday;
+    dayOfMonth?: number;
+    startDate: string;
+    endDate?: string;
+    startTime: string;
+    durationMinutes: number;
+    termTimeOnly?: boolean;
+  };
+  defaultPlaceId?: string;
+  defaultParticipants: string[];
+  defaultResponsibleAdults: string[];
+  defaultResourceNeeds: ResourceNeedTemplate[];
+  defaultPrepTasks: PrepTaskTemplate[];
+  notes?: string;
+  exceptions: EventSeriesException[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type EventSeriesInput = Omit<EventSeries, "id" | "createdAt" | "updatedAt">;
+export type EventSeriesPatch = Partial<EventSeriesInput>;
+export type EventSeriesRecord = EventSeries;
+
+export interface EventOccurrence extends FamilyEvent {
+  source: "event" | "series";
+  seriesId?: string;
+  occurrenceDate?: string;
 }
 
 export type SchoolPeriodType = "term" | "holiday";

@@ -1,8 +1,9 @@
 import type { ResourceNeedWithEvent } from "../../domain/types";
 import { db } from "../db";
+import { getEvents } from "./eventRepository";
 
 export async function getResourceNeeds(resourceId?: string): Promise<ResourceNeedWithEvent[]> {
-  const [events, resources] = await Promise.all([db.events.toArray(), db.resources.toArray()]);
+  const [events, resources] = await Promise.all([getEvents(), db.resources.toArray()]);
   const resourcesById = new Map(resources.map((resource) => [resource.id, resource]));
   return events
     .flatMap((event) => event.resourceNeeds.map((need) => ({ need, event, resource: resourcesById.get(need.resourceId) })))

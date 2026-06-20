@@ -31,6 +31,7 @@ export function EventCard({ event, familyMembers, place, conflicts = [] }: Event
         <div className="event-card__badges">
           <Badge tone="accent">{CATEGORY_LABELS[event.category]}</Badge>
           <Badge tone={event.status === "confirmed" ? "success" : "neutral"}>{STATUS_LABELS[event.status]}</Badge>
+          {event.seriesId && event.occurrenceDate ? <Badge tone="neutral">Routine</Badge> : null}
           {conflicts.length ? <Badge tone={conflicts.some((conflict) => conflict.severity === "critical") ? "critical" : "warning"}>{conflicts.length} need{conflicts.length === 1 ? "" : "s"} attention</Badge> : null}
         </div>
         <h3>{event.title}</h3>

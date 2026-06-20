@@ -2,9 +2,10 @@ import { validateEventInput, EventValidationError } from "../../domain/validatio
 import { cleanPrepTask } from "../../domain/validation/prepTaskValidation";
 import { cleanResourceNeed } from "../../domain/validation/resourceNeedValidation";
 import type { AuditLogEntry, FamilyEvent, FamilyEventInput, FamilyEventUpdates, PrepTask, ResourceNeed } from "../../domain/types";
-import { dateKeyToIsoStart, isoToDateKey, addDaysToDateKey } from "../../utils/dates";
+import { dateKeyToIsoStart, isoToDateKey, addDaysToDateKey, currentDateKey } from "../../utils/dates";
 import { createId } from "../../utils/ids";
 import { db } from "../db";
+import { expandAllSeriesForRange, expandSeriesForRange } from "../../domain/series/seriesService";
 
 async function assertValidEvent(input: FamilyEventInput) {
   const [familyMembers, places, resources] = await Promise.all([
@@ -78,6 +79,7 @@ export async function updateEvent(id: string, updates: FamilyEventUpdates): Prom
     resourceNeeds: updates.resourceNeeds ?? existing.resourceNeeds,
     notes: "notes" in updates ? updates.notes : existing.notes,
     seriesId: "seriesId" in updates ? updates.seriesId : existing.seriesId,
+    occurrenceDate: "occurrenceDate" in updates ? updates.occurrenceDate : existing.occurrenceDate,
     templateId: "templateId" in updates ? updates.templateId : existing.templateId,
   };
   await assertValidEvent(input);
@@ -163,11 +165,19 @@ export async function deleteEvent(id: string): Promise<void> {
 }
 
 export async function getEventById(id: string) {
-  return db.events.get(id);
+  const stored = await db.events.get(id); if (stored) return stored;
+  const match = /^occurrence_(.+)_(\d{4}-\d{2}-\d{2})$/.exec(id); if (!match) return undefined;
+  const series = await db.eventSeries.get(match[1]); if (!series) return undefined;
+  const target = series.exceptions.find((item) => item.occurrenceDate === match[2])?.movedToDate ?? match[2];
+  const [calendar, materialised] = await Promise.all([db.schoolCalendars.toCollection().first(), db.events.filter((event) => Boolean(event.seriesId && event.occurrenceDate)).toArray()]);
+  return expandSeriesForRange(series, target, addDaysToDateKey(target, 1), { schoolCalendar: calendar, materialisedEvents: materialised }).find((event) => event.id === id);
 }
 
 export async function getEvents() {
-  return db.events.orderBy("startAt").toArray();
+  const today = currentDateKey();
+  // Unbounded stored-event consumers use a restrained operational horizon for
+  // virtual series; visible date-range screens request their exact own window.
+  return getEventsForDateRange(dateKeyToIsoStart(addDaysToDateKey(today, -7)), dateKeyToIsoStart(addDaysToDateKey(today, 90)));
 }
 
 function dateKeyFromInput(date: Date | string) {
@@ -186,9 +196,12 @@ export async function getEventsForDate(date: Date | string) {
 export async function getEventsForDateRange(start: Date | string, end: Date | string) {
   const startIso = (start instanceof Date ? start : new Date(start)).toISOString();
   const endIso = (end instanceof Date ? end : new Date(end)).toISOString();
-  return db.events
+  const stored = await db.events
     .where("startAt")
     .below(endIso)
     .filter((event) => event.endAt > startIso)
     .sortBy("startAt");
+  const [series, calendar, materialised] = await Promise.all([db.eventSeries.toArray(), db.schoolCalendars.toCollection().first(), db.events.filter((event) => Boolean(event.seriesId && event.occurrenceDate)).toArray()]);
+  const generated = expandAllSeriesForRange(series, isoToDateKey(startIso), isoToDateKey(endIso), { schoolCalendar: calendar, materialisedEvents: materialised }).filter((event) => event.startAt < endIso && event.endAt > startIso);
+  return [...stored, ...generated].sort((a, b) => a.startAt.localeCompare(b.startAt));
 }

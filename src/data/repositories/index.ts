@@ -40,3 +40,5 @@ export { getResourceNeeds } from "./resourceNeedRepository";
 export { getSchoolCalendar, saveSchoolCalendar } from "./schoolCalendarRepository";
 
 export { getCountdownTarget, getCountdownTargets, saveCountdownTarget } from "./countdownRepository";
+
+export { archiveSeries, cancelOccurrence, changeOccurrencePrep, changeOccurrenceResources, changeOccurrenceResponsibility, clearOccurrenceException, createSeries, getSeries, getSeriesById, moveOccurrence, pauseSeries, updateSeries } from "./eventSeriesRepository";

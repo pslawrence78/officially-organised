@@ -2,6 +2,8 @@ import { cleanPrepTask, validatePrepTask } from "../../domain/validation/prepTas
 import type { NewPrepTaskInput, PrepTask, PrepTaskStatus, PrepTaskUpdates, PrepTaskWithEvent } from "../../domain/types";
 import { createId } from "../../utils/ids";
 import { db } from "../db";
+import { getEventById, getEvents } from "./eventRepository";
+import { changeOccurrencePrep } from "./eventSeriesRepository";
 
 async function getEventAndAdults(eventId: string) {
   const [event, familyMembers] = await Promise.all([db.events.get(eventId), db.familyMembers.toArray()]);
@@ -51,6 +53,15 @@ export async function updatePrepTask(eventId: string, taskId: string, updates: P
 }
 
 export async function setPrepTaskStatus(eventId: string, taskId: string, status: PrepTaskStatus) {
+  if (!await db.events.get(eventId)) {
+    const occurrence = await getEventById(eventId);
+    if (!occurrence?.seriesId || !occurrence.occurrenceDate) throw new Error("Event not found");
+    const existing = occurrence.prepTasks.find((task) => task.id === taskId);
+    if (!existing) throw new Error("Preparation task not found");
+    const task = { ...existing, status, updatedAt: new Date().toISOString() };
+    await changeOccurrencePrep(occurrence.seriesId, occurrence.occurrenceDate, occurrence.prepTasks.map((item) => item.id === taskId ? task : item));
+    return task;
+  }
   return updatePrepTask(eventId, taskId, { status });
 }
 
@@ -67,7 +78,7 @@ export async function deletePrepTask(eventId: string, taskId: string): Promise<v
 }
 
 export async function getPrepTasks(): Promise<PrepTaskWithEvent[]> {
-  const events = await db.events.toArray();
+  const events = await getEvents();
   return events
     .flatMap((event) => event.prepTasks.map((task) => ({ task, event })))
     .sort((a, b) => {

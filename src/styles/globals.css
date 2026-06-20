@@ -548,6 +548,21 @@ h1, h2, h3 { line-height: 1.12; }
 .place-card__body small { color: var(--color-muted); }
 
 .card-list, .template-grid { display: grid; gap: var(--space-3); }
+.routine-section, .routine-list, .routine-form, .occurrence-editor { display: grid; gap: var(--space-4); }
+.routine-card { background: var(--color-card); border: 1px solid var(--color-border); border-left: 4px solid var(--color-accent); border-radius: var(--radius-md); padding: var(--space-5); }
+.routine-card h2 { font-family: var(--font-display); font-size: 1.55rem; font-weight: 500; margin: var(--space-3) 0 var(--space-2); }
+.routine-card__badges { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.routine-card__schedule { color: var(--color-accent); font-size: .8rem; font-weight: 750; text-transform: capitalize; }
+.routine-card__details { display: grid; gap: var(--space-2); margin: var(--space-4) 0; }
+.routine-card__details div { display: grid; gap: .2rem; grid-template-columns: 6rem 1fr; }
+.routine-card__details dt { color: var(--color-muted); font-size: .7rem; }
+.routine-card__details dd { font-size: .78rem; font-weight: 700; margin: 0; }
+.check-row { align-items: center; background: var(--color-card-strong); border: 1px solid var(--color-border); border-radius: var(--radius-sm); cursor: pointer; display: flex; gap: var(--space-3); min-height: 3.5rem; padding: var(--space-3); }
+.check-row input { height: 1.2rem; width: 1.2rem; }
+.routine-prep-add, .routine-prep-row { display: grid; gap: var(--space-2); grid-template-columns: minmax(0, 1fr) auto; margin-top: var(--space-2); }
+.routine-prep-row { grid-template-columns: minmax(0, 1fr) minmax(7rem, auto) auto; }
+.routine-prep-add input, .routine-prep-row input, .routine-prep-row select { background: var(--color-card); border: 1px solid var(--color-border); border-radius: var(--radius-sm); min-height: 2.8rem; padding: .6rem .75rem; width: 100%; }
+.occurrence-editor { border: 2px solid var(--color-accent); }
 .person-card { align-items: center; display: flex; gap: var(--space-4); min-height: 5.6rem; padding: var(--space-4); text-decoration: none; }
 .person-card:hover { border-color: var(--color-accent); }
 .person-avatar {
@@ -731,6 +746,7 @@ h1, h2, h3 { line-height: 1.12; }
   .data-form { padding: var(--space-8); }
   .detail-list > div { grid-template-columns: 9rem 1fr; }
   .place-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .routine-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 27rem) {
@@ -748,6 +764,10 @@ h1, h2, h3 { line-height: 1.12; }
   .countdown-card--primary { padding: var(--space-4); }
   .countdowns-page .page-title-row { align-items: flex-start; }
   .countdown-management-item, .countdown-suggestion { align-items: flex-start; }
+  .routine-card { padding: var(--space-4); }
+  .routine-card__details div { grid-template-columns: 1fr; }
+  .routine-prep-row { grid-template-columns: 1fr; }
+  .occurrence-editor .form-actions--spread { align-items: stretch; flex-direction: column; }
 }
 
 @media (prefers-reduced-motion: reduce) {

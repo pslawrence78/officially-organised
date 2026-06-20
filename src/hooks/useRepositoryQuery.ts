@@ -15,7 +15,7 @@ export function useRepositoryQuery<T>(query: () => Promise<T>, dependencies: Rea
 
   useEffect(() => {
     let active = true;
-    setState({ data: undefined, error: undefined, loading: true });
+    setState((current) => ({ data: current.data, error: undefined, loading: true }));
 
     query()
       .then((data) => {

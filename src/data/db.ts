@@ -8,7 +8,7 @@ import type {
   AuditLogEntry,
   CountdownTarget,
   FamilyEvent,
-  EventSeriesRecord,
+  EventSeries,
   FamilyMember,
   Household,
   Place,
@@ -24,7 +24,7 @@ export class LawrenceLoopDatabase extends Dexie {
   resources!: EntityTable<Resource, "id">;
   places!: EntityTable<Place, "id">;
   events!: EntityTable<FamilyEvent, "id">;
-  eventSeries!: EntityTable<EventSeriesRecord, "id">;
+  eventSeries!: EntityTable<EventSeries, "id">;
   templates!: EntityTable<StarterTemplate, "id">;
   settings!: EntityTable<Setting, "id">;
   auditLog!: EntityTable<AuditLogEntry, "id">;

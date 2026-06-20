@@ -17,6 +17,7 @@ The documents in this folder define **The Lawrence Loop**, a private, mobile-fir
 | 03 | [Product Specification v0.2](03-product-specification-v0.2.md) | Defines the current product scope, users, workflows, screens, data concepts, conflict rules, and acceptance criteria. | Current product source of truth |
 | 04 | [Technical Architecture v0.1](04-technical-architecture-v0.1.md) | Defines the local-first PWA architecture, stack, storage, offline behaviour, domain logic, testing, security, and future extension paths. | Current technical source of truth |
 | 05 | [Build Plan v0.1](05-build-plan-v0.1.md) | Converts the specification and architecture into phased deliverables, acceptance tests, development prompts, milestones, and the MVP definition of done. | Current delivery source of truth |
+| 06 | [Tranche 6: Routines and Recurrence v0.1](06-tranche-6-routines-and-recurrence-v0.1.md) | Records the implemented recurrence model, integration, validation and known limits. | Implemented |
 
 ## Reading order
 
@@ -47,6 +48,6 @@ If documents disagree, prefer the later document for its area of authority:
 
 ## Current implementation boundary
 
-The implemented foundation is known as **Tranche 0** (formerly Milestone A): React, TypeScript, Vite, the PWA foundation, mobile-first shell, navigation, theme, IndexedDB setup, seed family records, placeholder pages, and the initial architecture.
+The application is implemented through **Tranche 6**, including local-first event routines and virtual recurrence across operational views. See document 06 for the current boundary.
 
 When adding a document, retain the numeric prefix, include its version in the filename, and update this index with its purpose, status, and authority.
