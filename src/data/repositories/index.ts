@@ -34,3 +34,5 @@ export {
   setPrepTaskStatus,
   updatePrepTask,
 } from "./prepTaskRepository";
+
+export { getResourceNeeds } from "./resourceNeedRepository";

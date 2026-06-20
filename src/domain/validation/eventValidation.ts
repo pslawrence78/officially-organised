@@ -1,6 +1,7 @@
 import { EVENT_CATEGORIES, EVENT_STATUSES } from "../constants";
 import type { FamilyEventInput, FamilyMember, Place } from "../types";
 import { validatePrepTasks } from "./prepTaskValidation";
+import { validateResourceNeeds } from "./resourceNeedValidation";
 
 export type ValidationErrors = Record<string, string>;
 
@@ -8,6 +9,7 @@ export function validateEventInput(
   input: FamilyEventInput,
   familyMembers: FamilyMember[],
   places: Place[],
+  resources: import("../types").Resource[] = [],
 ): ValidationErrors {
   const errors: ValidationErrors = {};
   const memberIds = new Set(familyMembers.map((member) => member.id));
@@ -27,6 +29,8 @@ export function validateEventInput(
   if (input.placeId && !places.some((place) => place.id === input.placeId)) errors.placeId = "The selected place is unavailable.";
   const prepTaskError = validatePrepTasks(input.prepTasks, familyMembers);
   if (prepTaskError) errors.prepTasks = prepTaskError;
+  const resourceNeedError = validateResourceNeeds(input.resourceNeeds, familyMembers, resources);
+  if (resourceNeedError) errors.resourceNeeds = resourceNeedError;
 
   return errors;
 }

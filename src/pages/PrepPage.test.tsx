@@ -14,7 +14,7 @@ function task(overrides: Partial<PrepTask>): PrepTask {
 
 function eventInput(prepTasks: PrepTask[]): FamilyEventInput {
   const today = currentDateKey();
-  return { title: "Swimming", category: "lesson", status: "confirmed", startAt: localDateTimeToIso(`${today}T17:30`), endAt: localDateTimeToIso(`${today}T18:00`), allDay: false, participants: ["member_seb"], responsibleAdults: ["member_phil"], prepTasks };
+  return { title: "Swimming", category: "lesson", status: "confirmed", startAt: localDateTimeToIso(`${today}T17:30`), endAt: localDateTimeToIso(`${today}T18:00`), allDay: false, participants: ["member_seb"], responsibleAdults: ["member_phil"], prepTasks, resourceNeeds: [] };
 }
 
 describe("Prep view", () => {

@@ -21,6 +21,7 @@ function inputForDate(title: string, dateKey: string): FamilyEventInput {
     participants: ["member_phil"],
     responsibleAdults: [],
     prepTasks: [],
+    resourceNeeds: [],
   };
 }
 
@@ -82,5 +83,18 @@ describe("event views", () => {
     };
     render(<MemoryRouter><EventCard event={event} familyMembers={seedFamilyMembers} /></MemoryRouter>);
     expect(screen.getByText("1 prep task open · 1 critical")).toBeInTheDocument();
+  });
+
+  it("event cards surface the independent car window", () => {
+    const timestamp = new Date().toISOString();
+    const event: FamilyEvent = {
+      ...inputForDate("Car event", currentDateKey()),
+      id: "event_with_car",
+      resourceNeeds: [{ id: "resource_need_car", resourceId: "resource_family_car", needStatus: "required", neededFrom: new Date(Date.now() + 60_000).toISOString(), neededUntil: new Date(Date.now() + 3_600_000).toISOString(), allocatedTo: "member_phil", createdAt: timestamp, updatedAt: timestamp }],
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    };
+    render(<MemoryRouter><EventCard event={event} familyMembers={seedFamilyMembers} /></MemoryRouter>);
+    expect(screen.getByText(/Car required/)).toBeInTheDocument();
   });
 });

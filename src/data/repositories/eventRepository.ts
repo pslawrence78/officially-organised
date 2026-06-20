@@ -1,16 +1,18 @@
 import { validateEventInput, EventValidationError } from "../../domain/validation/eventValidation";
 import { cleanPrepTask } from "../../domain/validation/prepTaskValidation";
-import type { AuditLogEntry, FamilyEvent, FamilyEventInput, FamilyEventUpdates, PrepTask } from "../../domain/types";
+import { cleanResourceNeed } from "../../domain/validation/resourceNeedValidation";
+import type { AuditLogEntry, FamilyEvent, FamilyEventInput, FamilyEventUpdates, PrepTask, ResourceNeed } from "../../domain/types";
 import { dateKeyToIsoStart, isoToDateKey, addDaysToDateKey } from "../../utils/dates";
 import { createId } from "../../utils/ids";
 import { db } from "../db";
 
 async function assertValidEvent(input: FamilyEventInput) {
-  const [familyMembers, places] = await Promise.all([
+  const [familyMembers, places, resources] = await Promise.all([
     db.familyMembers.toArray(),
     db.places.toArray(),
+    db.resources.toArray(),
   ]);
-  const errors = validateEventInput(input, familyMembers, places);
+  const errors = validateEventInput(input, familyMembers, places, resources);
   if (Object.keys(errors).length > 0) throw new EventValidationError(errors);
 }
 
@@ -22,6 +24,7 @@ export async function createEvent(input: FamilyEventInput): Promise<FamilyEvent>
     title: input.title.trim(),
     notes: input.notes?.trim() || undefined,
     prepTasks: input.prepTasks.map((task) => cleanPrepTask(task)),
+    resourceNeeds: input.resourceNeeds.map((need) => cleanResourceNeed(need)),
     id: createId("event"),
     createdAt: timestamp,
     updatedAt: timestamp,
@@ -43,6 +46,13 @@ export async function createEvent(input: FamilyEventInput): Promise<FamilyEvent>
       action: "created",
       timestamp,
       summary: `Added ${task.title} to ${event.title}`,
+    })), ...event.resourceNeeds.map((need) => ({
+      id: createId("audit"),
+      entityType: "resourceNeed",
+      entityId: need.id,
+      action: "created",
+      timestamp,
+      summary: `Added ${need.needStatus} ${need.resourceId} need to ${event.title}`,
     }))];
     await db.auditLog.bulkAdd(auditEntries);
   });
@@ -65,6 +75,7 @@ export async function updateEvent(id: string, updates: FamilyEventUpdates): Prom
     participants: updates.participants ?? existing.participants,
     responsibleAdults: updates.responsibleAdults ?? existing.responsibleAdults,
     prepTasks: updates.prepTasks ?? existing.prepTasks,
+    resourceNeeds: updates.resourceNeeds ?? existing.resourceNeeds,
     notes: "notes" in updates ? updates.notes : existing.notes,
     seriesId: "seriesId" in updates ? updates.seriesId : existing.seriesId,
     templateId: "templateId" in updates ? updates.templateId : existing.templateId,
@@ -78,6 +89,7 @@ export async function updateEvent(id: string, updates: FamilyEventUpdates): Prom
     title: input.title.trim(),
     notes: input.notes?.trim() || undefined,
     prepTasks: input.prepTasks.map((task) => cleanPrepTask(task)),
+    resourceNeeds: input.resourceNeeds.map((need) => cleanResourceNeed(need)),
     updatedAt: timestamp,
   };
 
@@ -90,11 +102,26 @@ export async function updateEvent(id: string, updates: FamilyEventUpdates): Prom
       action: "updated",
       timestamp,
       summary: `Updated ${event.title}`,
-    }, ...prepTaskAuditEntries(existing.prepTasks, event.prepTasks, event.title, timestamp)];
+    }, ...prepTaskAuditEntries(existing.prepTasks, event.prepTasks, event.title, timestamp), ...resourceNeedAuditEntries(existing.resourceNeeds, event.resourceNeeds, event.title, timestamp)];
     await db.auditLog.bulkAdd(auditEntries);
   });
 
   return event;
+}
+
+function resourceNeedAuditEntries(previous: ResourceNeed[], current: ResourceNeed[], eventTitle: string, timestamp: string): AuditLogEntry[] {
+  const previousById = new Map(previous.map((need) => [need.id, need]));
+  const currentById = new Map(current.map((need) => [need.id, need]));
+  const entries: AuditLogEntry[] = [];
+  for (const need of current) {
+    const oldNeed = previousById.get(need.id);
+    if (!oldNeed) entries.push({ id: createId("audit"), entityType: "resourceNeed", entityId: need.id, action: "created", timestamp, summary: `Added ${need.needStatus} car need to ${eventTitle}` });
+    else if (JSON.stringify(oldNeed) !== JSON.stringify(need)) entries.push({ id: createId("audit"), entityType: "resourceNeed", entityId: need.id, action: "updated", timestamp, summary: `Updated car need for ${eventTitle}` });
+  }
+  for (const need of previous) {
+    if (!currentById.has(need.id)) entries.push({ id: createId("audit"), entityType: "resourceNeed", entityId: need.id, action: "deleted", timestamp, summary: `Removed car need from ${eventTitle}` });
+  }
+  return entries;
 }
 
 function prepTaskAuditEntries(previous: PrepTask[], current: PrepTask[], eventTitle: string, timestamp: string): AuditLogEntry[] {

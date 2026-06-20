@@ -7,9 +7,10 @@ import {
   PLACE_TYPES,
   PLACE_TYPE_LABELS,
   STATUS_LABELS,
+  FAMILY_CAR_RESOURCE_ID,
 } from "../../domain/constants";
 import { validateEventInput, type ValidationErrors } from "../../domain/validation/eventValidation";
-import type { FamilyEvent, FamilyEventInput, FamilyMember, Place } from "../../domain/types";
+import type { FamilyEvent, FamilyEventInput, FamilyMember, Place, Resource } from "../../domain/types";
 import { createEvent, createPlace, updateEvent } from "../../data/repositories";
 import {
   allDayEndIso,
@@ -23,14 +24,16 @@ import {
 } from "../../utils/dates";
 import { MemberSelector } from "./MemberSelector";
 import { PrepTaskEditor } from "../prep/PrepTaskEditor";
+import { CarNeedEditor } from "../resources/CarNeedEditor";
 
 interface EventFormProps {
   event?: FamilyEvent;
   familyMembers: FamilyMember[];
   places: Place[];
+  resources: Resource[];
 }
 
-export function EventForm({ event, familyMembers, places }: EventFormProps) {
+export function EventForm({ event, familyMembers, places, resources }: EventFormProps) {
   const navigate = useNavigate();
   const defaults = defaultEventTimes();
   const [title, setTitle] = useState(event?.title ?? "");
@@ -50,12 +53,15 @@ export function EventForm({ event, familyMembers, places }: EventFormProps) {
   const [participants, setParticipants] = useState(event?.participants ?? []);
   const [responsibleAdults, setResponsibleAdults] = useState(event?.responsibleAdults ?? []);
   const [prepTasks, setPrepTasks] = useState(event?.prepTasks ?? []);
+  const [resourceNeeds, setResourceNeeds] = useState(event?.resourceNeeds ?? []);
   const [notes, setNotes] = useState(event?.notes ?? "");
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [saveError, setSaveError] = useState("");
   const [saving, setSaving] = useState(false);
 
   const adults = familyMembers.filter((member) => member.memberType === "adult");
+  const familyCar = resources.find((resource) => resource.id === FAMILY_CAR_RESOURCE_ID);
+  const carNeed = resourceNeeds.find((need) => need.resourceId === FAMILY_CAR_RESOURCE_ID);
 
   const onSubmit = async (formEvent: FormEvent) => {
     formEvent.preventDefault();
@@ -82,9 +88,10 @@ export function EventForm({ event, familyMembers, places }: EventFormProps) {
       participants,
       responsibleAdults,
       prepTasks,
+      resourceNeeds,
       notes: notes || undefined,
     };
-    const validationErrors = validateEventInput(input, familyMembers, availablePlaces);
+    const validationErrors = validateEventInput(input, familyMembers, availablePlaces, resources);
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) return;
 
@@ -173,6 +180,8 @@ export function EventForm({ event, familyMembers, places }: EventFormProps) {
       {addingPlace ? <section className="inline-create" aria-label="Add a new place"><div className="form-grid"><label className="form-field"><span>New place name</span><input onChange={(e) => setNewPlaceName(e.target.value)} placeholder="e.g. Beavers HQ" value={newPlaceName} /></label><label className="form-field"><span>Type</span><select onChange={(e) => setNewPlaceType(e.target.value as (typeof PLACE_TYPES)[number])} value={newPlaceType}>{PLACE_TYPES.map((value) => <option key={value} value={value}>{PLACE_TYPE_LABELS[value]}</option>)}</select></label></div>{placeSaveError ? <span className="field-error">{placeSaveError}</span> : null}<button className="button button--secondary" onClick={addPlaceInline} type="button">Add and select place</button></section> : null}
 
       <PrepTaskEditor adults={adults} error={errors.prepTasks} onChange={setPrepTasks} tasks={prepTasks} />
+
+      {familyCar ? <CarNeedEditor adults={adults} defaultFrom={allDay ? `${startDate}T08:00` : startLocal} defaultUntil={allDay ? `${endDate}T18:00` : endLocal} error={errors.resourceNeeds} need={carNeed} onChange={(need) => setResourceNeeds((current) => [...current.filter((item) => item.resourceId !== familyCar.id), ...(need ? [need] : [])])} resource={familyCar} /> : null}
 
       <label className="form-field">
         <span>Notes (optional)</span>

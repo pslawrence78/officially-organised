@@ -26,6 +26,7 @@ function eventInput(prepTasks: FamilyEventInput["prepTasks"] = []): FamilyEventI
     participants: ["member_seb"],
     responsibleAdults: ["member_phil"],
     prepTasks,
+    resourceNeeds: [],
   };
 }
 

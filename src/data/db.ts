@@ -73,13 +73,29 @@ export class LawrenceLoopDatabase extends Dexie {
         });
       });
 
-    this.version(DATABASE_SCHEMA_VERSION)
+    this.version(3)
       .stores({
         events: "&id, startAt, endAt, category, status",
       })
       .upgrade(async (transaction) => {
         await transaction.table("events").toCollection().modify((event) => {
           event.prepTasks ??= [];
+        });
+
+        await transaction.table("settings").put({
+          id: "app_data_schema",
+          value: "lawrence-loop-data-v3",
+          description: "Current application data schema identifier",
+        });
+      });
+
+    this.version(DATABASE_SCHEMA_VERSION)
+      .stores({
+        events: "&id, startAt, endAt, category, status",
+      })
+      .upgrade(async (transaction) => {
+        await transaction.table("events").toCollection().modify((event) => {
+          event.resourceNeeds ??= [];
         });
 
         await transaction.table("settings").put({

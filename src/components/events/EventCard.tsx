@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
-import { CATEGORY_LABELS, STATUS_LABELS } from "../../domain/constants";
+import { CATEGORY_LABELS, FAMILY_CAR_RESOURCE_ID, RESOURCE_NEED_STATUS_LABELS, STATUS_LABELS } from "../../domain/constants";
 import type { FamilyEvent, FamilyMember, Place } from "../../domain/types";
 import { formatEventTime } from "../../utils/dates";
+import { formatResourceWindow } from "../../utils/resourceNeeds";
 import { Badge } from "../common/Badge";
 import { Icon } from "../common/Icon";
 
@@ -17,6 +18,7 @@ export function EventCard({ event, familyMembers, place }: EventCardProps) {
   const responsibleNames = namesFor(event.responsibleAdults);
   const openPrep = event.prepTasks.filter((task) => task.status === "open");
   const criticalPrep = openPrep.filter((task) => task.priority === "critical");
+  const carNeed = event.resourceNeeds.find((need) => need.resourceId === FAMILY_CAR_RESOURCE_ID && need.needStatus !== "not_required");
 
   return (
     <Link className={`event-card event-card--${event.status}`} to={`/events/${event.id}`}>
@@ -34,6 +36,7 @@ export function EventCard({ event, familyMembers, place }: EventCardProps) {
         {responsibleNames.length > 0 ? <p><strong>Responsible</strong> {responsibleNames.join(", ")}</p> : null}
         {event.placeId ? <p className="event-card__place"><Icon name="place" /> {place?.name ?? "Place unavailable"}</p> : null}
         {openPrep.length ? <p className={`event-card__prep${criticalPrep.length ? " event-card__prep--critical" : ""}`}><Icon name="prep" /> {openPrep.length} prep task{openPrep.length === 1 ? "" : "s"} open{criticalPrep.length ? ` · ${criticalPrep.length} critical` : ""}</p> : null}
+        {carNeed ? <p className={`event-card__car event-card__car--${carNeed.needStatus}`}><Icon name="car" /> Car {RESOURCE_NEED_STATUS_LABELS[carNeed.needStatus].toLowerCase()} · {formatResourceWindow(carNeed)}</p> : null}
       </div>
       <Icon className="event-card__chevron" name="chevron" />
     </Link>

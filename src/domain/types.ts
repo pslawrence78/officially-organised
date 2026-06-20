@@ -20,7 +20,8 @@ export type EventCategory =
   | "household_admin"
   | "reminder_only";
 
-export type CarNeed = "required" | "maybe" | "not_required";
+export type ResourceNeedStatus = "required" | "maybe" | "not_required";
+export type CarNeed = ResourceNeedStatus;
 
 export type EventStatus =
   | "planned"
@@ -42,6 +43,20 @@ export type PlaceType =
 
 export type PrepTaskStatus = "open" | "done" | "skipped";
 export type PrepTaskPriority = "normal" | "important" | "critical";
+
+export interface ResourceNeed {
+  id: string;
+  resourceId: string;
+  needStatus: ResourceNeedStatus;
+  neededFrom?: string;
+  neededUntil?: string;
+  allocatedTo?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type ResourceNeedInput = Omit<ResourceNeed, "createdAt" | "updatedAt">;
 
 export interface PrepTask {
   id: string;
@@ -132,6 +147,7 @@ export interface FamilyEvent {
   participants: string[];
   responsibleAdults: string[];
   prepTasks: PrepTask[];
+  resourceNeeds: ResourceNeed[];
   notes?: string;
   seriesId?: string;
   templateId?: string;
@@ -147,6 +163,12 @@ export type PlaceUpdates = Partial<PlaceInput>;
 export interface PrepTaskWithEvent {
   task: PrepTask;
   event: FamilyEvent;
+}
+
+export interface ResourceNeedWithEvent {
+  need: ResourceNeed;
+  event: FamilyEvent;
+  resource: Resource;
 }
 
 export interface EventSeriesRecord {

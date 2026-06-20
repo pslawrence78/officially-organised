@@ -22,6 +22,7 @@ const validInput: FamilyEventInput = {
   participants: ["member_seb"],
   responsibleAdults: ["member_phil"],
   prepTasks: [],
+  resourceNeeds: [],
 };
 
 describe("event validation", () => {

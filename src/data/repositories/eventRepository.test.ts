@@ -24,6 +24,7 @@ function eventInput(title: string, start: string, end: string): FamilyEventInput
     participants: ["member_seb"],
     responsibleAdults: ["member_phil"],
     prepTasks: [],
+    resourceNeeds: [],
   };
 }
 

@@ -2,51 +2,40 @@
 
 A private, mobile-first, local-first family logistics PWA for the Lawrence family.
 
-## Current implementation: Tranche 2
+## Current implementation: Tranche 3
 
-The application now provides operational memory alongside its event foundation:
+The application now makes the shared family car visible alongside events and preparation:
 
-- embedded preparation tasks owned by their events
-- add, edit and delete prep tasks inside event create/edit flows
-- open, done and skipped statuses with tick-off from event detail, Dashboard and Prep
-- normal, important and critical priorities
-- Phil, Beck, both or genuinely unassigned ownership
-- optional British-friendly due date/time, blocking flag and notes
-- a dedicated Prep view grouped into Overdue, Today, Tomorrow, This week, Later and No due date
-- owner filtering, summary counts and critical/overdue styling
-- open and critical prep indicators on Today and Week event cards
-- repository validation and task-level audit entries
-- IndexedDB schema version 3 with safe migration of existing events
+- general embedded resource needs, with the family car as the first supported resource
+- required, maybe needed and not-required states
+- independent needed-from and needed-until windows
+- optional allocation to Phil or Beck and practical resource notes
+- a mobile car section inside event create/edit flows
+- car requirement and window indicators on Today and Week event cards
+- an upcoming Car view grouped into Today, Tomorrow, This week and Later
+- Dashboard car counts and upcoming “Car watch” entries
+- event-detail car context
+- repository-level resource, time-window and adult-allocation validation
+- resource-need audit entries for create, update and removal
+- IndexedDB schema version 4 with safe migration of existing events
 
-Car/resource needs, conflict detection, recurrence, template-driven prep, reminders and JSON import/export remain intentionally out of scope.
+Conflict or overlap detection is intentionally not included. Tranche 3 records and displays the source data; the next tranche can calculate clashes deterministically from it.
 
-## Run locally
+Preparation tasks, event CRUD, places and the offline PWA foundation remain intact. Recurrence, template-driven creation, reminders and JSON import/export remain out of scope.
+
+## Run and verify
 
 ```bash
 pnpm install
 pnpm dev
-```
-
-## Verify
-
-```bash
 pnpm test
 pnpm build
-pnpm preview
 ```
 
 Static hosts must serve `index.html` as the fallback for client-side deep routes. Installable PWA hosting also requires HTTPS.
 
-## Suggested commit messages
-
-For the preceding tranche:
+## Suggested commit
 
 ```text
-Tranche 1: implement events foundation
-```
-
-For this tranche:
-
-```text
-Tranche 2: implement operational preparation memory
+Tranche 3: implement shared car and resource needs
 ```

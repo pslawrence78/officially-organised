@@ -4,8 +4,9 @@ import { ErrorState, LoadingState } from "../components/common/AsyncState";
 import { Badge } from "../components/common/Badge";
 import { Icon } from "../components/common/Icon";
 import { PrepTaskCard } from "../components/prep/PrepTaskCard";
-import { CATEGORY_LABELS, STATUS_LABELS } from "../domain/constants";
-import { deleteEvent, getEventById, getFamilyMembers, getPlaces, setPrepTaskStatus } from "../data/repositories";
+import { CarNeedCard } from "../components/resources/CarNeedCard";
+import { CATEGORY_LABELS, FAMILY_CAR_RESOURCE_ID, STATUS_LABELS } from "../domain/constants";
+import { deleteEvent, getEventById, getFamilyMembers, getPlaces, getResources, setPrepTaskStatus } from "../data/repositories";
 import { useRepositoryQuery } from "../hooks/useRepositoryQuery";
 import { formatEventTime, formatLongDate, isoToDateKey } from "../utils/dates";
 
@@ -16,12 +17,13 @@ export function EventDetailPage() {
   const [deleting, setDeleting] = useState(false);
   const [refreshVersion, setRefreshVersion] = useState(0);
   const state = useRepositoryQuery(async () => {
-    const [event, familyMembers, places] = await Promise.all([
+    const [event, familyMembers, places, resources] = await Promise.all([
       getEventById(eventId),
       getFamilyMembers(),
       getPlaces(),
+      getResources(),
     ]);
-    return { event, familyMembers, places };
+    return { event, familyMembers, places, resources };
   }, [eventId, refreshVersion]);
 
   if (state.loading) return <LoadingState label="Opening the event…" />;
@@ -30,9 +32,11 @@ export function EventDetailPage() {
     return <div className="empty-state"><h1>Event not found</h1><p>It may have been deleted, or this address may be out of date.</p><Link className="button-link" to="/today">Back to Today</Link></div>;
   }
 
-  const { event, familyMembers, places } = state.data;
+  const { event, familyMembers, places, resources } = state.data;
   const namesFor = (ids: string[]) => ids.map((id) => familyMembers.find((member) => member.id === id)?.displayName ?? "Unknown");
   const place = event.placeId ? places.find((item) => item.id === event.placeId) : undefined;
+  const carNeed = event.resourceNeeds.find((need) => need.resourceId === FAMILY_CAR_RESOURCE_ID && need.needStatus !== "not_required");
+  const familyCar = resources.find((resource) => resource.id === FAMILY_CAR_RESOURCE_ID);
 
   const confirmDelete = async () => {
     if (!window.confirm(`Delete “${event.title}”? This cannot be undone.`)) return;
@@ -58,6 +62,7 @@ export function EventDetailPage() {
         </dl>
       </article>
       <section className="event-prep-section"><div className="section-heading"><div><p className="eyebrow">Operational memory</p><h2>Preparation</h2></div><Link className="button button--secondary" to={`/events/${event.id}/edit`}><Icon name="edit" /> Edit tasks</Link></div>{event.prepTasks.length ? <div className="prep-task-list">{event.prepTasks.map((task) => <PrepTaskCard familyMembers={familyMembers} item={{ task, event }} key={task.id} onStatusChange={async (status) => { await setPrepTaskStatus(event.id, task.id, status); setRefreshVersion((value) => value + 1); }} />)}</div> : <p className="section-empty-copy">No preparation tasks attached to this event.</p>}</section>
+      <section className="event-prep-section"><div className="section-heading"><div><p className="eyebrow">Shared resource</p><h2>Family car</h2></div><Link className="button button--secondary" to={`/events/${event.id}/edit`}><Icon name="edit" /> Edit car need</Link></div>{carNeed && familyCar ? <CarNeedCard familyMembers={familyMembers} item={{ need: carNeed, event, resource: familyCar }} /> : <p className="section-empty-copy">The family car is not needed for this event.</p>}</section>
       <div className="detail-actions">
         <Link className="button button--primary" to={`/events/${event.id}/edit`}><Icon name="edit" /> Edit event</Link>
         <button className="button button--danger" disabled={deleting} onClick={confirmDelete} type="button"><Icon name="trash" /> {deleting ? "Deleting…" : "Delete"}</button>

@@ -1,9 +1,10 @@
-import type { EventCategory, EventStatus, PlaceType, PrepTaskPriority, PrepTaskStatus } from "./types";
+import type { EventCategory, EventStatus, PlaceType, PrepTaskPriority, PrepTaskStatus, ResourceNeedStatus } from "./types";
 
 export const DATABASE_NAME = "lawrence_loop_db";
-export const DATABASE_SCHEMA_VERSION = 3;
-export const APP_DATA_SCHEMA = "lawrence-loop-data-v3";
+export const DATABASE_SCHEMA_VERSION = 4;
+export const APP_DATA_SCHEMA = "lawrence-loop-data-v4";
 export const HOUSEHOLD_TIME_ZONE = "Europe/London";
+export const FAMILY_CAR_RESOURCE_ID = "resource_family_car";
 
 export const EVENT_CATEGORIES: EventCategory[] = [
   "school",
@@ -95,4 +96,11 @@ export const PREP_TASK_PRIORITY_LABELS: Record<PrepTaskPriority, string> = {
   normal: "Normal",
   important: "Important",
   critical: "Critical",
+};
+
+export const RESOURCE_NEED_STATUSES: ResourceNeedStatus[] = ["required", "maybe", "not_required"];
+export const RESOURCE_NEED_STATUS_LABELS: Record<ResourceNeedStatus, string> = {
+  required: "Required",
+  maybe: "Maybe needed",
+  not_required: "Not required",
 };
