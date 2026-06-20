@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
+  base: "/officially-organised/",
   plugins: [
     react(),
     VitePWA({
@@ -15,13 +16,13 @@ export default defineConfig({
       workbox: {
         cleanupOutdatedCaches: true,
         globPatterns: ["**/*.{js,css,html,svg,webmanifest}"],
-        navigateFallback: "/index.html",
+        navigateFallback: "/officially-organised/index.html",
         runtimeCaching: [
           {
             urlPattern: ({ request }) => request.mode === "navigate",
             handler: "NetworkFirst",
             options: {
-              cacheName: "lawrence-loop-pages",
+              cacheName: "officially-organised-pages",
               networkTimeoutSeconds: 3,
             },
           },
