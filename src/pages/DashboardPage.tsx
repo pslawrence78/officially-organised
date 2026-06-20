@@ -56,7 +56,7 @@ export function DashboardPage() {
       <section className="hero-card">
         <p className="eyebrow">Home base</p>
         <h1>Family plans,<br /><em>held together.</em></h1>
-        <p>Car clashes, kit reminders and the things we forget—all in one calm family loop.</p>
+        <p>Car clashes, kit reminders and the things we forget—all in one calm shared plan.</p>
         <Link className="hero-card__action" to="/events/new"><Icon name="plus" /> Add an event</Link>
       </section>
 
@@ -73,7 +73,7 @@ export function DashboardPage() {
 
           <section className="section-block attention-section"><div className="section-heading"><div><p className="eyebrow">Needs attention</p><h2>{conflicts.length ? `${conflicts.length} current conflict${conflicts.length === 1 ? "" : "s"}` : "Everything is clear"}</h2></div>{conflicts.length ? <Badge tone={conflicts.some((conflict) => conflict.severity === "critical") ? "critical" : "warning"}>{conflicts.filter((conflict) => conflict.severity === "critical").length} critical</Badge> : <Badge tone="success">No conflicts</Badge>}</div><ConflictList conflicts={conflicts} events={data.allEvents} />{!conflicts.length ? <p className="section-empty-copy">Nothing in the current plans needs conflict attention.</p> : null}</section>
 
-          {data.nextEvent ? <section className="section-block"><div className="section-heading"><div><p className="eyebrow">Next up</p><h2>The next thing in the loop</h2></div></div><EventCard conflicts={conflictsForEvent(conflicts, data.nextEvent.id)} event={data.nextEvent} familyMembers={data.familyMembers} place={data.places.find((place) => place.id === data.nextEvent?.placeId)} /></section> : null}
+          {data.nextEvent ? <section className="section-block"><div className="section-heading"><div><p className="eyebrow">Next up</p><h2>The next thing on the plan</h2></div></div><EventCard conflicts={conflictsForEvent(conflicts, data.nextEvent.id)} event={data.nextEvent} familyMembers={data.familyMembers} place={data.places.find((place) => place.id === data.nextEvent?.placeId)} /></section> : null}
 
           {data.prepItems.some(({ task }) => task.status === "open") ? <section className="section-block"><div className="section-heading"><div><p className="eyebrow">Prep due</p><h2>Things not to forget</h2></div><Link className="back-link" to="/prep">See all</Link></div><div className="prep-task-list">{data.prepItems.filter(({ task }) => task.status === "open").slice(0, 3).map((item) => <PrepTaskCard familyMembers={data.familyMembers} item={item} key={`${item.event.id}-${item.task.id}`} onStatusChange={async (status) => { await setPrepTaskStatus(item.event.id, item.task.id, status); setRefreshVersion((value) => value + 1); }} />)}</div></section> : null}
 

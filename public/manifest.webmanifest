@@ -1,16 +1,16 @@
 {
-  "name": "The Lawrence Loop",
-  "short_name": "Lawrence Loop",
+  "name": "Officially Organised",
+  "short_name": "OO",
   "description": "Family plans, car clashes, kit reminders and the things we forget.",
   "display": "standalone",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "/officially-organised/",
+  "scope": "/officially-organised/",
   "theme_color": "#f7efe2",
   "background_color": "#f7efe2",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/icons/app-icon.svg",
+      "src": "/officially-organised/icons/app-icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"

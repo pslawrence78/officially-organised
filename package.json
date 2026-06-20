@@ -1,11 +1,12 @@
 {
-  "name": "the-lawrence-loop",
+  "name": "officially-organised",
   "private": true,
   "version": "0.4.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "typecheck": "tsc -b",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest"

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-export function LoadingState({ label = "Loading your family loop…" }: { label?: string }) {
+export function LoadingState({ label = "Loading your plans…" }: { label?: string }) {
   return <p className="status-message">{label}</p>;
 }
 

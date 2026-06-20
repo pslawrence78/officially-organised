@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { Icon, type IconName } from "../components/common/Icon";
+import { PRODUCT_NAME, PRODUCT_SHORT_NAME, PRODUCT_TAGLINE } from "../config/productIdentity";
 
 interface NavItem {
   label: string;
@@ -48,13 +49,13 @@ export function AppShell() {
   return (
     <div className="app-frame">
       <header className="app-header">
-        <NavLink className="brand" to="/" aria-label="The Lawrence Loop dashboard">
-          <span className="brand__mark" aria-hidden="true">L</span>
+        <a className="brand" href={import.meta.env.BASE_URL} aria-label={`${PRODUCT_NAME} dashboard`}>
+          <span className="brand__mark" aria-hidden="true">{PRODUCT_SHORT_NAME}</span>
           <span>
-            <strong>The Lawrence Loop</strong>
-            <small>Family logistics, gently held</small>
+            <strong>{PRODUCT_NAME}</strong>
+            <small>{PRODUCT_TAGLINE}</small>
           </span>
-        </NavLink>
+        </a>
         <button
           aria-expanded={menuOpen}
           aria-haspopup="dialog"
@@ -91,7 +92,7 @@ export function AppShell() {
           >
             <div className="navigation-sheet__header">
               <div>
-                <p className="eyebrow">Around the loop</p>
+                <p className="eyebrow">Around the app</p>
                 <h2>More</h2>
               </div>
               <button aria-label="Close menu" className="icon-button" onClick={() => setMenuOpen(false)} type="button">

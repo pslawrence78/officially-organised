@@ -45,7 +45,7 @@ describe("Tranche 0 local data foundation", () => {
       expect.objectContaining({
         id: "audit_seed_initial_data",
         action: "seeded",
-        summary: "Initial Lawrence Loop seed data created",
+        summary: "Initial Officially Organised seed data created",
       }),
     ]);
     expect(await db.places.count()).toBe(0);

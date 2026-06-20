@@ -48,7 +48,7 @@ export async function seedInitialDataIfNeeded(): Promise<boolean> {
           entityId: "lawrence_loop_db",
           action: "seeded",
           timestamp,
-          summary: "Initial Lawrence Loop seed data created",
+          summary: "Initial Officially Organised seed data created",
         }),
       ]);
 

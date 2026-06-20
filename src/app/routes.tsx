@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, type RouteObject } from "react-router-dom";
 import { AppShell } from "./AppShell";
 import { CalendarPage } from "../pages/CalendarPage";
 import { CarPage } from "../pages/CarPage";
@@ -44,7 +44,14 @@ export const trancheOneRoutePaths = [
   "/places/:placeId/edit",
 ] as const;
 
-export const router = createBrowserRouter([
+export function normalizeRouterBasename(baseUrl: string) {
+  const pathname = new URL(baseUrl, "https://app.local").pathname;
+  return pathname === "/" ? "/" : pathname.replace(/\/$/, "");
+}
+
+export const routerBasename = normalizeRouterBasename(import.meta.env.BASE_URL);
+
+export const appRoutes: RouteObject[] = [
   {
     path: "/",
     element: <AppShell />,
@@ -71,4 +78,6 @@ export const router = createBrowserRouter([
       { path: "*", element: <NotFoundPage /> },
     ],
   },
-]);
+];
+
+export const router = createBrowserRouter(appRoutes, { basename: routerBasename });
