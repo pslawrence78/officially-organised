@@ -19,6 +19,7 @@ describe("Tranche 0 route contract", () => {
       "/settings",
       "/settings/import",
       "/settings/export",
+      "/settings/school-calendar",
     ]);
   });
 

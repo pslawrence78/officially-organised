@@ -15,6 +15,7 @@ import { PlaceFormPage } from "../pages/PlaceFormPage";
 import { PrepPage } from "../pages/PrepPage";
 import { RoutinesPage } from "../pages/RoutinesPage";
 import { SettingsPage } from "../pages/SettingsPage";
+import { SchoolCalendarPage } from "../pages/SchoolCalendarPage";
 import { TemplatesPage } from "../pages/TemplatesPage";
 import { TodayPage } from "../pages/TodayPage";
 import { WeekPage } from "../pages/WeekPage";
@@ -34,6 +35,7 @@ export const requiredRoutePaths = [
   "/settings",
   "/settings/import",
   "/settings/export",
+  "/settings/school-calendar",
 ] as const;
 
 export const trancheOneRoutePaths = [
@@ -75,6 +77,7 @@ export const appRoutes: RouteObject[] = [
       { path: "settings", element: <SettingsPage /> },
       { path: "settings/import", element: <ImportPage /> },
       { path: "settings/export", element: <ExportPage /> },
+      { path: "settings/school-calendar", element: <SchoolCalendarPage /> },
       { path: "*", element: <NotFoundPage /> },
     ],
   },

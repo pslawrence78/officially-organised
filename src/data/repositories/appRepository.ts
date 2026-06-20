@@ -3,11 +3,13 @@ import {
   seedFamilyMembers,
   seedHousehold,
   seedResources,
+  seedSchoolCalendar,
   seedSettings,
   seedTemplates,
 } from "../seedData/initialData";
 
 const INITIAL_SEED_SETTING_ID = "initial_seed_completed";
+const SCHOOL_CALENDAR_SEED_SETTING_ID = "school_calendar_seed_completed";
 
 export async function seedInitialDataIfNeeded(): Promise<boolean> {
   return db.transaction(
@@ -19,15 +21,19 @@ export async function seedInitialDataIfNeeded(): Promise<boolean> {
       db.templates,
       db.settings,
       db.auditLog,
+      db.schoolCalendars,
     ],
     async () => {
       const seedMarker = await db.settings.get(INITIAL_SEED_SETTING_ID);
 
-      if (seedMarker) {
-        return false;
+      const timestamp = new Date().toISOString();
+
+      if (!await db.settings.get(SCHOOL_CALENDAR_SEED_SETTING_ID)) {
+        await db.schoolCalendars.put(seedSchoolCalendar);
+        await db.settings.put({ id: SCHOOL_CALENDAR_SEED_SETTING_ID, value: timestamp, description: "Illustrative Tranche 5A school calendar seed" });
       }
 
-      const timestamp = new Date().toISOString();
+      if (seedMarker) return false;
 
       await Promise.all([
         db.households.put(seedHousehold),

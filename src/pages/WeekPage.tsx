@@ -5,19 +5,21 @@ import { Icon } from "../components/common/Icon";
 import { ConflictList } from "../components/conflicts/ConflictCard";
 import { EventCard } from "../components/events/EventCard";
 import { PageHeader } from "../components/layout/PageHeader";
-import { getEvents, getEventsForDateRange, getFamilyMembers, getPlaces } from "../data/repositories";
+import { SchoolDayIndicator } from "../components/school/SchoolStatus";
+import { getEvents, getEventsForDateRange, getFamilyMembers, getPlaces, getSchoolCalendar } from "../data/repositories";
 import { useRepositoryQuery } from "../hooks/useRepositoryQuery";
 import { calculateConflicts, conflictsForEvent, conflictsForEvents } from "../services/conflictService";
+import { getSchoolDayStatus } from "../services/schoolCalendarService";
 import { addDaysToDateKey, dateKeyToIsoStart, formatLongDate, formatWeekRange, getWeekStartDateKey } from "../utils/dates";
 
 export function WeekPage() {
   const [weekStart, setWeekStart] = useState(getWeekStartDateKey());
   const weekEndExclusive = addDaysToDateKey(weekStart, 7);
   const state = useRepositoryQuery(async () => {
-    const [events, allEvents, familyMembers, places] = await Promise.all([
-      getEventsForDateRange(new Date(dateKeyToIsoStart(weekStart)), new Date(dateKeyToIsoStart(weekEndExclusive))), getEvents(), getFamilyMembers(), getPlaces(),
+    const [events, allEvents, familyMembers, places, schoolCalendar] = await Promise.all([
+      getEventsForDateRange(new Date(dateKeyToIsoStart(weekStart)), new Date(dateKeyToIsoStart(weekEndExclusive))), getEvents(), getFamilyMembers(), getPlaces(), getSchoolCalendar(),
     ]);
-    return { events, allEvents, familyMembers, places };
+    return { events, allEvents, familyMembers, places, schoolCalendar };
   }, [weekStart]);
   const data = state.data;
   const days = Array.from({ length: 7 }, (_, index) => addDaysToDateKey(weekStart, index));
@@ -33,7 +35,7 @@ export function WeekPage() {
       <section className="week-list" aria-label={`Week of ${formatWeekRange(weekStart)}`}>{days.map((day) => {
         const dayStart = Date.parse(dateKeyToIsoStart(day)); const dayEnd = Date.parse(dateKeyToIsoStart(addDaysToDateKey(day, 1)));
         const dayEvents = data.events.filter((event) => Date.parse(event.startAt) < dayEnd && Date.parse(event.endAt) > dayStart);
-        return <section className="week-day" key={day}><header><h2>{formatLongDate(day)}</h2><span>{dayEvents.length || "-"}</span></header>{dayEvents.length ? <div className="event-list">{dayEvents.map((event) => <EventCard conflicts={conflictsForEvent(conflicts, event.id)} event={event} familyMembers={data.familyMembers} key={event.id} place={data.places.find((place) => place.id === event.placeId)} />)}</div> : <p className="week-day__empty">No events</p>}</section>;
+        return <section className="week-day" key={day}><header><div><h2>{formatLongDate(day)}</h2><SchoolDayIndicator status={getSchoolDayStatus(data.schoolCalendar, day)} /></div><span>{dayEvents.length || "-"}</span></header>{dayEvents.length ? <div className="event-list">{dayEvents.map((event) => <EventCard conflicts={conflictsForEvent(conflicts, event.id)} event={event} familyMembers={data.familyMembers} key={event.id} place={data.places.find((place) => place.id === event.placeId)} />)}</div> : <p className="week-day__empty">No events</p>}</section>;
       })}</section>
     </> : null}
   </div>;

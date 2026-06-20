@@ -195,3 +195,44 @@ export interface EventSeriesRecord {
   id: string;
   name: string;
 }
+
+export type SchoolPeriodType = "term" | "holiday";
+
+export interface SchoolCalendarPeriod {
+  id: string;
+  label: string;
+  type: SchoolPeriodType;
+  startDate: string;
+  endDate: string;
+}
+
+export type SchoolClosureType = "inset" | "bank_holiday" | "other_closed";
+
+export interface SchoolClosureDay {
+  id: string;
+  date: string;
+  type: SchoolClosureType;
+  label: string;
+}
+
+export interface SchoolCalendar {
+  id: string;
+  childMemberId: "member_seb";
+  schoolName: string;
+  academicYearLabel: string;
+  timezone: "Europe/London";
+  periods: SchoolCalendarPeriod[];
+  closureDays: SchoolClosureDay[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type SchoolDayStatusReason = "term_weekday" | "weekend" | "holiday" | "inset" | "bank_holiday" | "other_closed" | "outside_known_calendar" | "no_calendar";
+
+export interface SchoolDayStatus {
+  date: string;
+  isSchoolOpen: boolean;
+  status: "open" | "closed" | "unknown";
+  reason: SchoolDayStatusReason;
+  label: string;
+}

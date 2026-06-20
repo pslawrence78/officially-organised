@@ -3,6 +3,7 @@ import type {
   FamilyMember,
   Household,
   Resource,
+  SchoolCalendar,
   Setting,
   StarterTemplate,
 } from "../../domain/types";
@@ -140,3 +141,23 @@ export const seedSettings: Setting[] = [
     description: "Available event categories",
   },
 ];
+
+const schoolSeedTimestamp = "2026-01-01T00:00:00.000Z";
+
+/** Illustrative only: these are not official dates for any real school. */
+export const seedSchoolCalendar: SchoolCalendar = {
+  id: "school_calendar_seb_2025_26",
+  childMemberId: "member_seb",
+  schoolName: "Illustrative Primary School",
+  academicYearLabel: "2025/26",
+  timezone: "Europe/London",
+  periods: [
+    { id: "school_period_summer_term", label: "Illustrative Summer Term", type: "term", startDate: "2026-04-20", endDate: "2026-07-17" },
+    { id: "school_period_summer_half_term", label: "Illustrative Summer Half Term", type: "holiday", startDate: "2026-05-25", endDate: "2026-05-29" },
+  ],
+  closureDays: [
+    { id: "school_closure_inset", date: "2026-06-26", type: "inset", label: "Illustrative INSET Day" },
+  ],
+  createdAt: schoolSeedTimestamp,
+  updatedAt: schoolSeedTimestamp,
+};

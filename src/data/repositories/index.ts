@@ -36,3 +36,5 @@ export {
 } from "./prepTaskRepository";
 
 export { getResourceNeeds } from "./resourceNeedRepository";
+
+export { getSchoolCalendar, saveSchoolCalendar } from "./schoolCalendarRepository";

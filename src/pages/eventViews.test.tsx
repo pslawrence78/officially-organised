@@ -50,6 +50,7 @@ describe("event views", () => {
   it("Today displays an empty state", async () => {
     render(<MemoryRouter><TodayPage /></MemoryRouter>);
     expect(await screen.findByText("Nothing planned today")).toBeInTheDocument();
+    expect(screen.getByText(/Seb is (in|not in) school|Seb’s school status is unknown/)).toBeInTheDocument();
   });
 
   it("Week groups an event under its day", async () => {
@@ -58,6 +59,7 @@ describe("event views", () => {
     render(<MemoryRouter><WeekPage /></MemoryRouter>);
     expect(await screen.findByText("Week event")).toBeInTheDocument();
     expect(screen.getAllByText("No events")).toHaveLength(6);
+    expect(screen.getAllByLabelText(/Seb school (open|closed|unknown)/)).toHaveLength(7);
   });
 
   it("an event with a missing place reference renders safely", () => {

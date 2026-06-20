@@ -57,6 +57,7 @@ describe("Dashboard operational readiness", () => {
     expect(screen.getByText("No car needs today")).toBeInTheDocument();
     expect(screen.getByText("No prep due")).toBeInTheDocument();
     expect(screen.getByText("Quiet or low-activity week")).toBeInTheDocument();
+    expect(screen.getByText(/Seb: school/)).toBeInTheDocument();
   });
 
   it("shows a normal day without manufacturing risk", async () => {

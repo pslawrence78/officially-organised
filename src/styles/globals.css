@@ -326,9 +326,33 @@ h1, h2, h3 { line-height: 1.12; }
 .week-list { display: grid; gap: var(--space-4); }
 .week-day { display: grid; gap: var(--space-3); }
 .week-day > header { align-items: center; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; padding: 0 var(--space-1) var(--space-2); }
+.week-day > header > div:first-child { display: grid; gap: .4rem; min-width: 0; }
 .week-day > header h2 { font-size: .85rem; margin: 0; }
 .week-day > header span { align-items: center; background: #eadfd1; border-radius: 50%; color: var(--color-muted); display: flex; font-size: .68rem; height: 1.6rem; justify-content: center; width: 1.6rem; }
 .week-day__empty { color: var(--color-muted); font-size: .78rem; margin: 0; padding: var(--space-2) var(--space-1); }
+
+.school-status { align-items: center; background: var(--color-card-strong); border: 1px solid var(--color-border); border-left: 4px solid var(--color-muted); border-radius: var(--radius-sm); display: grid; gap: var(--space-3); grid-template-columns: auto minmax(0, 1fr) auto; padding: var(--space-4); text-decoration: none; }
+.school-status--open { border-left-color: var(--color-success); }
+.school-status--closed { border-left-color: var(--color-warning); }
+.school-status__icon { align-items: center; background: var(--color-accent-soft); border-radius: 50%; color: var(--color-accent); display: flex; height: 2.6rem; justify-content: center; width: 2.6rem; }
+.school-status__icon svg { height: 1.25rem; width: 1.25rem; }
+.school-status > div { align-items: flex-start; display: grid; gap: .4rem; min-width: 0; }
+.school-status strong { font-family: var(--font-display); font-size: 1.05rem; font-weight: 500; overflow-wrap: anywhere; }
+.school-status__chevron { color: var(--color-muted); height: 1rem; width: 1rem; }
+.school-day-indicator { align-items: center; border-radius: var(--radius-pill); color: var(--color-muted); display: inline-flex; font-size: .66rem; font-weight: 750; gap: .25rem; justify-self: start; max-width: min(19rem, 72vw); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.school-day-indicator svg { flex: 0 0 auto; height: .85rem; width: .85rem; }
+.school-day-indicator--open { color: var(--color-success); }
+.school-day-indicator--closed { color: var(--color-warning); }
+.school-calendar-summary dd { text-transform: none; }
+.school-entry-list { display: grid; gap: var(--space-2); }
+.school-entry { align-items: center; background: var(--color-card-strong); border: 1px solid var(--color-border); border-left: 4px solid var(--color-accent); border-radius: var(--radius-sm); display: flex; gap: var(--space-3); justify-content: space-between; padding: var(--space-4); }
+.school-entry--holiday, .school-entry--closure { border-left-color: var(--color-warning); }
+.school-entry > div { display: grid; gap: .3rem; min-width: 0; }
+.school-entry strong { overflow-wrap: anywhere; }
+.school-entry span { color: var(--color-muted); font-size: .72rem; text-transform: capitalize; }
+.school-entry button { align-items: center; background: transparent; border: 0; color: var(--color-accent); cursor: pointer; display: flex; flex: 0 0 auto; font-size: .72rem; font-weight: 750; gap: .3rem; }
+.school-entry button svg { height: .9rem; width: .9rem; }
+.school-entry-form h2 { font-family: var(--font-display); font-weight: 500; }
 
 .data-form { background: var(--color-card); border: 1px solid var(--color-border); border-radius: var(--radius-lg); display: grid; gap: var(--space-5); padding: var(--space-5); }
 .form-grid { display: grid; gap: var(--space-4); }
@@ -694,6 +718,10 @@ h1, h2, h3 { line-height: 1.12; }
   .event-card { grid-template-columns: 3.8rem minmax(0, 1fr) auto; padding: var(--space-3); }
   .prep-task-card { grid-template-columns: auto minmax(0, 1fr); }
   .prep-task-card__skip { grid-column: 2; justify-self: start; }
+  .school-status { padding: var(--space-3); }
+  .school-entry { align-items: flex-start; }
+  .school-calendar-page .section-heading { align-items: flex-start; flex-direction: column; }
+  .school-calendar-page .section-heading .button { min-height: 2.6rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

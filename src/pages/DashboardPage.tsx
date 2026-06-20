@@ -7,6 +7,7 @@ import { EventCard } from "../components/events/EventCard";
 import { PrepTaskCard } from "../components/prep/PrepTaskCard";
 import { CarNeedCard } from "../components/resources/CarNeedCard";
 import { ConflictList } from "../components/conflicts/ConflictCard";
+import { SchoolStatus } from "../components/school/SchoolStatus";
 import { FAMILY_CAR_RESOURCE_ID } from "../domain/constants";
 import type { Conflict } from "../domain/types";
 import {
@@ -18,6 +19,7 @@ import {
   getPlaces,
   getPrepTasks,
   getResources,
+  getSchoolCalendar,
   getResourceNeeds,
   setPrepTaskStatus,
 } from "../data/repositories";
@@ -26,6 +28,7 @@ import { addDaysToDateKey, currentDateKey, dateKeyToIsoStart, getWeekStartDateKe
 import { prepSummary, prepTaskGroup } from "../utils/prepTasks";
 import { carNeedGroup, carSummary } from "../utils/resourceNeeds";
 import { calculateConflicts, conflictsForEvent } from "../services/conflictService";
+import { getSchoolDayStatus } from "../services/schoolCalendarService";
 
 const ATTENTION_TYPE_ORDER: Record<Conflict["type"], number> = {
   car_clash: 0,
@@ -44,7 +47,7 @@ export function DashboardPage() {
   const state = useRepositoryQuery(async () => {
     const today = currentDateKey();
     const weekStart = getWeekStartDateKey(today);
-    const [household, familyMembers, resources, places, todayEvents, weekEvents, allEvents, prepItems, carItems] = await Promise.all([
+    const [household, familyMembers, resources, places, todayEvents, weekEvents, allEvents, prepItems, carItems, schoolCalendar] = await Promise.all([
       getHousehold(),
       getFamilyMembers(),
       getResources(),
@@ -54,8 +57,9 @@ export function DashboardPage() {
       getEvents(),
       getPrepTasks(),
       getResourceNeeds(FAMILY_CAR_RESOURCE_ID),
+      getSchoolCalendar(),
     ]);
-    return { today, household, familyMembers, resources, places, todayEvents, weekEvents, allEvents, prepItems, carItems };
+    return { today, household, familyMembers, resources, places, todayEvents, weekEvents, allEvents, prepItems, carItems, schoolCalendar };
   }, [refreshVersion]);
   const data = state.data;
   const activeEvents = data?.allEvents.filter((event) => event.status !== "cancelled") ?? [];
@@ -70,6 +74,7 @@ export function DashboardPage() {
   const comingUp = data
     ? activeEvents.filter((event) => isoToDateKey(event.startAt) > data.today && Date.parse(event.endAt) >= Date.now()).slice(0, 3)
     : [];
+  const schoolStatus = data ? getSchoolDayStatus(data.schoolCalendar, data.today) : undefined;
 
   const updatePrep = async (eventId: string, taskId: string, status: "open" | "done" | "skipped") => {
     await setPrepTaskStatus(eventId, taskId, status);
@@ -114,6 +119,8 @@ export function DashboardPage() {
             <div className="section-heading"><div><p className="eyebrow">Coming up</p><h2>{comingUp.length ? "The next few things" : "A quiet week ahead"}</h2></div><Link className="back-link" to="/week">Open Week</Link></div>
             {comingUp.length ? <div className="event-list">{comingUp.map((event) => <EventCard conflicts={conflictsForEvent(conflicts, event.id)} event={event} familyMembers={data.familyMembers} key={event.id} place={data.places.find((place) => place.id === event.placeId)} />)}</div> : <DashboardEmpty icon="calendar" title="Quiet or low-activity week" copy="There’s nothing else coming up in the current plans." />}
           </section>
+
+          {schoolStatus ? <section className="section-block school-context-section"><div className="section-heading"><div><p className="eyebrow">School context</p><h2>Today for Seb</h2></div></div><SchoolStatus context="dashboard" linked status={schoolStatus} /></section> : null}
 
           <section className="quick-stats" aria-label="Routine overview" data-dashboard-section="routine">
             <Link className="stat-card" to="/today"><strong>{todayEvents.length}</strong><span>event{todayEvents.length === 1 ? "" : "s"} today</span><Icon name="chevron" /></Link>

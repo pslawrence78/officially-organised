@@ -12,6 +12,7 @@ import type {
   Household,
   Place,
   Resource,
+  SchoolCalendar,
   Setting,
   StarterTemplate,
 } from "../domain/types";
@@ -26,6 +27,7 @@ export class LawrenceLoopDatabase extends Dexie {
   templates!: EntityTable<StarterTemplate, "id">;
   settings!: EntityTable<Setting, "id">;
   auditLog!: EntityTable<AuditLogEntry, "id">;
+  schoolCalendars!: EntityTable<SchoolCalendar, "id">;
 
   constructor() {
     super(DATABASE_NAME);
@@ -92,6 +94,7 @@ export class LawrenceLoopDatabase extends Dexie {
     this.version(DATABASE_SCHEMA_VERSION)
       .stores({
         events: "&id, startAt, endAt, category, status",
+        schoolCalendars: "&id, childMemberId, academicYearLabel",
       })
       .upgrade(async (transaction) => {
         await transaction.table("events").toCollection().modify((event) => {
