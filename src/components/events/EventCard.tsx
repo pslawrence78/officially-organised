@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { CATEGORY_LABELS, FAMILY_CAR_RESOURCE_ID, RESOURCE_NEED_STATUS_LABELS, STATUS_LABELS } from "../../domain/constants";
-import type { FamilyEvent, FamilyMember, Place } from "../../domain/types";
+import type { Conflict, FamilyEvent, FamilyMember, Place } from "../../domain/types";
 import { formatEventTime } from "../../utils/dates";
 import { formatResourceWindow } from "../../utils/resourceNeeds";
 import { Badge } from "../common/Badge";
@@ -10,9 +10,10 @@ interface EventCardProps {
   event: FamilyEvent;
   familyMembers: FamilyMember[];
   place?: Place;
+  conflicts?: Conflict[];
 }
 
-export function EventCard({ event, familyMembers, place }: EventCardProps) {
+export function EventCard({ event, familyMembers, place, conflicts = [] }: EventCardProps) {
   const namesFor = (ids: string[]) => ids.map((id) => familyMembers.find((member) => member.id === id)?.displayName ?? "Unknown");
   const participantNames = namesFor(event.participants);
   const responsibleNames = namesFor(event.responsibleAdults);
@@ -30,6 +31,7 @@ export function EventCard({ event, familyMembers, place }: EventCardProps) {
         <div className="event-card__badges">
           <Badge tone="accent">{CATEGORY_LABELS[event.category]}</Badge>
           <Badge tone={event.status === "confirmed" ? "success" : "neutral"}>{STATUS_LABELS[event.status]}</Badge>
+          {conflicts.length ? <Badge tone={conflicts.some((conflict) => conflict.severity === "critical") ? "critical" : "warning"}>{conflicts.length} need{conflicts.length === 1 ? "" : "s"} attention</Badge> : null}
         </div>
         <h3>{event.title}</h3>
         <p><strong>With</strong> {participantNames.join(", ")}</p>

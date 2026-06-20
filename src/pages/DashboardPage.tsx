@@ -6,6 +6,7 @@ import { Icon } from "../components/common/Icon";
 import { EventCard } from "../components/events/EventCard";
 import { PrepTaskCard } from "../components/prep/PrepTaskCard";
 import { CarNeedCard } from "../components/resources/CarNeedCard";
+import { ConflictList } from "../components/conflicts/ConflictCard";
 import { FAMILY_CAR_RESOURCE_ID } from "../domain/constants";
 import {
   getEvents,
@@ -23,6 +24,7 @@ import { useRepositoryQuery } from "../hooks/useRepositoryQuery";
 import { addDaysToDateKey, currentDateKey, dateKeyToIsoStart, getWeekStartDateKey } from "../utils/dates";
 import { prepSummary } from "../utils/prepTasks";
 import { carSummary } from "../utils/resourceNeeds";
+import { calculateConflicts, conflictsForEvent } from "../services/conflictService";
 
 export function DashboardPage() {
   const [refreshVersion, setRefreshVersion] = useState(0);
@@ -42,11 +44,12 @@ export function DashboardPage() {
     ]);
     const now = Date.now();
     const nextEvent = allEvents.find((event) => Date.parse(event.endAt) >= now && event.status !== "cancelled");
-    return { household, familyMembers, resources, places, todayEvents, weekEvents, nextEvent, prepItems, carItems };
+    return { household, familyMembers, resources, places, todayEvents, weekEvents, allEvents, nextEvent, prepItems, carItems };
   }, [refreshVersion]);
   const data = state.data;
   const prep = prepSummary(data?.prepItems ?? []);
   const car = carSummary(data?.carItems ?? []);
+  const conflicts = calculateConflicts(data?.allEvents ?? []);
 
   return (
     <div className="page-stack">
@@ -68,7 +71,9 @@ export function DashboardPage() {
             <Link className="stat-card" to="/car"><strong>{car.today}</strong><span>car need{car.today === 1 ? "" : "s"} today</span><Icon name="chevron" /></Link>
           </section>
 
-          {data.nextEvent ? <section className="section-block"><div className="section-heading"><div><p className="eyebrow">Next up</p><h2>The next thing in the loop</h2></div></div><EventCard event={data.nextEvent} familyMembers={data.familyMembers} place={data.places.find((place) => place.id === data.nextEvent?.placeId)} /></section> : null}
+          <section className="section-block attention-section"><div className="section-heading"><div><p className="eyebrow">Needs attention</p><h2>{conflicts.length ? `${conflicts.length} current conflict${conflicts.length === 1 ? "" : "s"}` : "Everything is clear"}</h2></div>{conflicts.length ? <Badge tone={conflicts.some((conflict) => conflict.severity === "critical") ? "critical" : "warning"}>{conflicts.filter((conflict) => conflict.severity === "critical").length} critical</Badge> : <Badge tone="success">No conflicts</Badge>}</div><ConflictList conflicts={conflicts} events={data.allEvents} />{!conflicts.length ? <p className="section-empty-copy">Nothing in the current plans needs conflict attention.</p> : null}</section>
+
+          {data.nextEvent ? <section className="section-block"><div className="section-heading"><div><p className="eyebrow">Next up</p><h2>The next thing in the loop</h2></div></div><EventCard conflicts={conflictsForEvent(conflicts, data.nextEvent.id)} event={data.nextEvent} familyMembers={data.familyMembers} place={data.places.find((place) => place.id === data.nextEvent?.placeId)} /></section> : null}
 
           {data.prepItems.some(({ task }) => task.status === "open") ? <section className="section-block"><div className="section-heading"><div><p className="eyebrow">Prep due</p><h2>Things not to forget</h2></div><Link className="back-link" to="/prep">See all</Link></div><div className="prep-task-list">{data.prepItems.filter(({ task }) => task.status === "open").slice(0, 3).map((item) => <PrepTaskCard familyMembers={data.familyMembers} item={item} key={`${item.event.id}-${item.task.id}`} onStatusChange={async (status) => { await setPrepTaskStatus(item.event.id, item.task.id, status); setRefreshVersion((value) => value + 1); }} />)}</div></section> : null}
 

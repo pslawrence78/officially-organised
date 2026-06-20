@@ -289,6 +289,14 @@ h1, h2, h3 { line-height: 1.12; }
 .event-card__car svg { flex: 0 0 auto; height: .95rem; width: .95rem; }
 .event-card__chevron { align-self: center; color: var(--color-muted); height: 1rem; width: 1rem; }
 
+.attention-section { border-top: 4px solid var(--color-warning); }
+.conflict-list { display: grid; gap: var(--space-3); }
+.conflict-card { background: #fffaf2; border: 1px solid #ead1a7; border-left: 4px solid var(--color-warning); border-radius: var(--radius-sm); color: var(--color-text); display: grid; gap: var(--space-2); padding: var(--space-4); text-decoration: none; }
+.conflict-card--critical { background: #fff6f4; border-color: #e9b5ac; border-left-color: var(--color-critical); }
+.conflict-card__heading { align-items: center; display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.conflict-card h3 { font-size: .95rem; margin: 0; }
+.conflict-card p { color: var(--color-muted); font-size: .8rem; margin: 0; }
+
 .empty-panel {
   background: var(--color-card);
   border: 1px dashed var(--color-border);

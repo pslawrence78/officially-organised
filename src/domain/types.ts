@@ -171,6 +171,26 @@ export interface ResourceNeedWithEvent {
   resource: Resource;
 }
 
+export type ConflictType =
+  | "car_clash"
+  | "maybe_car_clash"
+  | "unassigned_responsibility"
+  | "prep_overdue"
+  | "critical_prep_overdue";
+
+export type ConflictSeverity = "warning" | "critical";
+
+export interface Conflict {
+  id: string;
+  type: ConflictType;
+  severity: ConflictSeverity;
+  title: string;
+  description: string;
+  eventIds: string[];
+  prepTaskId?: string;
+  resourceId?: string;
+}
+
 export interface EventSeriesRecord {
   id: string;
   name: string;
