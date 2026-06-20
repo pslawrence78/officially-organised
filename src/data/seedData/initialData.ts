@@ -1,5 +1,6 @@
 import { APP_DATA_SCHEMA, EVENT_CATEGORIES } from "../../domain/constants";
 import type {
+  CountdownTarget,
   FamilyMember,
   Household,
   Resource,
@@ -161,3 +162,33 @@ export const seedSchoolCalendar: SchoolCalendar = {
   createdAt: schoolSeedTimestamp,
   updatedAt: schoolSeedTimestamp,
 };
+
+const countdownSeedTimestamp = "2026-01-01T00:00:00.000Z";
+
+/** Illustrative local examples only; neither represents a real booking. */
+export const seedCountdownTargets: CountdownTarget[] = [
+  {
+    id: "countdown_illustrative_summer_holiday",
+    title: "Illustrative Summer Holiday",
+    targetDate: "2026-07-18",
+    sourceType: "school_period_end",
+    sourceId: "school_calendar_seb_2025_26:school_period_summer_term:end",
+    visibility: "dashboard_primary",
+    showSleeps: true,
+    active: true,
+    notes: "Illustrative only — derived from the illustrative school term.",
+    createdAt: countdownSeedTimestamp,
+    updatedAt: countdownSeedTimestamp,
+  },
+  {
+    id: "countdown_christmas_2026",
+    title: "Christmas Day",
+    targetDate: "2026-12-25",
+    sourceType: "seasonal",
+    visibility: "dashboard_secondary",
+    showSleeps: true,
+    active: true,
+    createdAt: countdownSeedTimestamp,
+    updatedAt: countdownSeedTimestamp,
+  },
+];

@@ -6,6 +6,7 @@ import {
 } from "../domain/constants";
 import type {
   AuditLogEntry,
+  CountdownTarget,
   FamilyEvent,
   EventSeriesRecord,
   FamilyMember,
@@ -28,6 +29,7 @@ export class LawrenceLoopDatabase extends Dexie {
   settings!: EntityTable<Setting, "id">;
   auditLog!: EntityTable<AuditLogEntry, "id">;
   schoolCalendars!: EntityTable<SchoolCalendar, "id">;
+  countdownTargets!: EntityTable<CountdownTarget, "id">;
 
   constructor() {
     super(DATABASE_NAME);
@@ -95,6 +97,7 @@ export class LawrenceLoopDatabase extends Dexie {
       .stores({
         events: "&id, startAt, endAt, category, status",
         schoolCalendars: "&id, childMemberId, academicYearLabel",
+        countdownTargets: "&id, targetDate, visibility, active, sourceType, sourceId",
       })
       .upgrade(async (transaction) => {
         await transaction.table("events").toCollection().modify((event) => {

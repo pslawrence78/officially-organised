@@ -2,9 +2,9 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { FAMILY_CAR_RESOURCE_ID } from "../domain/constants";
-import type { FamilyEventInput, PrepTask, ResourceNeed } from "../domain/types";
+import type { CountdownTarget, FamilyEventInput, PrepTask, ResourceNeed } from "../domain/types";
 import { db } from "../data/db";
-import { createEvent, getEventById, seedInitialDataIfNeeded } from "../data/repositories";
+import { createEvent, getEventById, saveCountdownTarget, seedInitialDataIfNeeded } from "../data/repositories";
 import { addDaysToDateKey, currentDateKey, localDateTimeToIso } from "../utils/dates";
 import { DashboardPage } from "./DashboardPage";
 
@@ -36,6 +36,11 @@ function carNeed(id: string, status: "required" | "maybe"): ResourceNeed {
 
 function renderDashboard() {
   return render(<MemoryRouter><DashboardPage /></MemoryRouter>);
+}
+
+function countdown(id: string, days: number, visibility: CountdownTarget["visibility"] = "dashboard_secondary", active = true): CountdownTarget {
+  const timestamp = new Date().toISOString();
+  return { id, title: id, targetDate: addDaysToDateKey(currentDateKey(), days), sourceType: "manual", visibility, showSleeps: true, active, createdAt: timestamp, updatedAt: timestamp };
 }
 
 describe("Dashboard operational readiness", () => {
@@ -107,11 +112,33 @@ describe("Dashboard operational readiness", () => {
     await createEvent(eventInput("Risky journey one", currentDateKey(), { resourceNeeds: [carNeed("need_busy_one", "required")] }));
     await createEvent(eventInput("Risky journey two", currentDateKey(), { resourceNeeds: [carNeed("need_busy_two", "required")] }));
     for (let day = 1; day <= 3; day += 1) await createEvent(eventInput(`Coming up ${day}`, addDaysToDateKey(currentDateKey(), day)));
+    await saveCountdownTarget(countdown("Dashboard family countdown", 20, "dashboard_primary"));
     const { container } = renderDashboard();
     await screen.findByText("Family car clash");
     const attention = container.querySelector('[data-dashboard-section="attention"]')!;
     const comingUp = container.querySelector('[data-dashboard-section="coming-up"]')!;
+    const countdownSection = container.querySelector('[data-dashboard-section="countdowns"]')!;
     expect(attention.compareDocumentPosition(comingUp) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(attention.compareDocumentPosition(countdownSection) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("renders primary before sorted secondary countdowns and excludes unsafe targets", async () => {
+    await db.countdownTargets.clear();
+    await Promise.all([
+      saveCountdownTarget(countdown("Primary countdown", 30, "dashboard_primary")),
+      saveCountdownTarget(countdown("Later secondary", 20)),
+      saveCountdownTarget(countdown("Sooner secondary", 10)),
+      saveCountdownTarget(countdown("Passed countdown", -1)),
+      saveCountdownTarget(countdown("Inactive countdown", 2, "dashboard_secondary", false)),
+      saveCountdownTarget(countdown("Hidden countdown", 3, "hidden")),
+    ]);
+    const { container } = renderDashboard();
+    await screen.findByText("Primary countdown");
+    expect(screen.queryByText("Passed countdown")).not.toBeInTheDocument();
+    expect(screen.queryByText("Inactive countdown")).not.toBeInTheDocument();
+    expect(screen.queryByText("Hidden countdown")).not.toBeInTheDocument();
+    const cards = [...container.querySelectorAll(".countdown-card h3")].map((item) => item.textContent);
+    expect(cards).toEqual(["Primary countdown", "Sooner secondary", "Later secondary"]);
   });
 
   it("links event, conflict, prep, car and section cards to useful targets", async () => {

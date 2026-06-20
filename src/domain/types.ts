@@ -236,3 +236,36 @@ export interface SchoolDayStatus {
   reason: SchoolDayStatusReason;
   label: string;
 }
+
+export type CountdownSourceType = "manual" | "event" | "school_period_start" | "school_period_end" | "school_closure" | "birthday" | "seasonal";
+export type CountdownVisibility = "dashboard_primary" | "dashboard_secondary" | "hidden";
+
+export interface CountdownTarget {
+  id: string;
+  title: string;
+  targetDate: string;
+  sourceType: CountdownSourceType;
+  sourceId?: string;
+  visibility: CountdownVisibility;
+  showSleeps: boolean;
+  active: boolean;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CountdownDisplay {
+  id: string;
+  title: string;
+  targetDate: string;
+  daysUntil: number;
+  sleepsUntil: number;
+  isToday: boolean;
+  hasPassed: boolean;
+  label: string;
+  sourceType: CountdownSourceType;
+  visibility: CountdownVisibility;
+  showSleeps: boolean;
+}
+
+export type CountdownSuggestion = Omit<CountdownTarget, "createdAt" | "updatedAt" | "active" | "visibility" | "showSleeps">;

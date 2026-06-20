@@ -1,5 +1,6 @@
 import { db } from "../db";
 import {
+  seedCountdownTargets,
   seedFamilyMembers,
   seedHousehold,
   seedResources,
@@ -10,6 +11,7 @@ import {
 
 const INITIAL_SEED_SETTING_ID = "initial_seed_completed";
 const SCHOOL_CALENDAR_SEED_SETTING_ID = "school_calendar_seed_completed";
+const COUNTDOWN_SEED_SETTING_ID = "countdown_seed_completed";
 
 export async function seedInitialDataIfNeeded(): Promise<boolean> {
   return db.transaction(
@@ -22,6 +24,7 @@ export async function seedInitialDataIfNeeded(): Promise<boolean> {
       db.settings,
       db.auditLog,
       db.schoolCalendars,
+      db.countdownTargets,
     ],
     async () => {
       const seedMarker = await db.settings.get(INITIAL_SEED_SETTING_ID);
@@ -31,6 +34,11 @@ export async function seedInitialDataIfNeeded(): Promise<boolean> {
       if (!await db.settings.get(SCHOOL_CALENDAR_SEED_SETTING_ID)) {
         await db.schoolCalendars.put(seedSchoolCalendar);
         await db.settings.put({ id: SCHOOL_CALENDAR_SEED_SETTING_ID, value: timestamp, description: "Illustrative Tranche 5A school calendar seed" });
+      }
+
+      if (!await db.settings.get(COUNTDOWN_SEED_SETTING_ID)) {
+        await db.countdownTargets.bulkPut(seedCountdownTargets);
+        await db.settings.put({ id: COUNTDOWN_SEED_SETTING_ID, value: timestamp, description: "Illustrative Tranche 5B countdown seed" });
       }
 
       if (seedMarker) return false;

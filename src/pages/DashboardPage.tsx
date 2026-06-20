@@ -8,10 +8,12 @@ import { PrepTaskCard } from "../components/prep/PrepTaskCard";
 import { CarNeedCard } from "../components/resources/CarNeedCard";
 import { ConflictList } from "../components/conflicts/ConflictCard";
 import { SchoolStatus } from "../components/school/SchoolStatus";
+import { CountdownCard } from "../components/countdowns/CountdownCard";
 import { FAMILY_CAR_RESOURCE_ID } from "../domain/constants";
 import type { Conflict } from "../domain/types";
 import {
   getEvents,
+  getCountdownTargets,
   getEventsForDate,
   getEventsForDateRange,
   getFamilyMembers,
@@ -29,6 +31,7 @@ import { prepSummary, prepTaskGroup } from "../utils/prepTasks";
 import { carNeedGroup, carSummary } from "../utils/resourceNeeds";
 import { calculateConflicts, conflictsForEvent } from "../services/conflictService";
 import { getSchoolDayStatus } from "../services/schoolCalendarService";
+import { dashboardCountdowns } from "../services/countdownService";
 
 const ATTENTION_TYPE_ORDER: Record<Conflict["type"], number> = {
   car_clash: 0,
@@ -47,7 +50,7 @@ export function DashboardPage() {
   const state = useRepositoryQuery(async () => {
     const today = currentDateKey();
     const weekStart = getWeekStartDateKey(today);
-    const [household, familyMembers, resources, places, todayEvents, weekEvents, allEvents, prepItems, carItems, schoolCalendar] = await Promise.all([
+    const [household, familyMembers, resources, places, todayEvents, weekEvents, allEvents, prepItems, carItems, schoolCalendar, countdownTargets] = await Promise.all([
       getHousehold(),
       getFamilyMembers(),
       getResources(),
@@ -58,8 +61,9 @@ export function DashboardPage() {
       getPrepTasks(),
       getResourceNeeds(FAMILY_CAR_RESOURCE_ID),
       getSchoolCalendar(),
+      getCountdownTargets(),
     ]);
-    return { today, household, familyMembers, resources, places, todayEvents, weekEvents, allEvents, prepItems, carItems, schoolCalendar };
+    return { today, household, familyMembers, resources, places, todayEvents, weekEvents, allEvents, prepItems, carItems, schoolCalendar, countdownTargets };
   }, [refreshVersion]);
   const data = state.data;
   const activeEvents = data?.allEvents.filter((event) => event.status !== "cancelled") ?? [];
@@ -75,6 +79,7 @@ export function DashboardPage() {
     ? activeEvents.filter((event) => isoToDateKey(event.startAt) > data.today && Date.parse(event.endAt) >= Date.now()).slice(0, 3)
     : [];
   const schoolStatus = data ? getSchoolDayStatus(data.schoolCalendar, data.today) : undefined;
+  const countdowns = data ? dashboardCountdowns(data.countdownTargets, data.today) : undefined;
 
   const updatePrep = async (eventId: string, taskId: string, status: "open" | "done" | "skipped") => {
     await setPrepTaskStatus(eventId, taskId, status);
@@ -121,6 +126,8 @@ export function DashboardPage() {
           </section>
 
           {schoolStatus ? <section className="section-block school-context-section"><div className="section-heading"><div><p className="eyebrow">School context</p><h2>Today for Seb</h2></div></div><SchoolStatus context="dashboard" linked status={schoolStatus} /></section> : null}
+
+          {countdowns && (countdowns.primary || countdowns.secondary.length) ? <section className="section-block countdown-section" data-dashboard-section="countdowns"><div className="section-heading"><div><p className="eyebrow">Family countdown</p><h2>Something to look forward to</h2></div><Link className="back-link" to="/settings/countdowns">Manage</Link></div>{countdowns.primary ? <CountdownCard countdown={countdowns.primary} primary /> : null}{countdowns.secondary.length ? <div className="countdown-secondary-list">{countdowns.secondary.map((countdown) => <CountdownCard countdown={countdown} key={countdown.id} />)}</div> : null}</section> : null}
 
           <section className="quick-stats" aria-label="Routine overview" data-dashboard-section="routine">
             <Link className="stat-card" to="/today"><strong>{todayEvents.length}</strong><span>event{todayEvents.length === 1 ? "" : "s"} today</span><Icon name="chevron" /></Link>
