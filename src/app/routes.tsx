@@ -6,6 +6,7 @@ import { DashboardPage } from "../pages/DashboardPage";
 import { EventDetailPage } from "../pages/EventDetailPage";
 import { EventFormPage } from "../pages/EventFormPage";
 import { ExportPage } from "../pages/ExportPage";
+import { HubPage } from "../pages/HubPage";
 import { ImportPage } from "../pages/ImportPage";
 import { NotFoundPage } from "../pages/NotFoundPage";
 import { PeoplePage } from "../pages/PeoplePage";
@@ -26,6 +27,7 @@ export const requiredRoutePaths = [
   "/",
   "/today",
   "/week",
+  "/hub",
   "/calendar",
   "/car",
   "/prep",
@@ -65,6 +67,7 @@ export const appRoutes: RouteObject[] = [
       { index: true, element: <DashboardPage /> },
       { path: "today", element: <TodayPage /> },
       { path: "week", element: <WeekPage /> },
+      { path: "hub", element: <HubPage /> },
       { path: "calendar", element: <CalendarPage /> },
       { path: "car", element: <CarPage /> },
       { path: "prep", element: <PrepPage /> },

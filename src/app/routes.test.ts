@@ -8,6 +8,7 @@ describe("Tranche 0 route contract", () => {
       "/",
       "/today",
       "/week",
+      "/hub",
       "/calendar",
       "/car",
       "/prep",
@@ -44,6 +45,7 @@ describe("Tranche 0 route contract", () => {
     ["/officially-organised/", true],
     ["/officially-organised/today", "today"],
     ["/officially-organised/week", "week"],
+    ["/officially-organised/hub", "hub"],
     ["/officially-organised/car", "car"],
     ["/officially-organised/unknown", "*"],
   ])("resolves %s within the deployed base path", (path, expectedRoute) => {

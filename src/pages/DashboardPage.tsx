@@ -106,7 +106,10 @@ export function DashboardPage() {
         <p className="eyebrow">Home base</p>
         <h1>Family plans,<br /><em>held together.</em></h1>
         <p>See what needs action first, then move through today and the days ahead.</p>
-        <Link className="hero-card__action" to="/events/new"><Icon name="plus" /> Add an event</Link>
+        <div className="hero-card__actions">
+          <Link className="hero-card__action" to="/events/new"><Icon name="plus" /> Add an event</Link>
+          <Link className="hero-card__link" to="/hub">Open household Hub</Link>
+        </div>
       </section>
 
       {state.loading ? <LoadingState label="Putting today in order…" /> : null}
