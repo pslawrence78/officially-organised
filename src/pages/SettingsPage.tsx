@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ErrorState, LoadingState } from "../components/common/AsyncState";
 import { Icon } from "../components/common/Icon";
 import { PageHeader } from "../components/layout/PageHeader";
+import { WeatherSettingsPanel } from "../components/weather/WeatherSettingsPanel";
 import { databaseMetadata } from "../data/db";
 import { getHousehold } from "../data/repositories";
 import { EXPORT_DATA_SCHEMA } from "../domain/constants";
@@ -22,5 +23,6 @@ export function SettingsPage() {
     <section><div className="section-heading"><div><p className="eyebrow">Local data safety</p><h2>Backup, restore and reset</h2></div></div><div className="settings-links" aria-label="Local data safety tools"><Link to="/settings/export"><span className="secondary-navigation__icon"><Icon name="template" /></span><span><strong>Export backup</strong><small>Download a private, versioned JSON copy</small></span><Icon className="secondary-navigation__chevron" name="chevron" /></Link><Link to="/settings/import"><span className="secondary-navigation__icon"><Icon name="template" /></span><span><strong>Import / restore backup</strong><small>Validate and preview before replacing data</small></span><Icon className="secondary-navigation__chevron" name="chevron" /></Link></div></section>
     <details className="section-block danger-zone"><summary>Reset local data</summary><div className="notice notice--warning"><strong>This affects only this browser/device</strong><span>Reset removes current local data and restores the baseline Officially Organised records. Export a backup first if you may need the current data.</span></div><p>Type <code>{RESET_PHRASE}</code> exactly to enable reset.</p><label className="form-field"><span>Confirmation phrase</span><input autoComplete="off" onChange={(e) => setPhrase(e.target.value)} value={phrase} /></label><button className="button button--danger" disabled={resetting || phrase !== RESET_PHRASE} onClick={reset} type="button">{resetting ? "Resetting…" : "Reset and reseed local data"}</button>{resetDone ? <div className="notice notice--success" role="status"><strong>Reset complete</strong><span>Baseline records have been restored without duplicates.</span></div> : null}</details>
     <section className="settings-links" aria-label="Family settings"><Link to="/settings/countdowns"><span className="secondary-navigation__icon"><Icon name="clock" /></span><span><strong>Family countdowns</strong><small>Selected dates, days and sleeps</small></span><Icon className="secondary-navigation__chevron" name="chevron" /></Link><Link to="/settings/school-calendar"><span className="secondary-navigation__icon"><Icon name="school" /></span><span><strong>Seb’s school calendar</strong><small>Illustrative terms, holidays and closure days</small></span><Icon className="secondary-navigation__chevron" name="chevron" /></Link></section>
+    <WeatherSettingsPanel />
   </div>;
 }

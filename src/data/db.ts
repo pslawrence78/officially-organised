@@ -18,6 +18,7 @@ import type {
   Setting,
   StarterTemplate,
 } from "../domain/types";
+import type { WeatherForecastSnapshot } from "../types/weather";
 
 export class LawrenceLoopDatabase extends Dexie {
   households!: EntityTable<Household, "id">;
@@ -32,6 +33,7 @@ export class LawrenceLoopDatabase extends Dexie {
   schoolCalendars!: EntityTable<SchoolCalendar, "id">;
   schoolHalfTermConfigs!: EntityTable<SchoolHalfTermConfig, "id">;
   countdownTargets!: EntityTable<CountdownTarget, "id">;
+  weatherForecasts!: EntityTable<WeatherForecastSnapshot, "id">;
 
   constructor() {
     super(DATABASE_NAME);
@@ -101,6 +103,7 @@ export class LawrenceLoopDatabase extends Dexie {
         schoolCalendars: "&id, childMemberId, academicYearLabel",
         schoolHalfTermConfigs: "&id, schoolCalendarId, startDate, endDate, updatedAt",
         countdownTargets: "&id, targetDate, visibility, active, sourceType, sourceId",
+        weatherForecasts: "&id, fetchedAt, provider",
       })
       .upgrade(async (transaction) => {
         await transaction.table("events").toCollection().modify((event) => {

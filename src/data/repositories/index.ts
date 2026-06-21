@@ -41,5 +41,6 @@ export { getSchoolCalendar, saveSchoolCalendar } from "./schoolCalendarRepositor
 export { deleteSchoolHalfTermConfig, getSchoolHalfTermConfigById, getSchoolHalfTermConfigForDate, listSchoolHalfTermConfigs, listSchoolHalfTermConfigsForCalendar, saveSchoolHalfTermConfig } from "./schoolHalfTermRepository";
 
 export { getCountdownTarget, getCountdownTargets, saveCountdownTarget } from "./countdownRepository";
+export { clearForecastCache, defaultWeatherSettings, getLatestForecastSnapshot, getWeatherSettings, saveForecastSnapshot, saveWeatherSettings } from "./weatherRepository";
 
 export { archiveSeries, cancelOccurrence, changeOccurrencePrep, changeOccurrenceResources, changeOccurrenceResponsibility, clearOccurrenceException, createSeries, getSeries, getSeriesById, moveOccurrence, pauseSeries, updateSeries } from "./eventSeriesRepository";

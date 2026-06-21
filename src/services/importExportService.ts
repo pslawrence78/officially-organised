@@ -191,6 +191,18 @@ export function validateImportPayload(value: unknown): Omit<ImportValidationResu
     r.entries?.forEach((entry, n) => { if (!validDate(entry.date) || entry.date < r.startDate || entry.date > r.endDate) errors.push(issue("invalid_school_requirement_date", `School requirement ${n + 1} has an invalid date.`, `data.schoolHalfTermConfigs[${i}].entries[${n}]`, r.id)); if (dates.has(entry.date)) errors.push(issue("duplicate_school_requirement_date", `School half-term ‘${r.label}’ contains duplicate date ${entry.date}.`, `data.schoolHalfTermConfigs[${i}].entries[${n}].date`, r.id)); dates.add(entry.date); if (entry.schoolCalendarId !== r.schoolCalendarId || entry.halfTermConfigId !== r.id) errors.push(issue("broken_school_requirement_reference", `School requirement ${entry.date} has a broken parent reference.`, `data.schoolHalfTermConfigs[${i}].entries[${n}]`, r.id)); if (!oneOf(entry.lunchType, SCHOOL_LUNCH_TYPES) || !oneOf(entry.attireType, SCHOOL_ATTIRE_TYPES)) errors.push(issue("invalid_school_requirement_type", `School requirement ${entry.date} has an unknown lunch or clothing value.`, `data.schoolHalfTermConfigs[${i}].entries[${n}]`, r.id)); });
     if (d.schoolHalfTermConfigs.some((other) => other.id !== r.id && other.schoolCalendarId === r.schoolCalendarId && other.startDate <= r.endDate && r.startDate <= other.endDate)) errors.push(issue("overlapping_half_terms", `School half-term ‘${r.label}’ overlaps another configuration.`, `data.schoolHalfTermConfigs[${i}]`, r.id));
   });
+  const weatherSetting = d.settings.find((setting) => setting.id === "weather_settings");
+  if (weatherSetting) {
+    const value = weatherSetting.value;
+    if (!isObject(value)) errors.push(issue("invalid_weather_settings", "Weather settings must be an object.", "data.settings.weather_settings"));
+    else {
+      if (typeof value.enabled !== "boolean" || typeof value.showOnDashboard !== "boolean" || typeof value.showOnToday !== "boolean" || typeof value.showOnWeek !== "boolean") errors.push(issue("invalid_weather_flags", "Weather visibility and enabled values must be true or false.", "data.settings.weather_settings.value"));
+      if (!oneOf(value.provider, ["open_meteo", "manual"]) || !oneOf(value.refreshMode, ["manual", "on_app_open"])) errors.push(issue("invalid_weather_mode", "Weather provider or refresh mode is not recognised.", "data.settings.weather_settings.value"));
+      if (value.latitude !== undefined && (typeof value.latitude !== "number" || value.latitude < -90 || value.latitude > 90)) errors.push(issue("invalid_weather_latitude", "Weather latitude must be between -90 and 90.", "data.settings.weather_settings.value.latitude"));
+      if (value.longitude !== undefined && (typeof value.longitude !== "number" || value.longitude < -180 || value.longitude > 180)) errors.push(issue("invalid_weather_longitude", "Weather longitude must be between -180 and 180.", "data.settings.weather_settings.value.longitude"));
+      if (typeof value.staleAfterHours !== "number" || value.staleAfterHours < 1 || value.staleAfterHours > 48) errors.push(issue("invalid_weather_stale_window", "Weather stale window must be between 1 and 48 hours.", "data.settings.weather_settings.value.staleAfterHours"));
+    }
+  }
   d.countdownTargets.forEach((r, i) => { requireFields(r as unknown as Record<string, unknown>, ["id", "title", "targetDate", "sourceType", "visibility", "createdAt", "updatedAt"], "countdown", i, errors); if (!validDate(r.targetDate)) errors.push(issue("invalid_countdown_date", `Countdown ‘${r.title}’ has an invalid target date.`, `data.countdownTargets[${i}].targetDate`, r.id)); if (!oneOf(r.sourceType, COUNTDOWN_SOURCES) || !oneOf(r.visibility, COUNTDOWN_VISIBILITIES)) errors.push(issue("invalid_countdown_type", `Countdown ‘${r.title}’ has an unknown source or visibility.`, `data.countdownTargets[${i}]`, r.id)); if (r.sourceType === "event" && r.sourceId && !events.has(r.sourceId)) errors.push(issue("missing_countdown_source", `Countdown ‘${r.title}’ references missing event ‘${r.sourceId}’.`, `data.countdownTargets[${i}].sourceId`, r.id)); if (typeof r.sourceType === "string" && r.sourceType.startsWith("school_") && r.sourceId && ![...calendars].some((id) => r.sourceId?.startsWith(`${id}:`))) errors.push(issue("missing_countdown_source", `Countdown ‘${r.title}’ references a missing school calendar.`, `data.countdownTargets[${i}].sourceId`, r.id)); });
   d.auditLog.forEach((r, i) => { if (!validIso(r.timestamp)) errors.push(issue("invalid_audit_date", `Audit entry ‘${r.id}’ has an invalid timestamp.`, `data.auditLog[${i}].timestamp`, r.id)); });
 
@@ -219,6 +231,7 @@ export async function restoreFromImport(payload: ExportEnvelope): Promise<Restor
   await db.transaction("rw", db.tables, async () => {
     for (const store of EXPORT_STORE_NAMES) await db.table(store).clear();
     for (const store of EXPORT_STORE_NAMES) if (payload.data[store].length) await db.table(store).bulkAdd(payload.data[store]);
+    await db.weatherForecasts.clear();
     await db.auditLog.put({ id: `audit_restore_${Date.now()}`, entityType: "system", entityId: payload.exportId, action: "restored", timestamp: restoredAt, summary: "Restored local data from backup" });
   });
   return { restored: true, restoredAt, recordCounts: countsFor(payload.data), safetySnapshot };
@@ -228,6 +241,7 @@ export async function resetLocalDataAndReseed(): Promise<void> {
   const timestamp = new Date().toISOString();
   await db.transaction("rw", db.tables, async () => {
     for (const store of EXPORT_STORE_NAMES) await db.table(store).clear();
+    await db.weatherForecasts.clear();
     await db.households.add(seedHousehold);
     await db.familyMembers.bulkAdd(seedFamilyMembers);
     await db.resources.bulkAdd(seedResources);
