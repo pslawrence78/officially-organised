@@ -19,6 +19,10 @@ const SCHOOL_PERIOD_TYPES = ["term", "holiday"];
 const SCHOOL_CLOSURE_TYPES = ["inset", "bank_holiday", "other_closed"];
 const COUNTDOWN_SOURCES = ["manual", "event", "school_period_start", "school_period_end", "school_closure", "birthday", "seasonal"];
 const COUNTDOWN_VISIBILITIES = ["dashboard_primary", "dashboard_secondary", "hidden"];
+const SCHOOL_PREP_SOURCES = ["operational_school_readiness", "weather_school_suggestion"];
+const SCHOOL_PREP_CATEGORIES = ["lunch", "attire", "pe", "forest_school", "weather", "check_required", "general_school"];
+const SCHOOL_PREP_OWNERS = ["member_phil", "member_beck", "either", "both"];
+const SCHOOL_PREP_STATUSES = ["open", "done", "skipped", "stale"];
 
 function exportId() {
   return `export_${globalThis.crypto?.randomUUID?.() ?? `${Date.now()}_${Math.random().toString(36).slice(2)}`}`;
@@ -190,6 +194,16 @@ export function validateImportPayload(value: unknown): Omit<ImportValidationResu
     const dates = new Set<string>();
     r.entries?.forEach((entry, n) => { if (!validDate(entry.date) || entry.date < r.startDate || entry.date > r.endDate) errors.push(issue("invalid_school_requirement_date", `School requirement ${n + 1} has an invalid date.`, `data.schoolHalfTermConfigs[${i}].entries[${n}]`, r.id)); if (dates.has(entry.date)) errors.push(issue("duplicate_school_requirement_date", `School half-term ‘${r.label}’ contains duplicate date ${entry.date}.`, `data.schoolHalfTermConfigs[${i}].entries[${n}].date`, r.id)); dates.add(entry.date); if (entry.schoolCalendarId !== r.schoolCalendarId || entry.halfTermConfigId !== r.id) errors.push(issue("broken_school_requirement_reference", `School requirement ${entry.date} has a broken parent reference.`, `data.schoolHalfTermConfigs[${i}].entries[${n}]`, r.id)); if (!oneOf(entry.lunchType, SCHOOL_LUNCH_TYPES) || !oneOf(entry.attireType, SCHOOL_ATTIRE_TYPES)) errors.push(issue("invalid_school_requirement_type", `School requirement ${entry.date} has an unknown lunch or clothing value.`, `data.schoolHalfTermConfigs[${i}].entries[${n}]`, r.id)); });
     if (d.schoolHalfTermConfigs.some((other) => other.id !== r.id && other.schoolCalendarId === r.schoolCalendarId && other.startDate <= r.endDate && r.startDate <= other.endDate)) errors.push(issue("overlapping_half_terms", `School half-term ‘${r.label}’ overlaps another configuration.`, `data.schoolHalfTermConfigs[${i}]`, r.id));
+  });
+  const activeSchoolPrepKeys = new Set<string>();
+  d.schoolReadinessPrepActions.forEach((r, i) => {
+    requireFields(r as unknown as Record<string, unknown>, ["id", "householdId", "memberId", "schoolDate", "sourceType", "sourceKey", "sourceVersion", "title", "category", "owner", "priority", "status", "dueAt", "createdAt", "updatedAt", "originLabel"], "school readiness prep action", i, errors);
+    if (!members.has(r.memberId)) errors.push(issue("missing_school_prep_member", `School prep action ‘${r.title}’ references missing member ‘${r.memberId}’.`, `data.schoolReadinessPrepActions[${i}].memberId`, r.id));
+    if (!validDate(r.schoolDate) || !validIso(r.dueAt) || !validIso(r.createdAt) || !validIso(r.updatedAt) || (r.completedAt && !validIso(r.completedAt)) || (r.skippedAt && !validIso(r.skippedAt)) || (r.staleAt && !validIso(r.staleAt))) errors.push(issue("invalid_school_prep_date", `School prep action ‘${r.title}’ has an invalid date.`, `data.schoolReadinessPrepActions[${i}]`, r.id));
+    if (!oneOf(r.sourceType, SCHOOL_PREP_SOURCES) || !oneOf(r.category, SCHOOL_PREP_CATEGORIES) || !oneOf(r.owner, SCHOOL_PREP_OWNERS) || !oneOf(r.status, SCHOOL_PREP_STATUSES) || !oneOf(r.priority, PREP_TASK_PRIORITIES)) errors.push(issue("invalid_school_prep_enum", `School prep action ‘${r.title}’ has an unknown type, category, owner, priority or status.`, `data.schoolReadinessPrepActions[${i}]`, r.id));
+    const key = `${r.schoolDate}:${r.memberId}:${r.sourceType}:${r.sourceKey}`;
+    if (r.status !== "stale" && activeSchoolPrepKeys.has(key)) errors.push(issue("duplicate_school_prep_source", `School prep action ‘${r.title}’ duplicates an active source key.`, `data.schoolReadinessPrepActions[${i}].sourceKey`, r.id));
+    if (r.status !== "stale") activeSchoolPrepKeys.add(key);
   });
   const weatherSetting = d.settings.find((setting) => setting.id === "weather_settings");
   if (weatherSetting) {

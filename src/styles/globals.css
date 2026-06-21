@@ -521,6 +521,13 @@ h1, h2, h3 { line-height: 1.12; }
 .prep-group > header span { align-items: center; background: #eadfd1; border-radius: 50%; color: var(--color-muted); display: flex; font-size: .68rem; height: 1.7rem; justify-content: center; width: 1.7rem; }
 .prep-group--overdue > header h2 { color: var(--color-critical); }
 .prep-group--overdue > header span { background: #f4d9d5; color: var(--color-critical); }
+.school-prep-list { display: grid; gap: var(--space-3); margin-top: var(--space-3); }
+.school-prep-card { align-items: flex-start; background: var(--color-card-strong); border: 1px solid #d6e2d4; border-left: 4px solid var(--color-success); border-radius: var(--radius-md); display: grid; gap: var(--space-3); grid-template-columns: auto minmax(0, 1fr) auto; padding: var(--space-4); }
+.school-prep-card--important { border-left-color: var(--color-warning); }
+.school-prep-card--critical { border-left-color: var(--color-critical); }
+.school-prep-card.is-cleared { opacity: .66; }
+.school-prep-card h3 { font-family: var(--font-display); font-size: 1.18rem; font-weight: 500; margin: 0; overflow-wrap: anywhere; }
+.school-prep-card--compact { padding: var(--space-3); }
 
 .car-need-editor { background: #edf3ef; border: 1px solid #c8d8cc; border-radius: var(--radius-lg); display: grid; gap: var(--space-4); padding: var(--space-5); }
 .car-need-editor.has-error { border-color: var(--color-critical); }
@@ -802,6 +809,8 @@ h1, h2, h3 { line-height: 1.12; }
   .event-card { grid-template-columns: 3.8rem minmax(0, 1fr) auto; padding: var(--space-3); }
   .prep-task-card { grid-template-columns: auto minmax(0, 1fr); }
   .prep-task-card__skip { grid-column: 2; justify-self: start; }
+  .school-prep-card { grid-template-columns: auto minmax(0, 1fr); }
+  .school-prep-card .prep-task-card__skip { grid-column: 2; justify-self: start; min-height: 2.75rem; }
   .school-status { padding: var(--space-3); }
   .school-entry { align-items: flex-start; }
   .school-calendar-page .section-heading { align-items: flex-start; flex-direction: column; }

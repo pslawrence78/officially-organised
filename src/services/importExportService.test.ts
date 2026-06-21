@@ -15,7 +15,7 @@ describe("local backup and restore", () => {
   afterEach(async () => { await db.delete(); });
 
   it("exports every persistent store with Officially Organised metadata and counts", () => {
-    expect(valid.schema).toBe("officially-organised-data-v2");
+    expect(valid.schema).toBe("officially-organised-data-v3");
     expect(valid.sourceAppName).toBe("Officially Organised");
     expect(valid.exportedAt).toMatch(/^\d{4}-/);
     expect(Object.keys(valid.data)).toEqual(expect.arrayContaining(["events", "eventSeries", "schoolCalendars", "countdownTargets", "auditLog"]));

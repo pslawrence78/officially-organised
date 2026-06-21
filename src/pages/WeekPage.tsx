@@ -8,6 +8,7 @@ import { PageHeader } from "../components/layout/PageHeader";
 import { SchoolDayIndicator } from "../components/school/SchoolStatus";
 import { SchoolReadiness } from "../components/school/SchoolReadiness";
 import { WeatherSuggestionCard } from "../components/weather/WeatherSuggestionCard";
+import { SchoolPrepActionList } from "../components/prep/SchoolPrepActionCard";
 import { getEvents, getEventsForDateRange, getFamilyMembers, getPlaces, getSchoolCalendar, listSchoolHalfTermConfigs } from "../data/repositories";
 import { useRepositoryQuery } from "../hooks/useRepositoryQuery";
 import { calculateConflicts, conflictsForEvent, conflictsForEvents } from "../services/conflictService";
@@ -15,9 +16,11 @@ import { getSchoolDayStatus } from "../services/schoolCalendarService";
 import { getSchoolReadinessForDate } from "../services/schoolReadinessService";
 import { addDaysToDateKey, dateKeyToIsoStart, formatLongDate, formatWeekRange, getWeekStartDateKey } from "../utils/dates";
 import { getWeatherSchoolContexts } from "../services/weatherService";
+import { schoolPrepSummary, upsertSchoolReadinessPrepActionsForRange } from "../services/schoolReadinessPrepActionService";
 
 export function WeekPage() {
   const [weekStart, setWeekStart] = useState(getWeekStartDateKey());
+  const [refreshVersion, setRefreshVersion] = useState(0);
   const weekEndExclusive = addDaysToDateKey(weekStart, 7);
   const state = useRepositoryQuery(async () => {
     const [events, allEvents, familyMembers, places, schoolCalendar, halfTermConfigs] = await Promise.all([
@@ -25,8 +28,9 @@ export function WeekPage() {
     ]);
     const readiness = Array.from({ length: 7 }, (_, index) => getSchoolReadinessForDate(schoolCalendar, halfTermConfigs, addDaysToDateKey(weekStart, index)));
     const weather = await getWeatherSchoolContexts(readiness);
-    return { events, allEvents, familyMembers, places, schoolCalendar, halfTermConfigs, readiness, weather };
-  }, [weekStart]);
+    const schoolPrepActions = await upsertSchoolReadinessPrepActionsForRange(readiness, Object.fromEntries(Object.entries(weather).map(([date, context]) => [date, context.suggestions])));
+    return { events, allEvents, familyMembers, places, schoolCalendar, halfTermConfigs, readiness, weather, schoolPrepActions };
+  }, [weekStart, refreshVersion]);
   const data = state.data;
   const days = Array.from({ length: 7 }, (_, index) => addDaysToDateKey(weekStart, index));
   const conflicts = calculateConflicts(data?.allEvents ?? []);
@@ -41,7 +45,8 @@ export function WeekPage() {
       <section className="week-list" aria-label={`Week of ${formatWeekRange(weekStart)}`}>{days.map((day) => {
         const dayStart = Date.parse(dateKeyToIsoStart(day)); const dayEnd = Date.parse(dateKeyToIsoStart(addDaysToDateKey(day, 1)));
         const dayEvents = data.events.filter((event) => Date.parse(event.startAt) < dayEnd && Date.parse(event.endAt) > dayStart);
-        return <section className="week-day" key={day}><header><div><h2>{formatLongDate(day)}</h2><SchoolDayIndicator status={getSchoolDayStatus(data.schoolCalendar, day)} /></div><span>{dayEvents.length || "-"}</span></header><SchoolReadiness compact readiness={data.readiness.find((item) => item.date === day)!} />{data.weather[day]?.settings.showOnWeek ? <WeatherSuggestionCard compact context={data.weather[day]} /> : null}{dayEvents.length ? <div className="event-list">{dayEvents.map((event) => <EventCard conflicts={conflictsForEvent(conflicts, event.id)} event={event} familyMembers={data.familyMembers} key={event.id} place={data.places.find((place) => place.id === event.placeId)} />)}</div> : <p className="week-day__empty">No events</p>}</section>;
+        const schoolActions = data.schoolPrepActions.filter((item) => item.schoolDate === day && item.status !== "stale"); const schoolSummary = schoolPrepSummary(schoolActions);
+        return <section className="week-day" key={day}><header><div><h2>{formatLongDate(day)}</h2><SchoolDayIndicator status={getSchoolDayStatus(data.schoolCalendar, day)} />{schoolActions.length ? <small>{schoolSummary.blocking} blocking · {schoolSummary.weather} weather</small> : null}</div><span>{dayEvents.length || "-"}</span></header><SchoolReadiness compact readiness={data.readiness.find((item) => item.date === day)!} />{data.weather[day]?.settings.showOnWeek ? <WeatherSuggestionCard compact context={data.weather[day]} /> : null}<SchoolPrepActionList actions={schoolActions.filter((item) => item.status === "open")} compact onChanged={() => setRefreshVersion((value) => value + 1)} />{dayEvents.length ? <div className="event-list">{dayEvents.map((event) => <EventCard conflicts={conflictsForEvent(conflicts, event.id)} event={event} familyMembers={data.familyMembers} key={event.id} place={data.places.find((place) => place.id === event.placeId)} />)}</div> : <p className="week-day__empty">No events</p>}</section>;
       })}</section>
     </> : null}
   </div>;

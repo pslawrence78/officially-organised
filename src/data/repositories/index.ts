@@ -42,5 +42,6 @@ export { deleteSchoolHalfTermConfig, getSchoolHalfTermConfigById, getSchoolHalfT
 
 export { getCountdownTarget, getCountdownTargets, saveCountdownTarget } from "./countdownRepository";
 export { clearForecastCache, defaultWeatherSettings, getLatestForecastSnapshot, getWeatherSettings, saveForecastSnapshot, saveWeatherSettings } from "./weatherRepository";
+export { bulkUpsertSchoolPrepActions, deleteAllSchoolPrepActionsForRestore, exportSchoolPrepActions, getSchoolPrepActionById, listOpenSchoolPrepActionsByRange, listSchoolPrepActionsByDate, listSchoolPrepActionsByRange, markSchoolPrepActionsStale, setSchoolPrepActionStatus } from "./schoolReadinessPrepActionRepository";
 
 export { archiveSeries, cancelOccurrence, changeOccurrencePrep, changeOccurrenceResources, changeOccurrenceResponsibility, clearOccurrenceException, createSeries, getSeries, getSeriesById, moveOccurrence, pauseSeries, updateSeries } from "./eventSeriesRepository";

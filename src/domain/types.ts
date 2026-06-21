@@ -361,6 +361,38 @@ export interface SchoolReadinessForDate {
   readinessItems: Array<{ id: string; label: string; severity: "info" | "warning" | "critical"; category: "lunch" | "attire" | "forest_school" | "unknown" }>;
 }
 
+export type SchoolPrepSourceType = "operational_school_readiness" | "weather_school_suggestion";
+export type SchoolPrepCategory = "lunch" | "attire" | "pe" | "forest_school" | "weather" | "check_required" | "general_school";
+export type SchoolPrepOwner = "member_phil" | "member_beck" | "either" | "both";
+export type SchoolPrepStatus = "open" | "done" | "skipped" | "stale";
+
+export interface SchoolReadinessPrepAction {
+  id: string;
+  householdId: string;
+  memberId: string;
+  schoolDate: string;
+  sourceType: SchoolPrepSourceType;
+  sourceKey: string;
+  sourceVersion: string;
+  title: string;
+  detail?: string;
+  category: SchoolPrepCategory;
+  owner: SchoolPrepOwner;
+  priority: PrepTaskPriority;
+  status: SchoolPrepStatus;
+  blocksSchoolReadiness: boolean;
+  dueAt: string;
+  createdAt: string;
+  updatedAt: string;
+  completedAt?: string;
+  skippedAt?: string;
+  staleAt?: string;
+  staleReason?: string;
+  originLabel: string;
+}
+
+export type SchoolReadinessPrepCandidate = Omit<SchoolReadinessPrepAction, "createdAt" | "updatedAt" | "status" | "completedAt" | "skippedAt" | "staleAt" | "staleReason">;
+
 export type CountdownSourceType = "manual" | "event" | "school_period_start" | "school_period_end" | "school_closure" | "birthday" | "seasonal";
 export type CountdownVisibility = "dashboard_primary" | "dashboard_secondary" | "hidden";
 

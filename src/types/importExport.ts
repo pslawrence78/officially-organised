@@ -1,11 +1,11 @@
 import type {
   AuditLogEntry, CountdownTarget, EventSeries, FamilyEvent, FamilyMember,
-  Household, Place, Resource, SchoolCalendar, SchoolHalfTermConfig, Setting, StarterTemplate,
+  Household, Place, Resource, SchoolCalendar, SchoolHalfTermConfig, SchoolReadinessPrepAction, Setting, StarterTemplate,
 } from "../domain/types";
 
 export const EXPORT_STORE_NAMES = [
   "households", "familyMembers", "resources", "places", "events", "eventSeries",
-  "templates", "settings", "schoolCalendars", "schoolHalfTermConfigs", "countdownTargets", "auditLog",
+  "templates", "settings", "schoolCalendars", "schoolHalfTermConfigs", "schoolReadinessPrepActions", "countdownTargets", "auditLog",
 ] as const;
 
 export type ExportStoreName = typeof EXPORT_STORE_NAMES[number];
@@ -22,6 +22,7 @@ export interface ExportDataPayload {
   settings: Setting[];
   schoolCalendars: SchoolCalendar[];
   schoolHalfTermConfigs: SchoolHalfTermConfig[];
+  schoolReadinessPrepActions: SchoolReadinessPrepAction[];
   countdownTargets: CountdownTarget[];
   auditLog: AuditLogEntry[];
 }

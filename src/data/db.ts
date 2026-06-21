@@ -15,6 +15,7 @@ import type {
   Resource,
   SchoolCalendar,
   SchoolHalfTermConfig,
+  SchoolReadinessPrepAction,
   Setting,
   StarterTemplate,
 } from "../domain/types";
@@ -34,6 +35,7 @@ export class LawrenceLoopDatabase extends Dexie {
   schoolHalfTermConfigs!: EntityTable<SchoolHalfTermConfig, "id">;
   countdownTargets!: EntityTable<CountdownTarget, "id">;
   weatherForecasts!: EntityTable<WeatherForecastSnapshot, "id">;
+  schoolReadinessPrepActions!: EntityTable<SchoolReadinessPrepAction, "id">;
 
   constructor() {
     super(DATABASE_NAME);
@@ -104,6 +106,7 @@ export class LawrenceLoopDatabase extends Dexie {
         schoolHalfTermConfigs: "&id, schoolCalendarId, startDate, endDate, updatedAt",
         countdownTargets: "&id, targetDate, visibility, active, sourceType, sourceId",
         weatherForecasts: "&id, fetchedAt, provider",
+        schoolReadinessPrepActions: "&id, schoolDate, status, sourceType, sourceKey, memberId, dueAt, [schoolDate+status], [sourceType+sourceKey]",
       })
       .upgrade(async (transaction) => {
         await transaction.table("events").toCollection().modify((event) => {
