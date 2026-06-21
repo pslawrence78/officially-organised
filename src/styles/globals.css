@@ -343,6 +343,22 @@ h1, h2, h3 { line-height: 1.12; }
 .school-day-indicator svg { flex: 0 0 auto; height: .85rem; width: .85rem; }
 .school-day-indicator--open { color: var(--color-success); }
 .school-day-indicator--closed { color: var(--color-warning); }
+.school-readiness { background: #f4f7f2; border: 1px solid #d6e2d4; border-radius: var(--radius-sm); display: grid; gap: var(--space-2); margin-top: var(--space-3); padding: var(--space-4); }
+.school-readiness--compact { margin: var(--space-2) 0; padding: var(--space-3); }
+.school-readiness__heading { font-family: var(--font-display); font-size: 1.05rem; }
+.school-readiness__badges { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.school-readiness p { color: var(--color-muted); font-size: .76rem; margin: 0; overflow-wrap: anywhere; }
+.school-readiness__warning { color: var(--color-warning) !important; font-weight: 750; }
+.half-term-editor { display: grid; gap: var(--space-5); }
+.half-term-bulk { align-items: center; background: var(--color-background); border-radius: var(--radius-sm); display: flex; flex-wrap: wrap; gap: var(--space-2); padding: var(--space-3); }
+.half-term-bulk strong { flex-basis: 100%; font-size: .78rem; }
+.half-term-bulk button { background: var(--color-card); border: 1px solid var(--color-border); border-radius: var(--radius-pill); min-height: 2.75rem; padding: .55rem .8rem; }
+.half-term-days { display: grid; gap: var(--space-3); }
+.half-term-day { background: var(--color-card-strong); border: 1px solid var(--color-border); border-radius: var(--radius-sm); display: grid; gap: var(--space-3); margin: 0; min-width: 0; padding: var(--space-4); }
+.half-term-day legend { font-family: var(--font-display); font-size: 1.15rem; padding: 0 .35rem; }
+.half-term-checks { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.half-term-checks label { align-items: center; background: var(--color-background); border-radius: var(--radius-sm); display: flex; gap: .45rem; min-height: 2.75rem; padding: .55rem .7rem; }
+.half-term-checks input { height: 1.1rem; width: 1.1rem; }
 .school-calendar-summary dd { text-transform: none; }
 .school-entry-list { display: grid; gap: var(--space-2); }
 .school-entry { align-items: center; background: var(--color-card-strong); border: 1px solid var(--color-border); border-left: 4px solid var(--color-accent); border-radius: var(--radius-sm); display: flex; gap: var(--space-3); justify-content: space-between; padding: var(--space-4); }
@@ -770,6 +786,7 @@ h1, h2, h3 { line-height: 1.12; }
   .page-title-row { align-items: center; display: flex; justify-content: space-between; }
   .compact-action { justify-self: auto; }
   .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .half-term-day .form-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .data-form { padding: var(--space-8); }
   .detail-list > div { grid-template-columns: 9rem 1fr; }
   .place-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }

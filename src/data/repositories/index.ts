@@ -38,6 +38,7 @@ export {
 export { getResourceNeeds } from "./resourceNeedRepository";
 
 export { getSchoolCalendar, saveSchoolCalendar } from "./schoolCalendarRepository";
+export { deleteSchoolHalfTermConfig, getSchoolHalfTermConfigById, getSchoolHalfTermConfigForDate, listSchoolHalfTermConfigs, listSchoolHalfTermConfigsForCalendar, saveSchoolHalfTermConfig } from "./schoolHalfTermRepository";
 
 export { getCountdownTarget, getCountdownTargets, saveCountdownTarget } from "./countdownRepository";
 

@@ -1,12 +1,14 @@
 import type { EventCategory, EventStatus, PlaceType, PrepTaskPriority, PrepTaskStatus, ResourceNeedStatus } from "./types";
 
 export const DATABASE_NAME = "lawrence_loop_db";
-export const DATABASE_SCHEMA_VERSION = 6;
-export const APP_DATA_SCHEMA = "lawrence-loop-data-v6";
-export const EXPORT_DATA_SCHEMA = "officially-organised-data-v1";
-export const EXPORT_SCHEMA_VERSION = 1;
+export const DATABASE_SCHEMA_VERSION = 7;
+export const APP_DATA_SCHEMA = "lawrence-loop-data-v7";
+export const EXPORT_DATA_SCHEMA = "officially-organised-data-v2";
+export const EXPORT_SCHEMA_VERSION = 2;
 export const HOUSEHOLD_TIME_ZONE = "Europe/London";
 export const FAMILY_CAR_RESOURCE_ID = "resource_family_car";
+export const SCHOOL_LUNCH_TYPES = ["packed_lunch", "school_dinner", "home_lunch", "not_required", "unknown"] as const;
+export const SCHOOL_ATTIRE_TYPES = ["school_uniform", "pe_kit", "non_uniform", "not_required", "unknown"] as const;
 
 export const EVENT_CATEGORIES: EventCategory[] = [
   "school",

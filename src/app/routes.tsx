@@ -16,6 +16,7 @@ import { PrepPage } from "../pages/PrepPage";
 import { RoutinesPage } from "../pages/RoutinesPage";
 import { SettingsPage } from "../pages/SettingsPage";
 import { SchoolCalendarPage } from "../pages/SchoolCalendarPage";
+import { SchoolHalfTermPage } from "../pages/SchoolHalfTermPage";
 import { CountdownsPage } from "../pages/CountdownsPage";
 import { TemplatesPage } from "../pages/TemplatesPage";
 import { TodayPage } from "../pages/TodayPage";
@@ -37,6 +38,7 @@ export const requiredRoutePaths = [
   "/settings/import",
   "/settings/export",
   "/settings/school-calendar",
+  "/settings/school-half-terms",
   "/settings/countdowns",
 ] as const;
 
@@ -80,6 +82,7 @@ export const appRoutes: RouteObject[] = [
       { path: "settings/import", element: <ImportPage /> },
       { path: "settings/export", element: <ExportPage /> },
       { path: "settings/school-calendar", element: <SchoolCalendarPage /> },
+      { path: "settings/school-half-terms", element: <SchoolHalfTermPage /> },
       { path: "settings/countdowns", element: <CountdownsPage /> },
       { path: "*", element: <NotFoundPage /> },
     ],

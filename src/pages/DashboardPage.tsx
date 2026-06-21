@@ -8,6 +8,7 @@ import { PrepTaskCard } from "../components/prep/PrepTaskCard";
 import { CarNeedCard } from "../components/resources/CarNeedCard";
 import { ConflictList } from "../components/conflicts/ConflictCard";
 import { SchoolStatus } from "../components/school/SchoolStatus";
+import { SchoolReadiness } from "../components/school/SchoolReadiness";
 import { CountdownCard } from "../components/countdowns/CountdownCard";
 import { FAMILY_CAR_RESOURCE_ID } from "../domain/constants";
 import type { Conflict } from "../domain/types";
@@ -22,6 +23,7 @@ import {
   getPrepTasks,
   getResources,
   getSchoolCalendar,
+  listSchoolHalfTermConfigs,
   getResourceNeeds,
   setPrepTaskStatus,
 } from "../data/repositories";
@@ -31,6 +33,7 @@ import { prepSummary, prepTaskGroup } from "../utils/prepTasks";
 import { carNeedGroup, carSummary } from "../utils/resourceNeeds";
 import { calculateConflicts, conflictsForEvent } from "../services/conflictService";
 import { getSchoolDayStatus } from "../services/schoolCalendarService";
+import { getSchoolReadinessForDate } from "../services/schoolReadinessService";
 import { dashboardCountdowns } from "../services/countdownService";
 
 const ATTENTION_TYPE_ORDER: Record<Conflict["type"], number> = {
@@ -50,7 +53,7 @@ export function DashboardPage() {
   const state = useRepositoryQuery(async () => {
     const today = currentDateKey();
     const weekStart = getWeekStartDateKey(today);
-    const [household, familyMembers, resources, places, todayEvents, weekEvents, allEvents, prepItems, carItems, schoolCalendar, countdownTargets] = await Promise.all([
+    const [household, familyMembers, resources, places, todayEvents, weekEvents, allEvents, prepItems, carItems, schoolCalendar, countdownTargets, halfTermConfigs] = await Promise.all([
       getHousehold(),
       getFamilyMembers(),
       getResources(),
@@ -62,8 +65,9 @@ export function DashboardPage() {
       getResourceNeeds(FAMILY_CAR_RESOURCE_ID),
       getSchoolCalendar(),
       getCountdownTargets(),
+      listSchoolHalfTermConfigs(),
     ]);
-    return { today, household, familyMembers, resources, places, todayEvents, weekEvents, allEvents, prepItems, carItems, schoolCalendar, countdownTargets };
+    return { today, household, familyMembers, resources, places, todayEvents, weekEvents, allEvents, prepItems, carItems, schoolCalendar, countdownTargets, halfTermConfigs };
   }, [refreshVersion]);
   const data = state.data;
   const activeEvents = data?.allEvents.filter((event) => event.status !== "cancelled") ?? [];
@@ -79,6 +83,8 @@ export function DashboardPage() {
     ? activeEvents.filter((event) => isoToDateKey(event.startAt) > data.today && Date.parse(event.endAt) >= Date.now()).slice(0, 3)
     : [];
   const schoolStatus = data ? getSchoolDayStatus(data.schoolCalendar, data.today) : undefined;
+  const schoolReadiness = data ? getSchoolReadinessForDate(data.schoolCalendar, data.halfTermConfigs, data.today) : undefined;
+  const tomorrowReadiness = data ? getSchoolReadinessForDate(data.schoolCalendar, data.halfTermConfigs, addDaysToDateKey(data.today, 1)) : undefined;
   const countdowns = data ? dashboardCountdowns(data.countdownTargets, data.today) : undefined;
 
   const updatePrep = async (eventId: string, taskId: string, status: "open" | "done" | "skipped") => {
@@ -125,7 +131,7 @@ export function DashboardPage() {
             {comingUp.length ? <div className="event-list">{comingUp.map((event) => <EventCard conflicts={conflictsForEvent(conflicts, event.id)} event={event} familyMembers={data.familyMembers} key={event.id} place={data.places.find((place) => place.id === event.placeId)} />)}</div> : <DashboardEmpty icon="calendar" title="Quiet or low-activity week" copy="There’s nothing else coming up in the current plans." />}
           </section>
 
-          {schoolStatus ? <section className="section-block school-context-section"><div className="section-heading"><div><p className="eyebrow">School context</p><h2>Today for Seb</h2></div></div><SchoolStatus context="dashboard" linked status={schoolStatus} /></section> : null}
+          {schoolStatus ? <section className="section-block school-context-section"><div className="section-heading"><div><p className="eyebrow">School readiness</p><h2>Today and tomorrow for Seb</h2></div><Link className="back-link" to="/settings/school-half-terms">Manage</Link></div><SchoolStatus context="dashboard" linked status={schoolStatus} />{schoolReadiness ? <SchoolReadiness heading="Today" readiness={schoolReadiness} /> : null}{tomorrowReadiness && tomorrowReadiness.schoolStatus !== "closed" ? <SchoolReadiness heading="Tomorrow" readiness={tomorrowReadiness} /> : null}</section> : null}
 
           {countdowns && (countdowns.primary || countdowns.secondary.length) ? <section className="section-block countdown-section" data-dashboard-section="countdowns"><div className="section-heading"><div><p className="eyebrow">Family countdown</p><h2>Something to look forward to</h2></div><Link className="back-link" to="/settings/countdowns">Manage</Link></div>{countdowns.primary ? <CountdownCard countdown={countdowns.primary} primary /> : null}{countdowns.secondary.length ? <div className="countdown-secondary-list">{countdowns.secondary.map((countdown) => <CountdownCard countdown={countdown} key={countdown.id} />)}</div> : null}</section> : null}
 

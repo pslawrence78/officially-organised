@@ -309,6 +309,58 @@ export interface SchoolDayStatus {
   label: string;
 }
 
+export type SchoolLunchType = "packed_lunch" | "school_dinner" | "home_lunch" | "not_required" | "unknown";
+export type SchoolAttireType = "school_uniform" | "pe_kit" | "non_uniform" | "not_required" | "unknown";
+
+export interface ForestSchoolRequirement {
+  required: boolean;
+  wellingtonBoots: boolean;
+  longTrousers: boolean;
+  waterproofs?: boolean;
+  notes?: string;
+}
+
+export interface SchoolDayRequirementEntry {
+  id: string;
+  schoolCalendarId: string;
+  halfTermConfigId: string;
+  date: string;
+  schoolStatusAtCreation?: "open" | "closed" | "unknown";
+  lunchType: SchoolLunchType;
+  lunchChoice?: string;
+  lunchNotes?: string;
+  attireType: SchoolAttireType;
+  attireNotes?: string;
+  forestSchool: ForestSchoolRequirement;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SchoolHalfTermConfig {
+  id: string;
+  schoolCalendarId: string;
+  label: string;
+  startDate: string;
+  endDate: string;
+  sourceNote?: string;
+  entries: SchoolDayRequirementEntry[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SchoolReadinessForDate {
+  date: string;
+  schoolStatus: "open" | "closed" | "unknown";
+  schoolStatusLabel: string;
+  hasConfiguration: boolean;
+  configLabel?: string;
+  lunch: { type: SchoolLunchType; label: string; choice?: string; notes?: string; isKnown: boolean };
+  attire: { type: SchoolAttireType; label: string; notes?: string; isKnown: boolean };
+  forestSchool: ForestSchoolRequirement;
+  readinessItems: Array<{ id: string; label: string; severity: "info" | "warning" | "critical"; category: "lunch" | "attire" | "forest_school" | "unknown" }>;
+}
+
 export type CountdownSourceType = "manual" | "event" | "school_period_start" | "school_period_end" | "school_closure" | "birthday" | "seasonal";
 export type CountdownVisibility = "dashboard_primary" | "dashboard_secondary" | "hidden";
 

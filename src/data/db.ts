@@ -14,6 +14,7 @@ import type {
   Place,
   Resource,
   SchoolCalendar,
+  SchoolHalfTermConfig,
   Setting,
   StarterTemplate,
 } from "../domain/types";
@@ -29,6 +30,7 @@ export class LawrenceLoopDatabase extends Dexie {
   settings!: EntityTable<Setting, "id">;
   auditLog!: EntityTable<AuditLogEntry, "id">;
   schoolCalendars!: EntityTable<SchoolCalendar, "id">;
+  schoolHalfTermConfigs!: EntityTable<SchoolHalfTermConfig, "id">;
   countdownTargets!: EntityTable<CountdownTarget, "id">;
 
   constructor() {
@@ -97,6 +99,7 @@ export class LawrenceLoopDatabase extends Dexie {
       .stores({
         events: "&id, startAt, endAt, category, status",
         schoolCalendars: "&id, childMemberId, academicYearLabel",
+        schoolHalfTermConfigs: "&id, schoolCalendarId, startDate, endDate, updatedAt",
         countdownTargets: "&id, targetDate, visibility, active, sourceType, sourceId",
       })
       .upgrade(async (transaction) => {
