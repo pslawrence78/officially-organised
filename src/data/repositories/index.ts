@@ -2,9 +2,11 @@ export {
   getFamilyMemberById,
   getFamilyMembers,
   getHousehold,
+  getSetting,
   getResources,
   getSettings,
   getTemplates,
+  saveSetting,
   seedInitialDataIfNeeded,
 } from "./appRepository";
 

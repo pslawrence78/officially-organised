@@ -9,6 +9,7 @@ describe("Tranche 0 route contract", () => {
       "/today",
       "/week",
       "/hub",
+      "/hub/wallboard",
       "/calendar",
       "/car",
       "/prep",
@@ -46,6 +47,7 @@ describe("Tranche 0 route contract", () => {
     ["/officially-organised/today", "today"],
     ["/officially-organised/week", "week"],
     ["/officially-organised/hub", "/hub"],
+    ["/officially-organised/hub/wallboard", "/hub/wallboard"],
     ["/officially-organised/car", "car"],
     ["/officially-organised/unknown", "*"],
   ])("resolves %s within the deployed base path", (path, expectedRoute) => {
@@ -66,5 +68,15 @@ describe("Tranche 0 route contract", () => {
 
     expect(testRouter.state.matches).toHaveLength(1);
     expect(testRouter.state.matches[0].route.path).toBe("/hub");
+  });
+
+  it("keeps the Hub wallboard outside the normal application shell", () => {
+    const testRouter = createMemoryRouter(appRoutes, {
+      basename: "/officially-organised",
+      initialEntries: ["/officially-organised/hub/wallboard"],
+    });
+
+    expect(testRouter.state.matches).toHaveLength(1);
+    expect(testRouter.state.matches[0].route.path).toBe("/hub/wallboard");
   });
 });

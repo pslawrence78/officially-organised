@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ErrorState, LoadingState } from "../components/common/AsyncState";
 import { Icon } from "../components/common/Icon";
 import { PageHeader } from "../components/layout/PageHeader";
+import { HubWallboardSettingsPanel } from "../components/hub/HubWallboardSettingsPanel";
 import { WeatherSettingsPanel } from "../components/weather/WeatherSettingsPanel";
 import { databaseMetadata } from "../data/db";
 import { getHousehold } from "../data/repositories";
@@ -101,6 +102,11 @@ export function SettingsPage() {
           <span><strong>Household Hub</strong><small>Read-only calm display for a family screen</small></span>
           <Icon className="secondary-navigation__chevron" name="chevron" />
         </Link>
+        <Link to="/hub/wallboard">
+          <span className="secondary-navigation__icon"><Icon name="clock" /></span>
+          <span><strong>Hub wallboard</strong><small>Auto-rotating read-only kitchen display</small></span>
+          <Icon className="secondary-navigation__chevron" name="chevron" />
+        </Link>
         <Link to="/settings/countdowns">
           <span className="secondary-navigation__icon"><Icon name="clock" /></span>
           <span><strong>Family countdowns</strong><small>Selected dates, days and sleeps</small></span>
@@ -112,6 +118,8 @@ export function SettingsPage() {
           <Icon className="secondary-navigation__chevron" name="chevron" />
         </Link>
       </section>
+
+      <HubWallboardSettingsPanel />
 
       <WeatherSettingsPanel />
     </div>

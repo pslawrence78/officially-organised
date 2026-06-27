@@ -1,14 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ErrorState, LoadingState } from "../components/common/AsyncState";
-import { HubCarWatchPanel } from "../components/hub/HubCarWatchPanel";
-import { HubCriticalPrepPanel } from "../components/hub/HubCriticalPrepPanel";
-import { HubDayPanel } from "../components/hub/HubDayPanel";
-import { HubSchoolReadinessPanel } from "../components/hub/HubSchoolReadinessPanel";
+import { getHubRenderedPanels } from "../components/hub/HubPanelRegistry";
 import { HubStatusFooter } from "../components/hub/HubStatusFooter";
-import { HubWeatherSuggestionsPanel } from "../components/hub/HubWeatherSuggestionsPanel";
 import { useRepositoryQuery } from "../hooks/useRepositoryQuery";
+import { defaultHubWallboardSettings, HUB_WALLBOARD_SETTINGS_ID, sanitizeHubWallboardSettings } from "../services/hubRotationService";
 import { getHubViewModel } from "../services/hubService";
+import { getSetting } from "../data/repositories";
 
 const PRIVACY_KEY = "officially-organised:hub-privacy-mode";
 
@@ -39,42 +37,20 @@ export function HubPage() {
   }, []);
 
   const state = useRepositoryQuery(
-    () => getHubViewModel({ isOffline, privacyMode, now: new Date() }),
+    async () => {
+      const [viewModel, settingsRecord] = await Promise.all([
+        getHubViewModel({ isOffline, privacyMode, now: new Date() }),
+        getSetting(HUB_WALLBOARD_SETTINGS_ID),
+      ]);
+      return {
+        viewModel,
+        settings: sanitizeHubWallboardSettings(settingsRecord?.value ?? defaultHubWallboardSettings),
+      };
+    },
     [isOffline, privacyMode],
   );
 
-  const cards = state.data ? [
-    {
-      id: "today",
-      label: "Today",
-      element: <HubDayPanel day={state.data.today} eyebrow="Today" title="At a glance" />,
-    },
-    {
-      id: "tomorrow",
-      label: "Tomorrow",
-      element: <HubDayPanel day={state.data.tomorrow} eyebrow="Tomorrow" title="Coming next" />,
-    },
-    {
-      id: "school",
-      label: "School",
-      element: <HubSchoolReadinessPanel readiness={state.data.schoolReadiness} />,
-    },
-    {
-      id: "weather",
-      label: "Weather",
-      element: <HubWeatherSuggestionsPanel items={state.data.weatherSuggestions} />,
-    },
-    {
-      id: "car",
-      label: "Car",
-      element: <HubCarWatchPanel items={state.data.carWatch} />,
-    },
-    {
-      id: "prep",
-      label: "Prep",
-      element: <HubCriticalPrepPanel hiddenCount={state.data.hiddenPrepCount} items={state.data.criticalPrep} />,
-    },
-  ] : [];
+  const cards = state.data ? getHubRenderedPanels(state.data.viewModel, state.data.settings, true) : [];
   const currentCard = cards[activeCard % Math.max(cards.length, 1)];
   const goPrevious = () => setActiveCard((value) => (value + cards.length - 1) % cards.length);
   const goNext = () => setActiveCard((value) => (value + 1) % cards.length);
@@ -86,7 +62,10 @@ export function HubPage() {
           <p className="eyebrow">Household display</p>
           <h1>Hub</h1>
         </div>
-        <Link className="hub-exit-control" to="/">Exit dashboard</Link>
+        <div className="hub-wallboard-controls">
+          <Link className="hub-exit-control" to="/hub/wallboard">Wallboard</Link>
+          <Link className="hub-exit-control" to="/">Exit dashboard</Link>
+        </div>
       </header>
 
       {state.loading ? <LoadingState label="Refreshing the household Hub..." /> : null}
@@ -99,7 +78,7 @@ export function HubPage() {
             </button>
             <div className="hub-display-card" data-card={currentCard.id}>
               <div className="hub-display-card__label">
-                <span>{currentCard.label}</span>
+                <span>{currentCard.title}</span>
                 <strong>{activeCard + 1}/{cards.length}</strong>
               </div>
               {currentCard.element}
@@ -109,12 +88,12 @@ export function HubPage() {
             </button>
           </section>
           <HubStatusFooter
-            generatedAt={state.data.generatedAt}
-            isOffline={state.data.statuses.isOffline}
-            privacyMode={state.data.statuses.privacyMode}
-            weatherConfigured={state.data.statuses.weatherConfigured}
-            weatherStale={state.data.statuses.weatherStale}
-            weatherUnavailable={state.data.statuses.weatherUnavailable}
+            generatedAt={state.data.viewModel.generatedAt}
+            isOffline={state.data.viewModel.statuses.isOffline}
+            privacyMode={state.data.viewModel.statuses.privacyMode}
+            weatherConfigured={state.data.viewModel.statuses.weatherConfigured}
+            weatherStale={state.data.viewModel.statuses.weatherStale}
+            weatherUnavailable={state.data.viewModel.statuses.weatherUnavailable}
           />
         </>
       ) : null}

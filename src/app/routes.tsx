@@ -7,6 +7,7 @@ import { EventDetailPage } from "../pages/EventDetailPage";
 import { EventFormPage } from "../pages/EventFormPage";
 import { ExportPage } from "../pages/ExportPage";
 import { HubPage } from "../pages/HubPage";
+import { HubWallboardPage } from "../pages/HubWallboardPage";
 import { ImportPage } from "../pages/ImportPage";
 import { NotFoundPage } from "../pages/NotFoundPage";
 import { PeoplePage } from "../pages/PeoplePage";
@@ -28,6 +29,7 @@ export const requiredRoutePaths = [
   "/today",
   "/week",
   "/hub",
+  "/hub/wallboard",
   "/calendar",
   "/car",
   "/prep",
@@ -63,6 +65,10 @@ export const appRoutes: RouteObject[] = [
   {
     path: "/hub",
     element: <HubPage />,
+  },
+  {
+    path: "/hub/wallboard",
+    element: <HubWallboardPage />,
   },
   {
     path: "/",

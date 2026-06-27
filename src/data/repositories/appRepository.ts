@@ -94,3 +94,11 @@ export async function getTemplates() {
 export async function getSettings() {
   return db.settings.orderBy("id").toArray();
 }
+
+export async function getSetting(id: string) {
+  return db.settings.get(id);
+}
+
+export async function saveSetting(id: string, value: unknown, description?: string) {
+  await db.settings.put({ id, value, description });
+}

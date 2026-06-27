@@ -1031,12 +1031,91 @@ h1, h2, h3 { line-height: 1.12; }
   padding: .75rem 1.05rem;
   text-decoration: none;
 }
+.hub-wallboard-controls {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+.hub-wallboard-controls .hub-card-control:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
 .hub-display-stage {
   align-items: center;
   display: grid;
   gap: var(--space-4);
   grid-template-columns: auto minmax(0, 1fr) auto;
   min-height: 0;
+}
+.hub-display-shell--wallboard {
+  background:
+    linear-gradient(130deg, #f5f8f2, #fbf6ee 58%, #edf4f7),
+    var(--color-background);
+  padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+}
+.hub-display-stage--wallboard {
+  grid-template-columns: minmax(0, 1fr);
+}
+.hub-display-card--wallboard {
+  justify-self: center;
+  max-height: calc(100dvh - 10.5rem);
+  max-width: min(100%, 92rem);
+  position: relative;
+}
+.hub-display-card--wallboard[data-paused="true"] .hub-dwell-progress {
+  animation-play-state: paused;
+}
+.hub-dwell-progress {
+  background: var(--color-accent);
+  border-radius: var(--radius-pill);
+  bottom: var(--space-3);
+  height: .35rem;
+  left: var(--space-5);
+  opacity: .75;
+  position: absolute;
+  transform-origin: left center;
+  width: calc(100% - var(--space-10));
+  animation: hub-dwell-progress linear forwards;
+}
+.hub-heartbeat {
+  align-items: center;
+  background: color-mix(in srgb, var(--color-card-strong) 94%, transparent);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: var(--space-3) var(--space-4);
+}
+.hub-heartbeat small,
+.hub-wallboard-message {
+  color: var(--color-muted);
+  font-size: .82rem;
+}
+.hub-wallboard-message {
+  margin: 0;
+  text-align: center;
+}
+.hub-settings-grid {
+  display: grid;
+  gap: var(--space-3);
+}
+.form-field--checkbox {
+  align-items: center;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: row;
+  gap: var(--space-2);
+  min-height: 3rem;
+  padding: var(--space-3);
+}
+.form-field--checkbox input {
+  height: 1.1rem;
+  width: 1.1rem;
 }
 .hub-display-card {
   aspect-ratio: 16 / 9;
@@ -1105,6 +1184,11 @@ h1, h2, h3 { line-height: 1.12; }
   border-radius: var(--radius-md);
   padding: var(--space-5);
 }
+.hub-display-card--wallboard {
+  justify-self: center;
+  max-height: calc(100dvh - 10.5rem);
+  max-width: min(100%, 92rem);
+}
 .hub-display-shell .hub-status-footer {
   border-radius: var(--radius-pill);
   grid-template-columns: minmax(0, 1fr) auto;
@@ -1138,6 +1222,23 @@ h1, h2, h3 { line-height: 1.12; }
     width: 100%;
   }
   .hub-display-topbar h1 { font-size: 2rem; }
+  .hub-wallboard-topbar { align-items: flex-start; flex-direction: column; }
+  .hub-wallboard-controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+  .hub-wallboard-controls .hub-exit-control,
+  .hub-wallboard-controls .hub-card-control {
+    width: 100%;
+  }
+  .hub-display-card--wallboard {
+    min-height: 62dvh;
+  }
+  .hub-heartbeat {
+    border-radius: var(--radius-md);
+    grid-template-columns: 1fr;
+  }
   .hub-display-shell .hub-status-footer {
     border-radius: var(--radius-md);
     grid-template-columns: 1fr;
@@ -1148,6 +1249,7 @@ h1, h2, h3 { line-height: 1.12; }
   .hub-hero { grid-template-columns: minmax(0, 1fr) auto; }
   .hub-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .hub-status-footer { grid-template-columns: minmax(0, 1fr) auto; }
+  .hub-settings-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (min-width: 64rem) {
@@ -1155,4 +1257,9 @@ h1, h2, h3 { line-height: 1.12; }
   .hub-grid > :nth-child(1) { grid-column: 1; }
   .hub-grid > :nth-child(2) { grid-column: 2; }
   .hub-grid > :nth-child(3) { grid-column: 3; grid-row: span 2; }
+}
+
+@keyframes hub-dwell-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
 }
