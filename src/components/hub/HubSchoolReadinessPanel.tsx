@@ -4,7 +4,7 @@ import { HubPanel } from "./HubPanel";
 
 export function HubSchoolReadinessPanel({ readiness }: { readiness: HubSchoolReadinessSummary }) {
   return (
-    <HubPanel actionLabel="Prep" actionTo="/prep" accent="sage" eyebrow="School readiness" title="Seb today">
+    <HubPanel accent="sage" eyebrow="School readiness" title="Seb today">
       <div className="hub-school-panel">
         <div className="hub-inline-badges">
           <Badge tone={readiness.schoolStatus === "open" ? "success" : readiness.schoolStatus === "closed" ? "neutral" : "warning"}>{readiness.schoolStatusLabel}</Badge>

@@ -991,6 +991,126 @@ h1, h2, h3 { line-height: 1.12; }
 }
 .hub-status-footer small { color: var(--color-muted); }
 
+.hub-display-shell {
+  background:
+    linear-gradient(120deg, rgba(244,248,251,.95), rgba(247,239,226,.9)),
+    var(--color-background);
+  display: grid;
+  gap: var(--space-4);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-height: 100dvh;
+  overflow: hidden;
+  padding: clamp(1rem, 3dvh, 2rem);
+}
+.hub-display-topbar {
+  align-items: center;
+  display: flex;
+  gap: var(--space-4);
+  justify-content: space-between;
+}
+.hub-display-topbar h1 {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  margin: 0;
+}
+.hub-exit-control,
+.hub-card-control {
+  align-items: center;
+  background: var(--color-card-strong);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  color: var(--color-text);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: .85rem;
+  font-weight: 800;
+  justify-content: center;
+  min-height: 3rem;
+  padding: .75rem 1.05rem;
+  text-decoration: none;
+}
+.hub-display-stage {
+  align-items: center;
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  min-height: 0;
+}
+.hub-display-card {
+  aspect-ratio: 16 / 9;
+  background:
+    radial-gradient(circle at 100% 0, rgba(255,255,255,.72), transparent 18rem),
+    var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 22px 70px rgba(87, 65, 47, .16);
+  display: grid;
+  gap: var(--space-3);
+  grid-template-rows: auto minmax(0, 1fr);
+  max-height: calc(100dvh - 12rem);
+  max-width: 100%;
+  min-height: 0;
+  overflow: hidden;
+  padding: var(--space-5);
+  width: 100%;
+}
+.hub-display-card__label {
+  align-items: center;
+  color: var(--color-muted);
+  display: flex;
+  font-size: .76rem;
+  font-weight: 800;
+  justify-content: space-between;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.hub-display-card > .hub-panel {
+  border-radius: var(--radius-md);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
+}
+.hub-display-card .hub-panel__header h2 { font-size: 2.3rem; }
+.hub-display-card .hub-day-panel,
+.hub-display-card .hub-school-panel,
+.hub-display-card .hub-prep-list,
+.hub-display-card .hub-weather-list,
+.hub-display-card .hub-car-list {
+  min-height: 0;
+  overflow: auto;
+  padding-right: .15rem;
+}
+.hub-display-card .hub-day-panel__summary strong { font-size: 1.35rem; }
+.hub-display-card .hub-inline-list span,
+.hub-display-card .hub-event-card__time,
+.hub-display-card .hub-event-card__body p,
+.hub-display-card .hub-car-card__body p,
+.hub-display-card .hub-weather-card p,
+.hub-display-card .hub-prep-card p,
+.hub-display-card .hub-school-action p {
+  font-size: 1rem;
+}
+.hub-display-card .hub-event-card__body h3,
+.hub-display-card .hub-car-card__body h3 {
+  font-size: 1.7rem;
+}
+.hub-display-card .hub-event-card,
+.hub-display-card .hub-car-card,
+.hub-display-card .hub-weather-card,
+.hub-display-card .hub-prep-card,
+.hub-display-card .hub-school-action {
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+}
+.hub-display-shell .hub-status-footer {
+  border-radius: var(--radius-pill);
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: var(--space-3) var(--space-4);
+}
+
 @media (max-width: 27rem) {
   .weather-card__heading { flex-wrap: wrap; }
   .weather-suggestion-list li { grid-template-columns: 1fr; }
@@ -999,6 +1119,29 @@ h1, h2, h3 { line-height: 1.12; }
   .hub-panel { padding: var(--space-4); }
   .hub-panel__header { flex-direction: column; }
   .hub-weather-card__header, .hub-prep-card__top, .hub-event-card__meta { flex-direction: column; }
+  .hub-display-shell {
+    overflow: auto;
+    padding: var(--space-3);
+  }
+  .hub-display-stage {
+    grid-template-columns: 1fr 1fr;
+  }
+  .hub-display-card {
+    aspect-ratio: auto;
+    grid-column: 1 / -1;
+    grid-row: 1;
+    max-height: none;
+    min-height: 70dvh;
+    order: -1;
+  }
+  .hub-card-control {
+    width: 100%;
+  }
+  .hub-display-topbar h1 { font-size: 2rem; }
+  .hub-display-shell .hub-status-footer {
+    border-radius: var(--radius-md);
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (min-width: 44rem) {

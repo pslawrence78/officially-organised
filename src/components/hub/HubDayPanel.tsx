@@ -1,18 +1,15 @@
-import { Link } from "react-router-dom";
 import type { HubDaySummary } from "../../services/hubService";
 import { Badge } from "../common/Badge";
 import { Icon } from "../common/Icon";
 import { HubPanel } from "./HubPanel";
 
-export function HubDayPanel({ eyebrow, title, day, actionLabel, actionTo }: {
+export function HubDayPanel({ eyebrow, title, day }: {
   eyebrow: string;
   title: string;
   day: HubDaySummary;
-  actionLabel: string;
-  actionTo: string;
 }) {
   return (
-    <HubPanel actionLabel={actionLabel} actionTo={actionTo} eyebrow={eyebrow} title={title}>
+    <HubPanel eyebrow={eyebrow} title={title}>
       <div className="hub-day-panel">
         <div className="hub-day-panel__summary">
           <strong>{day.label}</strong>
@@ -26,7 +23,7 @@ export function HubDayPanel({ eyebrow, title, day, actionLabel, actionTo }: {
         {day.items.length ? (
           <div className="hub-event-list">
             {day.items.map((item) => (
-              <Link className="hub-event-card" key={item.id} to={`/events/${item.id}`}>
+              <article className="hub-event-card" key={item.id}>
                 <div className="hub-event-card__meta">
                   <span className="hub-event-card__time">{item.timeLabel}</span>
                   <div className="hub-event-card__badges">
@@ -47,7 +44,7 @@ export function HubDayPanel({ eyebrow, title, day, actionLabel, actionTo }: {
                   {item.carBadge ? <span>{item.carBadge}</span> : null}
                   {item.prepBadge ? <span>{item.prepBadge}</span> : null}
                 </div>
-              </Link>
+              </article>
             ))}
           </div>
         ) : (

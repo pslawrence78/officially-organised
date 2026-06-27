@@ -2,12 +2,26 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { db } from "../data/db";
-import { getCountdownTargets, seedInitialDataIfNeeded } from "../data/repositories";
+import { getCountdownTargets, getSchoolCalendar, saveSchoolCalendar, seedInitialDataIfNeeded } from "../data/repositories";
 import { CountdownsPage } from "./CountdownsPage";
 
 describe("countdown management", () => {
-  beforeEach(async () => { await db.delete(); await db.open(); await seedInitialDataIfNeeded(); });
-  afterEach(async () => { cleanup(); await db.delete(); });
+  beforeEach(async () => {
+    await db.delete();
+    await db.open();
+    await seedInitialDataIfNeeded();
+    const calendar = await getSchoolCalendar();
+    if (calendar) {
+      await saveSchoolCalendar({
+        ...calendar,
+        closureDays: calendar.closureDays.map((day) => day.id === "school_closure_inset" ? { ...day, date: "2026-07-01" } : day),
+      });
+    }
+  });
+  afterEach(async () => {
+    cleanup();
+    await db.delete();
+  });
 
   it("adds and edits a manual countdown", async () => {
     render(<MemoryRouter><CountdownsPage /></MemoryRouter>);

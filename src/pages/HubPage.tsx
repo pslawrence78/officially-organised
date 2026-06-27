@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { ErrorState, LoadingState } from "../components/common/AsyncState";
 import { HubCarWatchPanel } from "../components/hub/HubCarWatchPanel";
 import { HubCriticalPrepPanel } from "../components/hub/HubCriticalPrepPanel";
@@ -22,13 +23,9 @@ function initialOfflineState() {
 }
 
 export function HubPage() {
-  const [privacyMode, setPrivacyMode] = useState(initialPrivacyMode);
+  const [privacyMode] = useState(initialPrivacyMode);
   const [isOffline, setIsOffline] = useState(initialOfflineState);
-  const [refreshVersion, setRefreshVersion] = useState(0);
-
-  useEffect(() => {
-    window.localStorage.setItem(PRIVACY_KEY, privacyMode ? "on" : "off");
-  }, [privacyMode]);
+  const [activeCard, setActiveCard] = useState(0);
 
   useEffect(() => {
     const onOnline = () => setIsOffline(false);
@@ -43,45 +40,74 @@ export function HubPage() {
 
   const state = useRepositoryQuery(
     () => getHubViewModel({ isOffline, privacyMode, now: new Date() }),
-    [isOffline, privacyMode, refreshVersion],
+    [isOffline, privacyMode],
   );
 
+  const cards = state.data ? [
+    {
+      id: "today",
+      label: "Today",
+      element: <HubDayPanel day={state.data.today} eyebrow="Today" title="At a glance" />,
+    },
+    {
+      id: "tomorrow",
+      label: "Tomorrow",
+      element: <HubDayPanel day={state.data.tomorrow} eyebrow="Tomorrow" title="Coming next" />,
+    },
+    {
+      id: "school",
+      label: "School",
+      element: <HubSchoolReadinessPanel readiness={state.data.schoolReadiness} />,
+    },
+    {
+      id: "weather",
+      label: "Weather",
+      element: <HubWeatherSuggestionsPanel items={state.data.weatherSuggestions} />,
+    },
+    {
+      id: "car",
+      label: "Car",
+      element: <HubCarWatchPanel items={state.data.carWatch} />,
+    },
+    {
+      id: "prep",
+      label: "Prep",
+      element: <HubCriticalPrepPanel hiddenCount={state.data.hiddenPrepCount} items={state.data.criticalPrep} />,
+    },
+  ] : [];
+  const currentCard = cards[activeCard % Math.max(cards.length, 1)];
+  const goPrevious = () => setActiveCard((value) => (value + cards.length - 1) % cards.length);
+  const goNext = () => setActiveCard((value) => (value + 1) % cards.length);
+
   return (
-    <div className="page-stack hub-page">
-      <section className="hub-hero">
+    <main className="hub-display-shell" aria-label="Household Hub display">
+      <header className="hub-display-topbar">
         <div>
           <p className="eyebrow">Household display</p>
           <h1>Hub</h1>
-          <p>A calm read-only view for a kitchen screen, family tablet, or quick check-in across the day.</p>
         </div>
-        <div className="hub-hero__actions">
-          <button className="menu-button" onClick={() => setRefreshVersion((value) => value + 1)} type="button">
-            <span>Refresh</span>
-          </button>
-          <button
-            aria-pressed={privacyMode}
-            className={`hub-privacy-toggle${privacyMode ? " is-on" : ""}`}
-            onClick={() => setPrivacyMode((value) => !value)}
-            type="button"
-          >
-            <span>Privacy</span>
-            <strong>{privacyMode ? "On" : "Off"}</strong>
-          </button>
-        </div>
-      </section>
+        <Link className="hub-exit-control" to="/">Exit dashboard</Link>
+      </header>
 
       {state.loading ? <LoadingState label="Refreshing the household Hub..." /> : null}
       {state.error ? <ErrorState>Hub data could not be assembled right now. Reload and try again.</ErrorState> : null}
       {state.data ? (
         <>
-          <div className="hub-grid">
-            <HubDayPanel actionLabel="Today" actionTo="/today" day={state.data.today} eyebrow="Today" title="At a glance" />
-            <HubDayPanel actionLabel="Week" actionTo="/week" day={state.data.tomorrow} eyebrow="Tomorrow" title="Coming next" />
-            <HubSchoolReadinessPanel readiness={state.data.schoolReadiness} />
-            <HubWeatherSuggestionsPanel items={state.data.weatherSuggestions} />
-            <HubCarWatchPanel items={state.data.carWatch} />
-            <HubCriticalPrepPanel hiddenCount={state.data.hiddenPrepCount} items={state.data.criticalPrep} />
-          </div>
+          <section className="hub-display-stage" aria-live="polite">
+            <button aria-label="Previous card" className="hub-card-control hub-card-control--previous" onClick={goPrevious} type="button">
+              Previous
+            </button>
+            <div className="hub-display-card" data-card={currentCard.id}>
+              <div className="hub-display-card__label">
+                <span>{currentCard.label}</span>
+                <strong>{activeCard + 1}/{cards.length}</strong>
+              </div>
+              {currentCard.element}
+            </div>
+            <button aria-label="Next card" className="hub-card-control hub-card-control--next" onClick={goNext} type="button">
+              Next
+            </button>
+          </section>
           <HubStatusFooter
             generatedAt={state.data.generatedAt}
             isOffline={state.data.statuses.isOffline}
@@ -92,6 +118,6 @@ export function HubPage() {
           />
         </>
       ) : null}
-    </div>
+    </main>
   );
 }

@@ -1,11 +1,10 @@
-import { Link } from "react-router-dom";
 import type { HubCriticalPrepItem } from "../../services/hubService";
 import { Badge } from "../common/Badge";
 import { HubPanel } from "./HubPanel";
 
 export function HubCriticalPrepPanel({ items, hiddenCount }: { items: HubCriticalPrepItem[]; hiddenCount: number }) {
   return (
-    <HubPanel actionLabel="Prep" actionTo="/prep" eyebrow="Critical prep" title="What needs doing first">
+    <HubPanel eyebrow="Critical prep" title="What needs doing first">
       {items.length ? (
         <div className="hub-prep-list">
           {items.map((item) => (
@@ -20,11 +19,11 @@ export function HubCriticalPrepPanel({ items, hiddenCount }: { items: HubCritica
                   <Badge>{item.source === "school" ? "School" : "Event"}</Badge>
                 </div>
               </div>
-              {item.eventTitle && item.eventId ? <p><Link to={`/events/${item.eventId}`}>{item.eventTitle}</Link></p> : null}
+              {item.eventTitle && item.eventId ? <p>{item.eventTitle}</p> : null}
               {item.detail ? <p>{item.detail}</p> : null}
             </article>
           ))}
-          {hiddenCount ? <p className="section-empty-copy">Plus {hiddenCount} more in <Link to="/prep">Prep</Link>.</p> : null}
+          {hiddenCount ? <p className="section-empty-copy">Plus {hiddenCount} more in Prep.</p> : null}
         </div>
       ) : <p className="section-empty-copy">No critical or near-term preparation is currently visible.</p>}
     </HubPanel>

@@ -45,7 +45,7 @@ describe("Tranche 0 route contract", () => {
     ["/officially-organised/", true],
     ["/officially-organised/today", "today"],
     ["/officially-organised/week", "week"],
-    ["/officially-organised/hub", "hub"],
+    ["/officially-organised/hub", "/hub"],
     ["/officially-organised/car", "car"],
     ["/officially-organised/unknown", "*"],
   ])("resolves %s within the deployed base path", (path, expectedRoute) => {
@@ -56,5 +56,15 @@ describe("Tranche 0 route contract", () => {
 
     const matchedRoute = testRouter.state.matches.at(-1)?.route;
     expect(matchedRoute?.index ?? matchedRoute?.path).toBe(expectedRoute);
+  });
+
+  it("keeps the Hub outside the normal application shell", () => {
+    const testRouter = createMemoryRouter(appRoutes, {
+      basename: "/officially-organised",
+      initialEntries: ["/officially-organised/hub"],
+    });
+
+    expect(testRouter.state.matches).toHaveLength(1);
+    expect(testRouter.state.matches[0].route.path).toBe("/hub");
   });
 });

@@ -61,13 +61,16 @@ export const routerBasename = normalizeRouterBasename(import.meta.env.BASE_URL);
 
 export const appRoutes: RouteObject[] = [
   {
+    path: "/hub",
+    element: <HubPage />,
+  },
+  {
     path: "/",
     element: <AppShell />,
     children: [
       { index: true, element: <DashboardPage /> },
       { path: "today", element: <TodayPage /> },
       { path: "week", element: <WeekPage /> },
-      { path: "hub", element: <HubPage /> },
       { path: "calendar", element: <CalendarPage /> },
       { path: "car", element: <CarPage /> },
       { path: "prep", element: <PrepPage /> },

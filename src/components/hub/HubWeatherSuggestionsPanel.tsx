@@ -4,7 +4,7 @@ import { HubPanel } from "./HubPanel";
 
 export function HubWeatherSuggestionsPanel({ items }: { items: HubWeatherSuggestionSummary[] }) {
   return (
-    <HubPanel actionLabel="Settings" actionTo="/settings" accent="sky" eyebrow="Weather suggestions" title="Today and tomorrow">
+    <HubPanel accent="sky" eyebrow="Weather suggestions" title="Today and tomorrow">
       <div className="hub-weather-list">
         {items.map((item) => (
           <article className="hub-weather-card" key={item.date}>

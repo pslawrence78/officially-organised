@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { db } from "../data/db";
@@ -92,9 +92,31 @@ describe("Hub page", () => {
 
     expect(await screen.findByRole("heading", { name: "Hub" })).toBeInTheDocument();
     await waitFor(() => expect(screen.queryByText("Refreshing the household Hub...")).not.toBeInTheDocument());
+    expect(screen.getByRole("link", { name: "Exit dashboard" })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("button", { name: "Previous card" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Next card" })).toBeInTheDocument();
+    expect(screen.queryByRole("navigation", { name: "Primary" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /more/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /refresh/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /privacy/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /mark/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /skip/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /edit/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /delete/i })).not.toBeInTheDocument();
+  });
+
+  it("moves between display cards with previous and next controls", async () => {
+    const { container } = render(
+      <MemoryRouter>
+        <HubPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(screen.queryByText("Refreshing the household Hub...")).not.toBeInTheDocument());
+    expect(container.querySelector(".hub-display-card")).toHaveAttribute("data-card", "today");
+    fireEvent.click(screen.getByRole("button", { name: "Next card" }));
+    expect(container.querySelector(".hub-display-card")).toHaveAttribute("data-card", "tomorrow");
+    fireEvent.click(screen.getByRole("button", { name: "Previous card" }));
+    expect(container.querySelector(".hub-display-card")).toHaveAttribute("data-card", "today");
   });
 });

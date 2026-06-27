@@ -4,6 +4,14 @@
 
 Added a dedicated `/hub` route for a calm, display-first household dashboard aimed at a kitchen screen or tablet.
 
+Refinement added before Tranche 7E:
+
+- `/hub` now uses a dedicated display shell rather than the normal app shell.
+- The standard app header, menu sheet and bottom navigation are not present on `/hub`.
+- Hub panels are presented as landscape display cards with previous and next controls.
+- The visible exit path is a single `Exit dashboard` control back to `/`.
+- The shell is designed around a 16:9 landscape surface, while still degrading on narrow screens.
+
 The Hub now shows:
 
 - Today
@@ -56,9 +64,9 @@ The `/hub` route does not add, edit, delete, complete, skip, reopen, or otherwis
 
 Allowed from the Hub:
 
-- Navigation to existing routes
-- Privacy mode toggle
-- Safe refresh of the read-only projection
+- Previous card
+- Next card
+- Exit dashboard
 
 Not used in the Hub:
 
@@ -66,11 +74,12 @@ Not used in the Hub:
 - Prep completion controls
 - School readiness mutation flows
 - Weather settings mutation flows
+- Standard app navigation
+- Normal app page chrome
 
 ## Known Limitations
 
 - This tranche does not include auto-rotation, wallboard mode, wake lock, or dwell timing.
-- The Hub uses the existing app shell rather than a separate fullscreen display shell.
 - Visual manual QA in a real tablet/browser session was not performed inside this environment.
 - The production build still reports an existing large-JS-chunk warning from Vite.
 
