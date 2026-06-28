@@ -113,6 +113,41 @@ export interface Setting<T = unknown> {
   description?: string;
 }
 
+export type SyncStatus = "never" | "success" | "warning" | "error";
+
+export interface SyncSettings {
+  id: "sync_settings";
+  enabled: boolean;
+  supabaseConfigured: boolean;
+  householdId?: string;
+  userId?: string;
+  lastAuthCheckAt?: string;
+  lastSyncAt?: string;
+  lastSyncStatus: SyncStatus;
+  lastSyncMessage?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SyncDevice {
+  id: string;
+  label: string;
+  createdAt: string;
+  lastSeenAt?: string;
+}
+
+export interface SyncState {
+  id: string;
+  entityType: string;
+  entityId: string;
+  localUpdatedAt?: string;
+  remoteUpdatedAt?: string;
+  lastSyncedAt?: string;
+  payloadHash?: string;
+  dirty: boolean;
+  deleted?: boolean;
+}
+
 export interface AuditLogEntry {
   id: string;
   entityType: string;

@@ -1,0 +1,5 @@
+-- Optional development notes.
+-- Create users through Supabase Auth first, then manually insert a household
+-- and membership rows using the authenticated user IDs.
+--
+-- No demo family data is seeded in Supabase during Tranche 8A.

@@ -20,6 +20,7 @@ The documents in this folder define **Officially Organised**, a private, mobile-
 | 06 | [Tranche 6: Routines and Recurrence v0.1](06-tranche-6-routines-and-recurrence-v0.1.md) | Records the implemented recurrence model, integration, validation and known limits. | Implemented |
 | 07 | [Tranche 7: Import, Export and Local Data Safety v0.1](07-tranche-7-import-export-local-data-safety-v0.1.md) | Records the versioned backup format, validation, transactional restore, reset and privacy posture. | Implemented |
 | 07F | [Tranche 7F: Hub Landscape Visual Polish v0.1](07F-hub-landscape-visual-polish-v0.1.md) | Records the landscape-first Hub display frame, shared wallboard visual system, layout isolation and QA notes. | Implemented |
+| 08A | [Tranche 8A: Supabase Sync Foundation v0.1](08A-supabase-sync-foundation-v0.1.md) | Records the optional Supabase client, auth, local sync metadata, SQL/RLS scripts and local-first safety boundary. | Implemented |
 
 ## Reading order
 
@@ -50,6 +51,6 @@ If documents disagree, prefer the later document for its area of authority:
 
 ## Current implementation boundary
 
-The application is implemented through **Tranche 7F**, including versioned local backup, validated transactional restore, protected reset, and the landscape-first read-only Hub display polish. See documents 07 and 07F for the current boundary.
+The application is implemented through **Tranche 8A**, including versioned local backup, validated transactional restore, protected reset, the landscape-first read-only Hub display polish, and an optional Supabase sync foundation. See documents 07, 07F and 08A for the current boundary.
 
 When adding a document, retain the numeric prefix, include its version in the filename, and update this index with its purpose, status, and authority.

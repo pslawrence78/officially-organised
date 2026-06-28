@@ -3,6 +3,7 @@ import {
   seedCountdownTargets, seedFamilyMembers, seedHousehold, seedResources,
   seedSchoolCalendar, seedSettings, seedTemplates,
 } from "../data/seedData/initialData";
+import { defaultSyncSettings } from "../data/repositories/syncRepository";
 import {
   EVENT_CATEGORIES, EVENT_STATUSES, EXPORT_DATA_SCHEMA, EXPORT_SCHEMA_VERSION,
   PLACE_TYPES, PREP_TASK_PRIORITIES, PREP_TASK_STATUSES, RESOURCE_NEED_STATUSES, SCHOOL_ATTIRE_TYPES, SCHOOL_LUNCH_TYPES,
@@ -246,6 +247,10 @@ export async function restoreFromImport(payload: ExportEnvelope): Promise<Restor
     for (const store of EXPORT_STORE_NAMES) await db.table(store).clear();
     for (const store of EXPORT_STORE_NAMES) if (payload.data[store].length) await db.table(store).bulkAdd(payload.data[store]);
     await db.weatherForecasts.clear();
+    await db.syncSettings.clear();
+    await db.syncDevices.clear();
+    await db.syncState.clear();
+    await db.syncSettings.put(defaultSyncSettings(restoredAt));
     await db.auditLog.put({ id: `audit_restore_${Date.now()}`, entityType: "system", entityId: payload.exportId, action: "restored", timestamp: restoredAt, summary: "Restored local data from backup" });
   });
   return { restored: true, restoredAt, recordCounts: countsFor(payload.data), safetySnapshot };
@@ -256,6 +261,9 @@ export async function resetLocalDataAndReseed(): Promise<void> {
   await db.transaction("rw", db.tables, async () => {
     for (const store of EXPORT_STORE_NAMES) await db.table(store).clear();
     await db.weatherForecasts.clear();
+    await db.syncSettings.clear();
+    await db.syncDevices.clear();
+    await db.syncState.clear();
     await db.households.add(seedHousehold);
     await db.familyMembers.bulkAdd(seedFamilyMembers);
     await db.resources.bulkAdd(seedResources);
@@ -263,6 +271,7 @@ export async function resetLocalDataAndReseed(): Promise<void> {
     await db.schoolCalendars.add(seedSchoolCalendar);
     await db.countdownTargets.bulkAdd(seedCountdownTargets);
     await db.settings.bulkAdd([...seedSettings, { id: "initial_seed_completed", value: timestamp, description: "Timestamp of the initial Tranche 0 seed" }, { id: "school_calendar_seed_completed", value: timestamp }, { id: "countdown_seed_completed", value: timestamp }]);
+    await db.syncSettings.add(defaultSyncSettings(timestamp));
     await db.auditLog.add({ id: `audit_reset_${Date.now()}`, entityType: "system", entityId: "local_database", action: "reset", timestamp, summary: "Reset local data and reseeded baseline records" });
   });
 }

@@ -4,6 +4,7 @@ import { ErrorState, LoadingState } from "../components/common/AsyncState";
 import { Icon } from "../components/common/Icon";
 import { PageHeader } from "../components/layout/PageHeader";
 import { HubWallboardSettingsPanel } from "../components/hub/HubWallboardSettingsPanel";
+import { SyncSettingsPanel } from "../components/sync/SyncSettingsPanel";
 import { WeatherSettingsPanel } from "../components/weather/WeatherSettingsPanel";
 import { databaseMetadata } from "../data/db";
 import { getHousehold } from "../data/repositories";
@@ -120,6 +121,8 @@ export function SettingsPage() {
       </section>
 
       <HubWallboardSettingsPanel />
+
+      <SyncSettingsPanel />
 
       <WeatherSettingsPanel />
     </div>

@@ -8,6 +8,7 @@ import {
   seedSettings,
   seedTemplates,
 } from "../seedData/initialData";
+import { defaultSyncSettings, SYNC_SETTINGS_ID } from "./syncRepository";
 
 const INITIAL_SEED_SETTING_ID = "initial_seed_completed";
 const SCHOOL_CALENDAR_SEED_SETTING_ID = "school_calendar_seed_completed";
@@ -25,11 +26,16 @@ export async function seedInitialDataIfNeeded(): Promise<boolean> {
       db.auditLog,
       db.schoolCalendars,
       db.countdownTargets,
+      db.syncSettings,
     ],
     async () => {
       const seedMarker = await db.settings.get(INITIAL_SEED_SETTING_ID);
 
       const timestamp = new Date().toISOString();
+
+      if (!await db.syncSettings.get(SYNC_SETTINGS_ID)) {
+        await db.syncSettings.put(defaultSyncSettings(timestamp));
+      }
 
       if (!await db.settings.get(SCHOOL_CALENDAR_SEED_SETTING_ID)) {
         await db.schoolCalendars.put(seedSchoolCalendar);
