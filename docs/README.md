@@ -19,6 +19,7 @@ The documents in this folder define **Officially Organised**, a private, mobile-
 | 05 | [Build Plan v0.1](05-build-plan-v0.1.md) | Converts the specification and architecture into phased deliverables, acceptance tests, development prompts, milestones, and the MVP definition of done. | Current delivery source of truth |
 | 06 | [Tranche 6: Routines and Recurrence v0.1](06-tranche-6-routines-and-recurrence-v0.1.md) | Records the implemented recurrence model, integration, validation and known limits. | Implemented |
 | 07 | [Tranche 7: Import, Export and Local Data Safety v0.1](07-tranche-7-import-export-local-data-safety-v0.1.md) | Records the versioned backup format, validation, transactional restore, reset and privacy posture. | Implemented |
+| 07F | [Tranche 7F: Hub Landscape Visual Polish v0.1](07F-hub-landscape-visual-polish-v0.1.md) | Records the landscape-first Hub display frame, shared wallboard visual system, layout isolation and QA notes. | Implemented |
 
 ## Reading order
 
@@ -49,6 +50,6 @@ If documents disagree, prefer the later document for its area of authority:
 
 ## Current implementation boundary
 
-The application is implemented through **Tranche 7**, including versioned local backup, validated transactional restore and protected reset. See document 07 for the current boundary.
+The application is implemented through **Tranche 7F**, including versioned local backup, validated transactional restore, protected reset, and the landscape-first read-only Hub display polish. See documents 07 and 07F for the current boundary.
 
 When adding a document, retain the numeric prefix, include its version in the filename, and update this index with its purpose, status, and authority.

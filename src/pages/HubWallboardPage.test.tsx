@@ -9,16 +9,16 @@ import {
   saveWeatherSettings,
   seedInitialDataIfNeeded,
 } from "../data/repositories";
-import { HubPage } from "./HubPage";
 import { localDateTimeToIso } from "../utils/dates";
+import { HubWallboardPage } from "./HubWallboardPage";
 
-describe("Hub page", () => {
+describe("Hub wallboard page", () => {
   beforeEach(async () => {
     await db.delete();
     await db.open();
     await seedInitialDataIfNeeded();
     await saveSchoolCalendar({
-      id: "school_calendar_hub_page",
+      id: "school_calendar_wallboard_page",
       childMemberId: "member_seb",
       schoolName: "Illustrative Primary School",
       academicYearLabel: "2025/26",
@@ -29,15 +29,15 @@ describe("Hub page", () => {
       updatedAt: "2026-06-01T08:00:00.000Z",
     });
     await saveSchoolHalfTermConfig({
-      id: "half_term_hub_page",
-      schoolCalendarId: "school_calendar_hub_page",
+      id: "half_term_wallboard_page",
+      schoolCalendarId: "school_calendar_wallboard_page",
       label: "Summer half term",
       startDate: "2026-06-22",
       endDate: "2026-06-22",
       entries: [{
-        id: "entry_hub_page",
-        schoolCalendarId: "school_calendar_hub_page",
-        halfTermConfigId: "half_term_hub_page",
+        id: "entry_wallboard_page",
+        schoolCalendarId: "school_calendar_wallboard_page",
+        halfTermConfigId: "half_term_wallboard_page",
         date: "2026-06-22",
         lunchType: "packed_lunch",
         attireType: "school_uniform",
@@ -83,54 +83,35 @@ describe("Hub page", () => {
     window.localStorage.clear();
   });
 
-  it("renders the /hub experience without mutation controls", async () => {
-    render(
+  it("renders wallboard controls and continues to use the panel registry", async () => {
+    const { container } = render(
       <MemoryRouter>
-        <HubPage />
+        <HubWallboardPage />
       </MemoryRouter>,
     );
 
-    expect(await screen.findByRole("heading", { name: "Officially Organised" })).toBeInTheDocument();
-    await waitFor(() => expect(screen.queryByText("Refreshing the household Hub...")).not.toBeInTheDocument());
-    expect(screen.getByRole("link", { name: "Exit dashboard" })).toHaveAttribute("href", "/");
-    expect(screen.getByRole("button", { name: "Previous card" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Next card" })).toBeInTheDocument();
-    expect(screen.getByRole("note")).toHaveTextContent("Rotate device for the best Hub view");
-    expect(screen.queryByRole("navigation", { name: "Primary" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /more/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /refresh/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /privacy/i })).not.toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Wallboard" })).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByText("Starting the household wallboard...")).not.toBeInTheDocument());
+    expect(container.querySelector(".hub-display-frame")).toBeInTheDocument();
+    expect(container.querySelector(".hub-display-card")).toHaveAttribute("data-card", "today");
+    expect(screen.getByRole("button", { name: "Pause" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Exit wallboard" })).toHaveAttribute("href", "/hub");
+    expect(screen.getByText("Today briefing")).toBeInTheDocument();
+  });
+
+  it("toggles pause and resume without exposing mutation controls", async () => {
+    render(
+      <MemoryRouter>
+        <HubWallboardPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(screen.queryByText("Starting the household wallboard...")).not.toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "Pause" }));
+    expect(screen.getByRole("button", { name: "Resume" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /mark/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /skip/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /edit/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /delete/i })).not.toBeInTheDocument();
-  });
-
-  it("renders the landscape display frame and uses the panel registry", async () => {
-    const { container } = render(
-      <MemoryRouter>
-        <HubPage />
-      </MemoryRouter>,
-    );
-
-    await waitFor(() => expect(screen.queryByText("Refreshing the household Hub...")).not.toBeInTheDocument());
-    expect(container.querySelector(".hub-display-frame")).toBeInTheDocument();
-    expect(container.querySelector(".hub-display-card")).toHaveAttribute("data-card", "today");
-    expect(screen.getByText("Today briefing")).toBeInTheDocument();
-  });
-
-  it("moves between display cards with previous and next controls", async () => {
-    const { container } = render(
-      <MemoryRouter>
-        <HubPage />
-      </MemoryRouter>,
-    );
-
-    await waitFor(() => expect(screen.queryByText("Refreshing the household Hub...")).not.toBeInTheDocument());
-    expect(container.querySelector(".hub-display-card")).toHaveAttribute("data-card", "today");
-    fireEvent.click(screen.getByRole("button", { name: "Next card" }));
-    expect(container.querySelector(".hub-display-card")).toHaveAttribute("data-card", "tomorrow");
-    fireEvent.click(screen.getByRole("button", { name: "Previous card" }));
-    expect(container.querySelector(".hub-display-card")).toHaveAttribute("data-card", "today");
   });
 });

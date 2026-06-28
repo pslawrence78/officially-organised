@@ -10,6 +10,10 @@ import { getSetting } from "../data/repositories";
 
 const PRIVACY_KEY = "officially-organised:hub-privacy-mode";
 
+function formatHubDate(date: Date) {
+  return new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long" }).format(date);
+}
+
 function initialPrivacyMode() {
   if (typeof window === "undefined") return true;
   return window.localStorage.getItem(PRIVACY_KEY) !== "off";
@@ -24,6 +28,7 @@ export function HubPage() {
   const [privacyMode] = useState(initialPrivacyMode);
   const [isOffline, setIsOffline] = useState(initialOfflineState);
   const [activeCard, setActiveCard] = useState(0);
+  const todayLabel = formatHubDate(new Date());
 
   useEffect(() => {
     const onOnline = () => setIsOffline(false);
@@ -57,46 +62,53 @@ export function HubPage() {
 
   return (
     <main className="hub-display-shell" aria-label="Household Hub display">
-      <header className="hub-display-topbar">
-        <div>
-          <p className="eyebrow">Household display</p>
-          <h1>Hub</h1>
-        </div>
-        <div className="hub-wallboard-controls">
-          <Link className="hub-exit-control" to="/hub/wallboard">Wallboard</Link>
-          <Link className="hub-exit-control" to="/">Exit dashboard</Link>
-        </div>
-      </header>
+      <p className="hub-portrait-helper" role="note">Rotate device for the best Hub view. The display remains read-only.</p>
+      <div className="hub-display-frame">
+        <header className="hub-display-topbar">
+          <div>
+            <p className="eyebrow">Lawrence Family Hub</p>
+            <h1>Officially Organised</h1>
+          </div>
+          <div className="hub-display-topbar__meta">
+            <strong>{todayLabel}</strong>
+            <span>Today at a glance</span>
+          </div>
+          <div className="hub-wallboard-controls">
+            <Link className="hub-exit-control" to="/hub/wallboard">Wallboard</Link>
+            <Link className="hub-exit-control" to="/">Exit dashboard</Link>
+          </div>
+        </header>
 
-      {state.loading ? <LoadingState label="Refreshing the household Hub..." /> : null}
-      {state.error ? <ErrorState>Hub data could not be assembled right now. Reload and try again.</ErrorState> : null}
-      {state.data ? (
-        <>
-          <section className="hub-display-stage" aria-live="polite">
-            <button aria-label="Previous card" className="hub-card-control hub-card-control--previous" onClick={goPrevious} type="button">
-              Previous
-            </button>
-            <div className="hub-display-card" data-card={currentCard.id}>
-              <div className="hub-display-card__label">
-                <span>{currentCard.title}</span>
-                <strong>{activeCard + 1}/{cards.length}</strong>
+        {state.loading ? <LoadingState label="Refreshing the household Hub..." /> : null}
+        {state.error ? <ErrorState>Hub data could not be assembled right now. Reload and try again.</ErrorState> : null}
+        {state.data ? (
+          <>
+            <section className="hub-display-stage" aria-live="polite">
+              <button aria-label="Previous card" className="hub-card-control hub-card-control--previous" onClick={goPrevious} type="button">
+                Previous
+              </button>
+              <div className="hub-display-card" data-card={currentCard.id}>
+                <div className="hub-display-card__label">
+                  <span>{currentCard.title}</span>
+                  <strong>{activeCard + 1}/{cards.length}</strong>
+                </div>
+                {currentCard.element}
               </div>
-              {currentCard.element}
-            </div>
-            <button aria-label="Next card" className="hub-card-control hub-card-control--next" onClick={goNext} type="button">
-              Next
-            </button>
-          </section>
-          <HubStatusFooter
-            generatedAt={state.data.viewModel.generatedAt}
-            isOffline={state.data.viewModel.statuses.isOffline}
-            privacyMode={state.data.viewModel.statuses.privacyMode}
-            weatherConfigured={state.data.viewModel.statuses.weatherConfigured}
-            weatherStale={state.data.viewModel.statuses.weatherStale}
-            weatherUnavailable={state.data.viewModel.statuses.weatherUnavailable}
-          />
-        </>
-      ) : null}
+              <button aria-label="Next card" className="hub-card-control hub-card-control--next" onClick={goNext} type="button">
+                Next
+              </button>
+            </section>
+            <HubStatusFooter
+              generatedAt={state.data.viewModel.generatedAt}
+              isOffline={state.data.viewModel.statuses.isOffline}
+              privacyMode={state.data.viewModel.statuses.privacyMode}
+              weatherConfigured={state.data.viewModel.statuses.weatherConfigured}
+              weatherStale={state.data.viewModel.statuses.weatherStale}
+              weatherUnavailable={state.data.viewModel.statuses.weatherUnavailable}
+            />
+          </>
+        ) : null}
+      </div>
     </main>
   );
 }

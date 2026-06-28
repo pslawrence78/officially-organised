@@ -15,9 +15,9 @@ export interface HubRenderedPanel extends HubPanelDescriptor {
 function renderPanel(id: HubPanelId, viewModel: HubViewModel) {
   switch (id) {
     case "today":
-      return <HubDayPanel day={viewModel.today} eyebrow="Today" title="At a glance" />;
+      return <HubDayPanel day={viewModel.today} eyebrow="Today briefing" title="At a glance" />;
     case "tomorrow":
-      return <HubDayPanel day={viewModel.tomorrow} eyebrow="Tomorrow" title="Coming next" />;
+      return <HubDayPanel day={viewModel.tomorrow} eyebrow="Tomorrow readiness" title="Coming next" />;
     case "school":
       return <HubSchoolReadinessPanel readiness={viewModel.schoolReadiness} />;
     case "weather":
@@ -33,4 +33,3 @@ export function getHubRenderedPanels(viewModel: HubViewModel, settings: HubWallb
   const descriptors = includeUnavailable ? hubPanelDescriptors : getAvailableHubPanels(viewModel, settings);
   return descriptors.map((item) => ({ ...item, element: renderPanel(item.id, viewModel) }));
 }
-
