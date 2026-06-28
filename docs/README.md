@@ -21,6 +21,7 @@ The documents in this folder define **Officially Organised**, a private, mobile-
 | 07 | [Tranche 7: Import, Export and Local Data Safety v0.1](07-tranche-7-import-export-local-data-safety-v0.1.md) | Records the versioned backup format, validation, transactional restore, reset and privacy posture. | Implemented |
 | 07F | [Tranche 7F: Hub Landscape Visual Polish v0.1](07F-hub-landscape-visual-polish-v0.1.md) | Records the landscape-first Hub display frame, shared wallboard visual system, layout isolation and QA notes. | Implemented |
 | 08A | [Tranche 8A: Supabase Sync Foundation v0.1](08A-supabase-sync-foundation-v0.1.md) | Records the optional Supabase client, auth, local sync metadata, SQL/RLS scripts and local-first safety boundary. | Implemented |
+| 08B | [Tranche 8B: Local-First Supabase Sync Engine v0.1](08B-local-first-supabase-sync-engine-v0.1.md) | Records the manual sync engine, durable-store scope, conflict policy, tombstones and restore/reset sync safety rules. | Implemented |
 
 ## Reading order
 
@@ -51,6 +52,6 @@ If documents disagree, prefer the later document for its area of authority:
 
 ## Current implementation boundary
 
-The application is implemented through **Tranche 8A**, including versioned local backup, validated transactional restore, protected reset, the landscape-first read-only Hub display polish, and an optional Supabase sync foundation. See documents 07, 07F and 08A for the current boundary.
+The application is implemented through **Tranche 8B**, including versioned local backup, validated transactional restore, protected reset, the landscape-first read-only Hub display polish, the optional Supabase foundation, and the first manual local-first sync engine. See documents 07, 07F, 08A and 08B for the current boundary.
 
 When adding a document, retain the numeric prefix, include its version in the filename, and update this index with its purpose, status, and authority.

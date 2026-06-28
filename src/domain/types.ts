@@ -121,10 +121,15 @@ export interface SyncSettings {
   supabaseConfigured: boolean;
   householdId?: string;
   userId?: string;
+  deviceId?: string;
+  deviceLabel?: string;
   lastAuthCheckAt?: string;
   lastSyncAt?: string;
   lastSyncStatus: SyncStatus;
   lastSyncMessage?: string;
+  queueCount?: number;
+  conflictCount?: number;
+  restoredSinceLastSync?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -133,7 +138,7 @@ export interface SyncDevice {
   id: string;
   label: string;
   createdAt: string;
-  lastSeenAt?: string;
+  lastSeenAt: string;
 }
 
 export interface SyncState {
@@ -143,9 +148,39 @@ export interface SyncState {
   localUpdatedAt?: string;
   remoteUpdatedAt?: string;
   lastSyncedAt?: string;
-  payloadHash?: string;
+  localPayloadHash?: string;
+  remotePayloadHash?: string;
   dirty: boolean;
   deleted?: boolean;
+}
+
+export type SyncQueueOperation = "upsert" | "delete";
+
+export interface SyncQueueItem {
+  id: string;
+  entityType: string;
+  entityId: string;
+  operation: SyncQueueOperation;
+  queuedAt: string;
+}
+
+export type SyncConflictStatus =
+  | "open"
+  | "resolved_keep_local"
+  | "resolved_keep_remote"
+  | "dismissed";
+
+export interface SyncConflict {
+  id: string;
+  entityType: string;
+  entityId: string;
+  localPayload: unknown;
+  remotePayload: unknown;
+  localUpdatedAt?: string;
+  remoteUpdatedAt?: string;
+  detectedAt: string;
+  status: SyncConflictStatus;
+  reason: string;
 }
 
 export interface AuditLogEntry {

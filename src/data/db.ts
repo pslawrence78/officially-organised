@@ -19,7 +19,9 @@ import type {
   Setting,
   StarterTemplate,
   SyncDevice,
+  SyncConflict,
   SyncSettings,
+  SyncQueueItem,
   SyncState,
 } from "../domain/types";
 import type { WeatherForecastSnapshot } from "../types/weather";
@@ -42,6 +44,8 @@ export class LawrenceLoopDatabase extends Dexie {
   syncSettings!: EntityTable<SyncSettings, "id">;
   syncDevices!: EntityTable<SyncDevice, "id">;
   syncState!: EntityTable<SyncState, "id">;
+  syncQueue!: EntityTable<SyncQueueItem, "id">;
+  syncConflicts!: EntityTable<SyncConflict, "id">;
 
   constructor() {
     super(DATABASE_NAME);
@@ -116,6 +120,8 @@ export class LawrenceLoopDatabase extends Dexie {
         syncSettings: "&id",
         syncDevices: "&id, label, createdAt, lastSeenAt",
         syncState: "&id, entityType, entityId, dirty, deleted, [entityType+entityId]",
+        syncQueue: "&id, entityType, entityId, operation, queuedAt, [entityType+entityId]",
+        syncConflicts: "&id, entityType, entityId, status, detectedAt, [entityType+entityId]",
       })
       .upgrade(async (transaction) => {
         await transaction.table("events").toCollection().modify((event) => {

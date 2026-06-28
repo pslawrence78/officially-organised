@@ -6,7 +6,7 @@ import { createExportPayload, downloadExportFile, recordExportCompleted } from "
 import { EXPORT_STORE_NAMES } from "../types/importExport";
 import { useRepositoryQuery } from "../hooks/useRepositoryQuery";
 
-const LABELS: Record<string, string> = { households: "Households", familyMembers: "Family members", resources: "Resources", places: "Places", events: "Events", eventSeries: "Routines", templates: "Templates", settings: "Settings", schoolCalendars: "School calendars", countdownTargets: "Countdowns", auditLog: "Audit entries" };
+const LABELS: Record<string, string> = { households: "Households", familyMembers: "Family members", resources: "Resources", places: "Places", events: "Events", eventSeries: "Routines", templates: "Templates", settings: "Settings", schoolCalendars: "School calendars", schoolHalfTermConfigs: "School half-terms", schoolReadinessPrepActions: "School prep actions", countdownTargets: "Countdowns", auditLog: "Audit entries" };
 
 export function ExportPage() {
   const state = useRepositoryQuery(createExportPayload);

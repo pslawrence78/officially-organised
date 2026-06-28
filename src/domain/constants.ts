@@ -1,8 +1,8 @@
 import type { EventCategory, EventStatus, PlaceType, PrepTaskPriority, PrepTaskStatus, ResourceNeedStatus } from "./types";
 
 export const DATABASE_NAME = "lawrence_loop_db";
-export const DATABASE_SCHEMA_VERSION = 10;
-export const APP_DATA_SCHEMA = "lawrence-loop-data-v10";
+export const DATABASE_SCHEMA_VERSION = 11;
+export const APP_DATA_SCHEMA = "lawrence-loop-data-v11";
 export const EXPORT_DATA_SCHEMA = "officially-organised-data-v3";
 export const EXPORT_SCHEMA_VERSION = 3;
 export const HOUSEHOLD_TIME_ZONE = "Europe/London";

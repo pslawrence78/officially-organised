@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { ErrorState, LoadingState } from "../common/AsyncState";
-import { getSyncSettings, setSyncPrepared } from "../../data/repositories";
+import { ensureSyncDevice, getSyncSettings, setSyncPrepared } from "../../data/repositories";
 import { useRepositoryQuery } from "../../hooks/useRepositoryQuery";
 import { getSupabaseAvailability, type EnvSource } from "../../sync/supabaseConfig";
 import { getCurrentSession, signInWithMagicLink, signOut } from "../../sync/authService";
+import { createCloudHouseholdFromThisDevice, linkFirstRemoteHousehold, runManualSync } from "../../sync/syncEngine";
 
 interface SyncSettingsPanelProps {
   env?: EnvSource;
@@ -16,18 +18,14 @@ export function SyncSettingsPanel({ env }: SyncSettingsPanelProps = {}) {
   const [busy, setBusy] = useState(false);
   const availability = getSupabaseAvailability(env);
   const query = useRepositoryQuery(async () => {
-    const syncSettings = await getSyncSettings();
+    const [syncSettings, device] = await Promise.all([getSyncSettings(), ensureSyncDevice()]);
     if (!availability.configured) {
-      return {
-        syncSettings,
-        session: null,
-        authMessage: "Unavailable until Supabase is configured",
-      };
+      return { syncSettings, device, session: null, authMessage: "Unavailable until Supabase is configured" };
     }
-
     const sessionResult = await getCurrentSession();
     return {
       syncSettings,
+      device,
       session: sessionResult.ok ? sessionResult.value : null,
       authMessage: sessionResult.ok ? "Signed in" : sessionResult.reason === "not_configured" ? "Unavailable until Supabase is configured" : sessionResult.message,
     };
@@ -35,11 +33,13 @@ export function SyncSettingsPanel({ env }: SyncSettingsPanelProps = {}) {
 
   useEffect(() => setMessage(""), [availability.status]);
 
+  const refresh = () => setVersion((value) => value + 1);
+
   const togglePrepared = async (enabled: boolean) => {
     setBusy(true);
     try {
       await setSyncPrepared(enabled);
-      setVersion((value) => value + 1);
+      refresh();
     } finally {
       setBusy(false);
     }
@@ -51,6 +51,7 @@ export function SyncSettingsPanel({ env }: SyncSettingsPanelProps = {}) {
     try {
       const result = await signInWithMagicLink(email);
       setMessage(result.ok ? "Magic link requested. Check your email on this device." : result.message);
+      refresh();
     } finally {
       setBusy(false);
     }
@@ -62,18 +63,64 @@ export function SyncSettingsPanel({ env }: SyncSettingsPanelProps = {}) {
     try {
       const result = await signOut();
       setMessage(result.ok ? "Signed out of Supabase on this device." : result.message);
-      setVersion((value) => value + 1);
+      refresh();
     } finally {
       setBusy(false);
     }
   };
+
+  const createHousehold = async () => {
+    setBusy(true);
+    setMessage("");
+    try {
+      const result = await createCloudHouseholdFromThisDevice();
+      setMessage(result.ok ? "Cloud household created and linked." : result.message);
+      refresh();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const linkHousehold = async () => {
+    setBusy(true);
+    setMessage("");
+    try {
+      const result = await linkFirstRemoteHousehold();
+      setMessage(result.ok ? "Remote household linked to this device." : result.message);
+      refresh();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const syncNow = async () => {
+    setBusy(true);
+    setMessage("");
+    try {
+      const result = await runManualSync();
+      setMessage(result.message);
+      refresh();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const syncDisabledReason = !availability.configured
+    ? "Supabase is not configured"
+    : !query.data?.session
+      ? "Sign in to Supabase first"
+      : !query.data?.syncSettings.householdId
+        ? "Link a cloud household first"
+        : typeof navigator !== "undefined" && navigator.onLine === false
+          ? "This device is offline"
+          : "";
 
   return (
     <section className="section-block sync-settings">
       <div className="section-heading">
         <div>
           <p className="eyebrow">Optional household sync</p>
-          <h2>Supabase foundation</h2>
+          <h2>Manual cloud sync</h2>
         </div>
       </div>
 
@@ -84,19 +131,27 @@ export function SyncSettingsPanel({ env }: SyncSettingsPanelProps = {}) {
         <dl>
           <div><dt>Supabase</dt><dd>{availability.label}</dd></div>
           <div><dt>Auth</dt><dd>{query.data?.authMessage ?? "Checking..."}</dd></div>
-          <div><dt>Device prepared</dt><dd>{query.data?.syncSettings.enabled ? "On" : "Off"}</dd></div>
-          <div><dt>Last sync</dt><dd>{query.data?.syncSettings.lastSyncStatus === "never" ? "Not synced" : query.data?.syncSettings.lastSyncStatus ?? "Not yet available"}</dd></div>
+          <div><dt>User</dt><dd>{query.data?.session?.user.email ?? "Not signed in"}</dd></div>
+          <div><dt>Household ID</dt><dd>{query.data?.syncSettings.householdId ?? "Not linked"}</dd></div>
+          <div><dt>Device ID</dt><dd>{query.data?.device.id ?? "Preparing..."}</dd></div>
+          <div><dt>Last sync</dt><dd>{query.data?.syncSettings.lastSyncAt ? new Date(query.data.syncSettings.lastSyncAt).toLocaleString() : "Not synced"}</dd></div>
+          <div><dt>Status</dt><dd>{query.data?.syncSettings.lastSyncMessage ?? "Not yet available"}</dd></div>
+          <div><dt>Queued local changes</dt><dd>{query.data?.syncSettings.queueCount ?? 0}</dd></div>
+          <div><dt>Open conflicts</dt><dd>{query.data?.syncSettings.conflictCount ?? 0}</dd></div>
         </dl>
       </div>
 
       <div className="notice">
         <strong>Local-first safety</strong>
-        <span>{availability.detail} No family records are pushed or pulled in Tranche 8A.</span>
+        <span>{availability.detail} IndexedDB remains the live operational source of truth for every view in the app.</span>
       </div>
-      <div className="notice notice--warning">
-        <strong>Privacy</strong>
-        <span>Future sync will store selected family logistics data in your Supabase project. Use only the project URL and publishable key in frontend builds.</span>
-      </div>
+
+      {query.data?.syncSettings.restoredSinceLastSync ? (
+        <div className="notice notice--warning">
+          <strong>Restore pending sync</strong>
+          <span>Restored local data has not yet been synced.</span>
+        </div>
+      ) : null}
 
       <label className="check-row">
         <input
@@ -105,7 +160,7 @@ export function SyncSettingsPanel({ env }: SyncSettingsPanelProps = {}) {
           onChange={(event) => togglePrepared(event.target.checked)}
           type="checkbox"
         />
-        <span><strong>Prepare this device for sync</strong><small>This stores local metadata only. It does not upload or download data.</small></span>
+        <span><strong>Prepare this device for sync</strong><small>This stores local sync metadata and conflict state on this device.</small></span>
       </label>
 
       {availability.configured && !query.data?.session ? (
@@ -120,13 +175,23 @@ export function SyncSettingsPanel({ env }: SyncSettingsPanelProps = {}) {
         </div>
       ) : null}
 
-      {availability.configured && query.data?.session ? (
+      {availability.configured && query.data?.session && !query.data.syncSettings.householdId ? (
         <div className="form-actions">
-          <button className="button button--secondary" disabled={busy} onClick={endSession} type="button">Sign out</button>
+          <button className="button button--primary" disabled={busy} onClick={createHousehold} type="button">Create cloud household from this device</button>
+          <button className="button button--secondary" disabled={busy} onClick={linkHousehold} type="button">Link to existing household</button>
         </div>
       ) : null}
 
-      <p className="form-help">Manual setup docs: <code>docs/08A-supabase-sync-foundation-v0.1.md</code></p>
+      <div className="form-actions">
+        <button className="button button--primary" disabled={busy || Boolean(syncDisabledReason)} onClick={syncNow} type="button">
+          {busy ? "Syncing..." : "Sync now"}
+        </button>
+        {query.data?.syncSettings.conflictCount ? <Link className="button button--secondary" to="/settings/sync">Review conflicts</Link> : null}
+        {availability.configured && query.data?.session ? <button className="button button--secondary" disabled={busy} onClick={endSession} type="button">Sign out</button> : null}
+      </div>
+
+      {syncDisabledReason ? <p className="form-help">{syncDisabledReason}</p> : null}
+      <p className="form-help">Manual setup docs: <code>docs/08B-local-first-supabase-sync-engine-v0.1.md</code></p>
       {message ? <div className="notice" role="status"><span>{message}</span></div> : null}
     </section>
   );

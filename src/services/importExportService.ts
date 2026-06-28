@@ -4,6 +4,7 @@ import {
   seedSchoolCalendar, seedSettings, seedTemplates,
 } from "../data/seedData/initialData";
 import { defaultSyncSettings } from "../data/repositories/syncRepository";
+import { clearLocalSyncMetadataForReset, markAllSyncableRecordsDirty } from "../sync/syncEngine";
 import {
   EVENT_CATEGORIES, EVENT_STATUSES, EXPORT_DATA_SCHEMA, EXPORT_SCHEMA_VERSION,
   PLACE_TYPES, PREP_TASK_PRIORITIES, PREP_TASK_STATUSES, RESOURCE_NEED_STATUSES, SCHOOL_ATTIRE_TYPES, SCHOOL_LUNCH_TYPES,
@@ -250,9 +251,12 @@ export async function restoreFromImport(payload: ExportEnvelope): Promise<Restor
     await db.syncSettings.clear();
     await db.syncDevices.clear();
     await db.syncState.clear();
+    await db.syncQueue.clear();
+    await db.syncConflicts.clear();
     await db.syncSettings.put(defaultSyncSettings(restoredAt));
     await db.auditLog.put({ id: `audit_restore_${Date.now()}`, entityType: "system", entityId: payload.exportId, action: "restored", timestamp: restoredAt, summary: "Restored local data from backup" });
   });
+  await markAllSyncableRecordsDirty("Restored local data has not yet been synced.");
   return { restored: true, restoredAt, recordCounts: countsFor(payload.data), safetySnapshot };
 }
 
@@ -261,9 +265,8 @@ export async function resetLocalDataAndReseed(): Promise<void> {
   await db.transaction("rw", db.tables, async () => {
     for (const store of EXPORT_STORE_NAMES) await db.table(store).clear();
     await db.weatherForecasts.clear();
+    await clearLocalSyncMetadataForReset();
     await db.syncSettings.clear();
-    await db.syncDevices.clear();
-    await db.syncState.clear();
     await db.households.add(seedHousehold);
     await db.familyMembers.bulkAdd(seedFamilyMembers);
     await db.resources.bulkAdd(seedResources);

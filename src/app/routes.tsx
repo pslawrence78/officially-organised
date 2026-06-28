@@ -17,6 +17,7 @@ import { PlaceFormPage } from "../pages/PlaceFormPage";
 import { PrepPage } from "../pages/PrepPage";
 import { RoutinesPage } from "../pages/RoutinesPage";
 import { SettingsPage } from "../pages/SettingsPage";
+import { SyncConflictsPage } from "../pages/SyncConflictsPage";
 import { SchoolCalendarPage } from "../pages/SchoolCalendarPage";
 import { SchoolHalfTermPage } from "../pages/SchoolHalfTermPage";
 import { CountdownsPage } from "../pages/CountdownsPage";
@@ -41,6 +42,7 @@ export const requiredRoutePaths = [
   "/settings",
   "/settings/import",
   "/settings/export",
+  "/settings/sync",
   "/settings/school-calendar",
   "/settings/school-half-terms",
   "/settings/countdowns",
@@ -94,6 +96,7 @@ export const appRoutes: RouteObject[] = [
       { path: "settings", element: <SettingsPage /> },
       { path: "settings/import", element: <ImportPage /> },
       { path: "settings/export", element: <ExportPage /> },
+      { path: "settings/sync", element: <SyncConflictsPage /> },
       { path: "settings/school-calendar", element: <SchoolCalendarPage /> },
       { path: "settings/school-half-terms", element: <SchoolHalfTermPage /> },
       { path: "settings/countdowns", element: <CountdownsPage /> },
