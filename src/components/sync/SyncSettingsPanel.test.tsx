@@ -5,8 +5,10 @@ import { db } from "../../data/db";
 import { SyncSettingsPanel } from "./SyncSettingsPanel";
 
 vi.mock("../../sync/authService", () => ({
+  getAuthDiagnostics: vi.fn(() => ({ supabaseConfigured: false, resolvedRedirectUrl: "https://www.lawnetcloud.uk/officially-organised/" })),
   getCurrentSession: vi.fn(async () => ({ ok: false, reason: "not_configured", message: "Unavailable until Supabase is configured" })),
   signInWithMagicLink: vi.fn(),
+  signInWithPassword: vi.fn(),
   signOut: vi.fn(),
 }));
 
@@ -31,6 +33,7 @@ describe("SyncSettingsPanel", () => {
     await waitFor(() => expect(screen.getByText("Not configured")).toBeInTheDocument());
     expect(await screen.findByText("Unavailable until Supabase is configured")).toBeInTheDocument();
     expect(screen.getByText(/IndexedDB remains the live operational source of truth/)).toBeInTheDocument();
+    expect(screen.getByText(/Resolved auth redirect URL/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Sync now" })).toBeDisabled();
   });
 });

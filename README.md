@@ -11,7 +11,7 @@ The application now includes local data safety tools and a cautious manual Supab
 - atomic restore protected by `RESTORE MY DATA`
 - atomic reset and baseline reseed protected by `RESET OFFICIALLY ORGANISED`
 - optional Supabase configuration via `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`
-- local-only sync metadata, conflict review, household linking and a manual `Sync now` flow in Settings
+- local-only sync metadata, conflict review, household linking, derived auth redirect handling, and a manual `Sync now` flow in Settings
 - clear local-only and private-data warnings
 - audit entries for export, restore and reset
 

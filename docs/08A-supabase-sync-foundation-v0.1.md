@@ -43,6 +43,16 @@ When either value is missing or invalid, the app boots normally, the Sync panel 
 5. Run `supabase/rls.sql` in the SQL Editor.
 6. Use `supabase/seed-dev.sql` only as a manual development note.
 
+### Supabase Auth URL configuration
+
+Under **Authentication -> URL Configuration**, include:
+
+- `https://www.lawnetcloud.uk/officially-organised/`
+- `https://www.lawnetcloud.uk/officially-organised`
+- `https://www.lawnetcloud.uk/officially-organised/**`
+- `http://localhost:5173/**`
+- `http://127.0.0.1:5173/**`
+
 ## RLS Intent
 
 Authenticated users can read only households they belong to. Owners can update household metadata and manage membership. Members can read sync envelopes. Adults and owners can insert or update sync envelopes. Audit rows are scoped to the actor's household.

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { getAuthDiagnostics, getResolvedAuthRedirectUrl } from "./authService";
 import { getSupabaseAvailability, getSupabaseConfig, isSupabaseConfigured } from "./supabaseConfig";
 
 describe("Supabase configuration", () => {
@@ -36,5 +37,24 @@ describe("Supabase configuration", () => {
       publishableKey: "publishable-key",
     });
     expect(isSupabaseConfigured(env)).toBe(true);
+  });
+
+  it("resolves the production auth redirect URL from origin and BASE_URL", () => {
+    expect(getResolvedAuthRedirectUrl("/officially-organised/", { location: { origin: "https://www.lawnetcloud.uk" } })).toBe(
+      "https://www.lawnetcloud.uk/officially-organised/",
+    );
+  });
+
+  it("resolves the local dev auth redirect URL from origin and BASE_URL", () => {
+    expect(getResolvedAuthRedirectUrl("/", { location: { origin: "http://localhost:5173" } })).toBe(
+      "http://localhost:5173/",
+    );
+  });
+
+  it("reports auth diagnostics safely when Supabase config is missing", () => {
+    expect(getAuthDiagnostics({}, "/", { location: { origin: "http://127.0.0.1:5173" } })).toEqual({
+      supabaseConfigured: false,
+      resolvedRedirectUrl: "http://127.0.0.1:5173/",
+    });
   });
 });

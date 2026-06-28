@@ -16,3 +16,11 @@ VITE_SUPABASE_PUBLISHABLE_KEY=
 ```
 
 Never put a service role key, database password, JWT secret or other privileged credential into the Vite app or GitHub Pages workflow.
+
+For Supabase Authentication -> URL Configuration, include these redirect URLs:
+
+- `https://www.lawnetcloud.uk/officially-organised/`
+- `https://www.lawnetcloud.uk/officially-organised`
+- `https://www.lawnetcloud.uk/officially-organised/**`
+- `http://localhost:5173/**`
+- `http://127.0.0.1:5173/**`

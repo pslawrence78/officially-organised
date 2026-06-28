@@ -44,6 +44,18 @@ Tranche 8B adds the first manual sync engine while keeping Officially Organised 
 8. Push queued upserts and tombstones.
 9. Update local sync state, queue counts and conflict counts.
 
+## Auth redirect handling
+
+- Magic-link sign-in now derives its callback URL from the current origin plus `import.meta.env.BASE_URL`.
+- The Sync settings panel shows the resolved redirect URL for debugging without exposing secrets.
+- A temporary email/password sign-in option is available in the Sync panel for Supabase Auth testing when magic-link email limits are inconvenient.
+- Supabase Authentication -> URL Configuration should include:
+- `https://www.lawnetcloud.uk/officially-organised/`
+- `https://www.lawnetcloud.uk/officially-organised`
+- `https://www.lawnetcloud.uk/officially-organised/**`
+- `http://localhost:5173/**`
+- `http://127.0.0.1:5173/**`
+
 ## Conflict policy
 
 - Same hash: no write, mark clean.

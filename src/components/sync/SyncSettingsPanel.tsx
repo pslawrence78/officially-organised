@@ -4,7 +4,7 @@ import { ErrorState, LoadingState } from "../common/AsyncState";
 import { ensureSyncDevice, getSyncSettings, setSyncPrepared } from "../../data/repositories";
 import { useRepositoryQuery } from "../../hooks/useRepositoryQuery";
 import { getSupabaseAvailability, type EnvSource } from "../../sync/supabaseConfig";
-import { getCurrentSession, signInWithMagicLink, signOut } from "../../sync/authService";
+import { getAuthDiagnostics, getCurrentSession, signInWithMagicLink, signInWithPassword, signOut } from "../../sync/authService";
 import { createCloudHouseholdFromThisDevice, linkFirstRemoteHousehold, runManualSync } from "../../sync/syncEngine";
 
 interface SyncSettingsPanelProps {
@@ -14,9 +14,11 @@ interface SyncSettingsPanelProps {
 export function SyncSettingsPanel({ env }: SyncSettingsPanelProps = {}) {
   const [version, setVersion] = useState(0);
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const availability = getSupabaseAvailability(env);
+  const diagnostics = getAuthDiagnostics(env);
   const query = useRepositoryQuery(async () => {
     const [syncSettings, device] = await Promise.all([getSyncSettings(), ensureSyncDevice()]);
     if (!availability.configured) {
@@ -51,6 +53,18 @@ export function SyncSettingsPanel({ env }: SyncSettingsPanelProps = {}) {
     try {
       const result = await signInWithMagicLink(email);
       setMessage(result.ok ? "Magic link requested. Check your email on this device." : result.message);
+      refresh();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const requestPasswordSignIn = async () => {
+    setBusy(true);
+    setMessage("");
+    try {
+      const result = await signInWithPassword(email, password);
+      setMessage(result.ok ? "Signed in with email and password for Supabase Auth testing on this device." : result.message);
       refresh();
     } finally {
       setBusy(false);
@@ -145,6 +159,14 @@ export function SyncSettingsPanel({ env }: SyncSettingsPanelProps = {}) {
         <strong>Local-first safety</strong>
         <span>{availability.detail} IndexedDB remains the live operational source of truth for every view in the app.</span>
       </div>
+      <div className="notice">
+        <strong>Auth redirect diagnostics</strong>
+        <span>Resolved auth redirect URL: <code>{diagnostics.resolvedRedirectUrl || "Unavailable outside the browser"}</code></span>
+      </div>
+      <div className="notice">
+        <strong>Supabase Auth testing</strong>
+        <span>Password sign-in is temporary for Supabase Auth testing only. It does not change the app’s local-first behaviour.</span>
+      </div>
 
       {query.data?.syncSettings.restoredSinceLastSync ? (
         <div className="notice notice--warning">
@@ -171,6 +193,22 @@ export function SyncSettingsPanel({ env }: SyncSettingsPanelProps = {}) {
           </label>
           <div className="form-actions">
             <button className="button button--secondary" disabled={busy || !email} onClick={requestMagicLink} type="button">Request sign-in link</button>
+          </div>
+        </div>
+      ) : null}
+
+      {availability.configured && !query.data?.session ? (
+        <div className="form-grid">
+          <label className="form-field">
+            <span>Email for temporary password sign-in</span>
+            <input autoComplete="email" onChange={(event) => setEmail(event.target.value)} type="email" value={email} />
+          </label>
+          <label className="form-field">
+            <span>Password for Supabase Auth testing</span>
+            <input autoComplete="current-password" onChange={(event) => setPassword(event.target.value)} type="password" value={password} />
+          </label>
+          <div className="form-actions">
+            <button className="button button--secondary" disabled={busy || !email || !password} onClick={requestPasswordSignIn} type="button">Sign in with password</button>
           </div>
         </div>
       ) : null}
