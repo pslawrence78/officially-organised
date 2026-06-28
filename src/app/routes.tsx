@@ -1,4 +1,4 @@
-import { createBrowserRouter, type RouteObject } from "react-router-dom";
+import { createBrowserRouter, Outlet, type RouteObject } from "react-router-dom";
 import { AppShell } from "./AppShell";
 import { CalendarPage } from "../pages/CalendarPage";
 import { CarPage } from "../pages/CarPage";
@@ -64,11 +64,12 @@ export const routerBasename = normalizeRouterBasename(import.meta.env.BASE_URL);
 export const appRoutes: RouteObject[] = [
   {
     path: "/hub",
-    element: <HubPage />,
-  },
-  {
-    path: "/hub/wallboard",
-    element: <HubWallboardPage />,
+    element: <Outlet />,
+    children: [
+      { index: true, element: <HubPage /> },
+      { path: "wallboard", element: <HubWallboardPage /> },
+      { path: "*", element: <NotFoundPage /> },
+    ],
   },
   {
     path: "/",
