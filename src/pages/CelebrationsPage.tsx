@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { CelebrationReadinessBadge } from "../components/celebrations/CelebrationReadinessBadge";
 import { ErrorState, LoadingState } from "../components/common/AsyncState";
 import { Badge } from "../components/common/Badge";
 import { Icon } from "../components/common/Icon";
@@ -44,6 +45,12 @@ import {
   updateGiftPlan,
 } from "../data/repositories";
 import { useRepositoryQuery } from "../hooks/useRepositoryQuery";
+import {
+  type CelebrationReadinessIssue,
+  type CelebrationReadinessLevel,
+  type CelebrationReadinessSummary,
+  deriveCelebrationReadinessForRange,
+} from "../services/celebrationReadinessService";
 import { generateGiftPlanPrepTasks } from "../services/giftPlanPrepService";
 import { addDaysToDateKey, currentDateKey, formatLongDate } from "../utils/dates";
 
@@ -171,12 +178,39 @@ function giftToDraft(item: GiftPlan, celebration?: CelebrationOccasion): GiftDra
   };
 }
 
-function needsAction(plan: GiftPlan) {
-  return !plan.archived && (
-    !["not_needed", "given"].includes(plan.giftStatus)
-    || !["not_needed", "given"].includes(plan.cardStatus)
-    || ["to_reply", "maybe"].includes(plan.rsvpStatus)
-  );
+function topIssue(item: { issues: CelebrationReadinessIssue[] }) {
+  return item.issues[0];
+}
+
+function readinessCounts(summaries: CelebrationReadinessSummary[]) {
+  return {
+    ready: summaries.filter((summary) => summary.level === "ready").length,
+    onTrack: summaries.filter((summary) => summary.level === "on_track").length,
+    needsAttention: summaries.filter((summary) => summary.level === "needs_attention").length,
+    atRisk: summaries.filter((summary) => summary.level === "at_risk" || summary.level === "overdue").length,
+  };
+}
+
+function readinessSummaryCopy(summary: CelebrationReadinessSummary) {
+  const issue = topIssue(summary);
+  if (issue) return issue.message;
+  if (summary.openPrepTaskCount) return `${summary.openPrepTaskCount} celebration prep task${summary.openPrepTaskCount === 1 ? "" : "s"} still open.`;
+  if (summary.giftPlanCount && summary.readyGiftPlanCount === summary.giftPlanCount) return "All gift prep is complete.";
+  if (summary.giftPlanCount) return `${summary.giftPlanCount} gift plan${summary.giftPlanCount === 1 ? "" : "s"} linked and on track.`;
+  return "No celebration readiness issues right now.";
+}
+
+function planReadinessCopy(planSummary: {
+  issues: CelebrationReadinessIssue[];
+  prepTaskCount: number;
+  openPrepTaskCount: number;
+  level: CelebrationReadinessLevel;
+}) {
+  const issue = topIssue(planSummary);
+  if (issue) return issue.message;
+  if (planSummary.prepTaskCount) return planSummary.openPrepTaskCount ? `${planSummary.openPrepTaskCount} generated prep task${planSummary.openPrepTaskCount === 1 ? "" : "s"} still open.` : "Generated prep is complete.";
+  if (planSummary.level === "ready") return "This gift plan is ready.";
+  return "This gift plan is on track.";
 }
 
 export function CelebrationsPage() {
@@ -217,9 +251,48 @@ export function CelebrationsPage() {
   const eventById = useMemo(() => new Map((state.data?.events ?? []).map((item) => [item.id, item])), [state.data?.events]);
   const adults = state.data?.familyMembers.filter((member) => member.memberType === "adult") ?? [];
   const today = currentDateKey();
-  const upcomingTo = addDaysToDateKey(today, 365);
-  const upcoming = (state.data?.celebrations ?? []).filter((item) => item.status !== "archived" && item.date >= today && item.date <= upcomingTo);
-  const actionablePlans = (state.data?.giftPlans ?? []).filter(needsAction);
+  const upcomingTo = addDaysToDateKey(today, 90);
+  const readiness = useMemo(() => state.data
+    ? deriveCelebrationReadinessForRange({
+      occasions: state.data.celebrations,
+      giftPlans: state.data.giftPlans,
+      events: state.data.events,
+      now: new Date(),
+      startDate: today,
+      endDate: upcomingTo,
+      includeOutsideRangeWithOverdue: true,
+    })
+    : [], [state.data, today, upcomingTo]);
+  const readinessById = useMemo(() => new Map(readiness.map((item) => [item.occasionId, item])), [readiness]);
+  const overview = readinessCounts(readiness.filter((summary) => summary.level !== "not_applicable"));
+  const attentionItems = useMemo(() => readiness
+    .filter((summary) => ["needs_attention", "at_risk", "overdue"].includes(summary.level))
+    .map((summary) => ({ summary, issue: topIssue(summary) }))
+    .filter((item): item is { summary: CelebrationReadinessSummary; issue: CelebrationReadinessIssue } => Boolean(item.issue))
+    .sort((left, right) => {
+      const severity = (left.issue.severity === "critical" ? 0 : left.issue.severity === "warning" ? 1 : 2)
+        - (right.issue.severity === "critical" ? 0 : right.issue.severity === "warning" ? 1 : 2);
+      if (severity !== 0) return severity;
+      return (left.issue.dueAt ?? "9999-12-31T23:59:59.999Z").localeCompare(right.issue.dueAt ?? "9999-12-31T23:59:59.999Z");
+    })
+    .slice(0, 5), [readiness]);
+  const upcoming = readiness.filter((summary) => summary.level !== "not_applicable");
+  const visibleGiftPlans = useMemo(() => upcoming
+    .flatMap((summary) => summary.giftPlans.map((planSummary) => ({
+      planSummary,
+      celebrationSummary: summary,
+      plan: state.data?.giftPlans.find((item) => item.id === planSummary.giftPlanId),
+    })))
+    .filter((item): item is {
+      planSummary: CelebrationReadinessSummary["giftPlans"][number];
+      celebrationSummary: CelebrationReadinessSummary;
+      plan: GiftPlan;
+    } => Boolean(item.plan))
+    .sort((left, right) =>
+      (left.planSummary.level === right.planSummary.level ? 0 : ["overdue", "at_risk", "needs_attention", "on_track", "ready", "not_applicable"].indexOf(left.planSummary.level) - ["overdue", "at_risk", "needs_attention", "on_track", "ready", "not_applicable"].indexOf(right.planSummary.level))
+      || (left.planSummary.daysUntil ?? 9999) - (right.planSummary.daysUntil ?? 9999)
+      || left.plan.recipientName.localeCompare(right.plan.recipientName),
+    ), [state.data?.giftPlans, upcoming]);
   const archivedCelebrations = (state.data?.celebrations ?? []).filter((item) => item.status === "archived");
   const archivedGiftPlans = (state.data?.giftPlans ?? []).filter((item) => item.archived);
 
@@ -349,55 +422,96 @@ export function CelebrationsPage() {
       <section className="section-block">
         <div className="section-heading">
           <div>
+            <p className="eyebrow">Readiness overview</p>
+            <h2>{upcoming.length ? `${upcoming.length} celebration${upcoming.length === 1 ? "" : "s"} in the next 90 days` : "Nothing in the readiness window"}</h2>
+          </div>
+        </div>
+        {upcoming.length ? <div className="celebration-readiness-grid" aria-label="Celebration readiness overview">
+          <article className="celebration-readiness-stat"><strong>{overview.ready}</strong><span>Ready</span></article>
+          <article className="celebration-readiness-stat"><strong>{overview.onTrack}</strong><span>On track</span></article>
+          <article className="celebration-readiness-stat celebration-readiness-stat--warning"><strong>{overview.needsAttention}</strong><span>Needs attention</span></article>
+          <article className="celebration-readiness-stat celebration-readiness-stat--critical"><strong>{overview.atRisk}</strong><span>At risk or overdue</span></article>
+        </div> : <p className="section-empty-copy">No celebrations yet. Add one only when there is a real practical risk around remembering a gift, card, RSVP or take-it task.</p>}
+      </section>
+
+      <section className="section-block">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">Needs attention</p>
+            <h2>{attentionItems.length ? "Start with the highest-risk celebration work" : "Everything in this window is calm"}</h2>
+          </div>
+        </div>
+        {attentionItems.length ? <div className="celebration-issue-list">{attentionItems.map(({ summary, issue }) => (
+          <article className={`celebration-issue-card celebration-issue-card--${issue.severity}`} key={issue.id}>
+            <div className="celebration-issue-card__top">
+              <div className="event-detail__badges">
+                <CelebrationReadinessBadge level={summary.level} />
+                <Badge tone="accent">{summary.occasionTitle}</Badge>
+              </div>
+              {summary.occasionDate ? <small>{formatLongDate(summary.occasionDate)}</small> : null}
+            </div>
+            <strong>{issue.message}</strong>
+            {issue.suggestedAction ? <p>{issue.suggestedAction}</p> : null}
+          </article>
+        ))}</div> : <p className="section-empty-copy">No celebration or gift issues need immediate attention.</p>}
+      </section>
+
+      <section className="section-block">
+        <div className="section-heading">
+          <div>
             <p className="eyebrow">Upcoming celebrations</p>
             <h2>{upcoming.length ? `${upcoming.length} active occasion${upcoming.length === 1 ? "" : "s"}` : "Nothing stored yet"}</h2>
           </div>
         </div>
-        {upcoming.length ? upcoming.map((item) => (
-          <article className="section-block" key={item.id}>
+        {upcoming.length ? upcoming.map((summary) => {
+          const item = celebrationById.get(summary.occasionId);
+          if (!item) return null;
+          return (
+            <article className="section-block" key={item.id}>
             <div className="event-detail__badges">
               <Badge tone="accent">{CELEBRATION_OCCASION_LABELS[item.occasionType]}</Badge>
+              <CelebrationReadinessBadge level={summary.level} />
               <Badge tone="neutral">{CELEBRATION_STATUS_LABELS[item.status]}</Badge>
               <Badge tone="neutral">{CELEBRATION_RECURRENCE_LABELS[item.recurrence]}</Badge>
             </div>
             <h3>{item.title}</h3>
             <p className="supporting-copy">
-              {formatLongDate(item.date)}
+              {summary.occasionDate ? formatLongDate(summary.occasionDate) : "Date still needed"}
               {item.linkedEventId ? ` · ${eventById.get(item.linkedEventId)?.title ?? "Linked event unavailable"}` : ""}
             </p>
+            <p className="celebration-readiness-copy">{readinessSummaryCopy(summary)}</p>
             <div className="detail-actions">
               <button className="button button--secondary" onClick={() => { setEditingCelebrationId(item.id); setCelebrationDraft(celebrationToDraft(item)); }} type="button"><Icon name="edit" /> Edit</button>
               <button className="button button--secondary" onClick={() => { setEditingGiftId(null); setGiftDraft((current) => current ? { ...current, celebrationId: item.id, draftCelebrationTitle: item.title, draftCelebrationDate: item.date, draftCelebrationType: item.occasionType } : current); }} type="button"><Icon name="plus" /> Add gift plan</button>
               <button className="button button--secondary" onClick={() => void archiveCelebration(item.id).then(() => setRefreshVersion((value) => value + 1))} type="button"><Icon name="trash" /> Archive</button>
             </div>
           </article>
-        )) : <p className="section-empty-copy">No celebrations yet. Add one only when there is a real practical risk around remembering a gift, card, RSVP or take-it task.</p>}
+          );
+        }) : <p className="section-empty-copy">No celebrations yet. Add one only when there is a real practical risk around remembering a gift, card, RSVP or take-it task.</p>}
       </section>
 
       <section className="section-block">
         <div className="section-heading">
           <div>
-            <p className="eyebrow">Gift plans needing practical action</p>
-            <h2>{actionablePlans.length ? `${actionablePlans.length} active plan${actionablePlans.length === 1 ? "" : "s"}` : "Everything quiet"}</h2>
+            <p className="eyebrow">Gift plans</p>
+            <h2>{visibleGiftPlans.length ? `${visibleGiftPlans.length} linked plan${visibleGiftPlans.length === 1 ? "" : "s"}` : "Everything quiet"}</h2>
           </div>
         </div>
-        {actionablePlans.length ? actionablePlans.map((plan) => {
+        {visibleGiftPlans.length ? visibleGiftPlans.map(({ plan, planSummary, celebrationSummary }) => {
           const celebration = celebrationById.get(plan.celebrationId);
           const linkedEvent = plan.linkedEventId ? eventById.get(plan.linkedEventId) : undefined;
-          const taskIds = new Set(plan.linkedPrepTaskIds ?? []);
-          const relatedTasks = linkedEvent ? linkedEvent.prepTasks.filter((task) => taskIds.has(task.id)) : [];
-          const completedTasks = relatedTasks.filter((task) => task.status === "done").length;
           return (
             <article className="section-block" key={plan.id}>
               <div className="event-detail__badges">
-                <Badge tone="accent">{celebration?.title ?? "Linked occasion unavailable"}</Badge>
+                <CelebrationReadinessBadge level={planSummary.level} />
+                <Badge tone="accent">{celebrationSummary.occasionTitle}</Badge>
                 <Badge tone="neutral">Gift {GIFT_STATUS_LABELS[plan.giftStatus]}</Badge>
                 <Badge tone="neutral">Card {CARD_STATUS_LABELS[plan.cardStatus]}</Badge>
                 <Badge tone="neutral">RSVP {RSVP_STATUS_LABELS[plan.rsvpStatus]}</Badge>
               </div>
               <h3>{plan.recipientName}</h3>
               <p className="supporting-copy">{linkedEvent ? `Linked event: ${linkedEvent.title}` : plan.linkedEventId ? "Linked event unavailable" : "No event linked yet"}</p>
-              {relatedTasks.length ? <p className="supporting-copy">{completedTasks} of {relatedTasks.length} generated prep tasks done.</p> : null}
+              <p className="celebration-readiness-copy">{planReadinessCopy(planSummary)}</p>
               <div className="detail-actions">
                 <button className="button button--secondary" onClick={() => { setEditingGiftId(plan.id); setGiftDraft(giftToDraft(plan, celebration)); }} type="button"><Icon name="edit" /> Edit</button>
                 <button className="button button--secondary" onClick={() => void generateTasks(plan.id)} type="button"><Icon name="prep" /> Generate/update prep tasks</button>
@@ -405,7 +519,7 @@ export function CelebrationsPage() {
               </div>
             </article>
           );
-        }) : <p className="section-empty-copy">No active gift plans need action right now.</p>}
+        }) : <p className="section-empty-copy">No active gift plans are linked to celebrations in the next 90 days.</p>}
       </section>
 
       <section className="section-block">

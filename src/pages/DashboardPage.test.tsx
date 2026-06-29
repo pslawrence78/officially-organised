@@ -5,6 +5,8 @@ import { FAMILY_CAR_RESOURCE_ID } from "../domain/constants";
 import type { CountdownTarget, FamilyEventInput, PrepTask, ResourceNeed } from "../domain/types";
 import { db } from "../data/db";
 import { createEvent, getEventById, saveCountdownTarget, seedInitialDataIfNeeded } from "../data/repositories";
+import { createCelebration } from "../data/repositories/celebrationRepository";
+import { createGiftPlan } from "../data/repositories/giftPlanRepository";
 import { addDaysToDateKey, currentDateKey, localDateTimeToIso } from "../utils/dates";
 import { DashboardPage } from "./DashboardPage";
 
@@ -154,5 +156,20 @@ describe("Dashboard operational readiness", () => {
     expect(screen.getByRole("link", { name: "Open Prep" })).toHaveAttribute("href", "/prep");
     expect(screen.getByRole("link", { name: "Open Week" })).toHaveAttribute("href", "/week");
     expect(screen.getByText("Family car clash").closest("a")).toHaveAttribute("href", expect.stringMatching(/^\/events\//));
+  });
+
+  it("shows only bounded at-risk celebration issues on the dashboard", async () => {
+    const urgentDate = addDaysToDateKey(currentDateKey(), 1);
+    const laterDate = addDaysToDateKey(currentDateKey(), 30);
+    const urgentCelebration = await createCelebration({ householdId: "household_lawrence", title: "Urgent party", occasionType: "birthday_party", date: urgentDate, recurrence: "none", ownerAdultIds: ["member_phil"], status: "planned" });
+    await createGiftPlan({ celebrationId: urgentCelebration.id, recipientName: "Alex", responsibleAdultId: "member_phil", giftStatus: "to_buy", cardStatus: "to_buy", rsvpStatus: "to_reply", targetDate: urgentDate, buyBy: urgentDate, archived: false, linkedPrepTaskIds: [] });
+    const farCelebration = await createCelebration({ householdId: "household_lawrence", title: "Far away party", occasionType: "birthday_party", date: laterDate, recurrence: "none", ownerAdultIds: ["member_phil"], status: "planned" });
+    await createGiftPlan({ celebrationId: farCelebration.id, recipientName: "Sam", responsibleAdultId: "member_phil", giftStatus: "to_buy", cardStatus: "to_buy", rsvpStatus: "to_reply", targetDate: laterDate, buyBy: addDaysToDateKey(laterDate, -10), archived: false, linkedPrepTaskIds: [] });
+
+    renderDashboard();
+
+    expect(await screen.findByText("Celebrations to check")).toBeInTheDocument();
+    expect(screen.getByText("Urgent party")).toBeInTheDocument();
+    expect(screen.queryByText("Far away party")).not.toBeInTheDocument();
   });
 });

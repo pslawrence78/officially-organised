@@ -66,5 +66,19 @@ describe("Prep view", () => {
 
     expect(await screen.findByText("Buy present")).toBeInTheDocument();
     expect(screen.getByText("RSVP to party")).toBeInTheDocument();
+    expect(screen.getAllByText("Celebrations").length).toBeGreaterThan(0);
+  });
+
+  it("filters generated gift prep tasks under celebrations", async () => {
+    const event = await createEvent(eventInput([]));
+    const celebration = await createCelebration({ householdId: "household_lawrence", title: "Party", occasionType: "birthday_party", date: currentDateKey(), recurrence: "none", linkedEventId: event.id, ownerAdultIds: ["member_phil"], status: "planned" });
+    const giftPlan = await createGiftPlan({ celebrationId: celebration.id, linkedEventId: event.id, recipientName: "Jamie", responsibleAdultId: "member_phil", giftStatus: "to_buy", cardStatus: "to_buy", rsvpStatus: "to_reply", archived: false, linkedPrepTaskIds: [] });
+    await generateGiftPlanPrepTasks(giftPlan.id);
+
+    render(<MemoryRouter><PrepPage /></MemoryRouter>);
+
+    fireEvent.change(await screen.findByLabelText("Source"), { target: { value: "celebrations" } });
+    expect(await screen.findByText("Buy present")).toBeInTheDocument();
+    expect(screen.getByText("RSVP to party")).toBeInTheDocument();
   });
 });

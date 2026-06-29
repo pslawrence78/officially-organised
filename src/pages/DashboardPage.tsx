@@ -1,3 +1,4 @@
+import { CelebrationReadinessBadge } from "../components/celebrations/CelebrationReadinessBadge";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ErrorState, LoadingState } from "../components/common/AsyncState";
@@ -21,6 +22,8 @@ import {
   getEventsForDateRange,
   getFamilyMembers,
   getHousehold,
+  listCelebrations,
+  listGiftPlans,
   getPlaces,
   getPrepTasks,
   getResources,
@@ -37,6 +40,7 @@ import { calculateConflicts, conflictsForEvent } from "../services/conflictServi
 import { getSchoolDayStatus } from "../services/schoolCalendarService";
 import { getSchoolReadinessForDate } from "../services/schoolReadinessService";
 import { dashboardCountdowns } from "../services/countdownService";
+import { deriveCelebrationReadinessForRange } from "../services/celebrationReadinessService";
 import { getWeatherSchoolContexts } from "../services/weatherService";
 import { upsertSchoolReadinessPrepActionsForRange } from "../services/schoolReadinessPrepActionService";
 
@@ -57,7 +61,7 @@ export function DashboardPage() {
   const state = useRepositoryQuery(async () => {
     const today = currentDateKey();
     const weekStart = getWeekStartDateKey(today);
-    const [household, familyMembers, resources, places, todayEvents, weekEvents, allEvents, prepItems, carItems, schoolCalendar, countdownTargets, halfTermConfigs] = await Promise.all([
+    const [household, familyMembers, resources, places, todayEvents, weekEvents, allEvents, prepItems, carItems, schoolCalendar, countdownTargets, halfTermConfigs, celebrations, giftPlans] = await Promise.all([
       getHousehold(),
       getFamilyMembers(),
       getResources(),
@@ -70,12 +74,14 @@ export function DashboardPage() {
       getSchoolCalendar(),
       getCountdownTargets(),
       listSchoolHalfTermConfigs(),
+      listCelebrations(),
+      listGiftPlans(),
     ]);
     const schoolReadiness = getSchoolReadinessForDate(schoolCalendar, halfTermConfigs, today);
     const tomorrowReadiness = getSchoolReadinessForDate(schoolCalendar, halfTermConfigs, addDaysToDateKey(today, 1));
     const weather = await getWeatherSchoolContexts([schoolReadiness, tomorrowReadiness]);
     const schoolPrepActions = await upsertSchoolReadinessPrepActionsForRange([schoolReadiness, tomorrowReadiness], Object.fromEntries(Object.entries(weather).map(([date, context]) => [date, context.suggestions])));
-    return { today, household, familyMembers, resources, places, todayEvents, weekEvents, allEvents, prepItems, carItems, schoolCalendar, countdownTargets, halfTermConfigs, schoolReadiness, tomorrowReadiness, weather, schoolPrepActions };
+    return { today, household, familyMembers, resources, places, todayEvents, weekEvents, allEvents, prepItems, carItems, schoolCalendar, countdownTargets, halfTermConfigs, schoolReadiness, tomorrowReadiness, weather, schoolPrepActions, celebrations, giftPlans };
   }, [refreshVersion]);
   const data = state.data;
   const activeEvents = data?.allEvents.filter((event) => event.status !== "cancelled") ?? [];
@@ -94,6 +100,18 @@ export function DashboardPage() {
   const schoolReadiness = data?.schoolReadiness;
   const tomorrowReadiness = data?.tomorrowReadiness;
   const countdowns = data ? dashboardCountdowns(data.countdownTargets, data.today) : undefined;
+  const celebrationReadiness = data
+    ? deriveCelebrationReadinessForRange({
+      occasions: data.celebrations,
+      giftPlans: data.giftPlans,
+      events: data.allEvents,
+      now: new Date(),
+      startDate: data.today,
+      endDate: addDaysToDateKey(data.today, 14),
+      includeOutsideRangeWithOverdue: true,
+    }).filter((summary) => summary.level === "overdue" || summary.level === "at_risk")
+      .slice(0, 3)
+    : [];
 
   const updatePrep = async (eventId: string, taskId: string, status: "open" | "done" | "skipped") => {
     await setPrepTaskStatus(eventId, taskId, status);
@@ -120,6 +138,23 @@ export function DashboardPage() {
             <div className="section-heading"><div><p className="eyebrow">Needs attention</p><h2>{conflicts.length ? `${conflicts.length} item${conflicts.length === 1 ? "" : "s"} to sort` : "Everything important is covered"}</h2></div>{conflicts.length ? <Badge tone={criticalCount ? "critical" : "warning"}>{criticalCount ? `${criticalCount} critical` : "Check when ready"}</Badge> : <Badge tone="success">All clear</Badge>}</div>
             <ConflictList conflicts={conflicts} events={activeEvents} onPrepComplete={(eventId, taskId) => updatePrep(eventId, taskId, "done")} />
             {!conflicts.length ? <DashboardEmpty icon="check" title="Nothing needs attention" copy="No car clashes, overdue preparation or responsibility gaps right now." /> : null}
+          </section>
+
+          <section className="section-block" data-dashboard-section="celebrations">
+            <div className="section-heading"><div><p className="eyebrow">Celebrations to check</p><h2>{celebrationReadiness.length ? "Only the urgent celebration work" : "Celebrations are under control"}</h2></div><Link className="back-link" to="/celebrations">Open Gifts &amp; Celebrations</Link></div>
+            {celebrationReadiness.length ? <div className="celebration-issue-list">{celebrationReadiness.map((summary) => (
+              <article className={`celebration-issue-card celebration-issue-card--${summary.level === "overdue" ? "critical" : "warning"}`} key={summary.occasionId}>
+                <div className="celebration-issue-card__top">
+                  <div className="event-detail__badges">
+                    <CelebrationReadinessBadge level={summary.level} />
+                    <Badge tone="accent">{summary.occasionTitle}</Badge>
+                  </div>
+                  {summary.occasionDate ? <small>{summary.occasionDate}</small> : null}
+                </div>
+                <strong>{summary.issues[0]?.message ?? "Gift or celebration work needs attention."}</strong>
+                <p>{summary.issues[0]?.suggestedAction ?? "Open the celebration and update the plan or prep tasks."}</p>
+              </article>
+            ))}</div> : <DashboardEmpty icon="gift" title="No urgent celebration work" copy="Only at-risk or overdue celebration issues appear here." />}
           </section>
 
           <section className="section-block" data-dashboard-section="today">

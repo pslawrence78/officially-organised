@@ -3,6 +3,7 @@ import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { db } from "../data/db";
 import { getEventById, seedInitialDataIfNeeded } from "../data/repositories";
+import { addDaysToDateKey, currentDateKey } from "../utils/dates";
 import { CelebrationsPage } from "./CelebrationsPage";
 
 describe("Celebrations page", () => {
@@ -19,7 +20,8 @@ describe("Celebrations page", () => {
 
   it("renders the empty state for celebrations", async () => {
     render(<MemoryRouter><CelebrationsPage /></MemoryRouter>);
-    expect(await screen.findByText(/No celebrations yet/i)).toBeInTheDocument();
+    expect(await screen.findByText("Nothing in the readiness window")).toBeInTheDocument();
+    expect(screen.getByText("Nothing stored yet")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Gifts & Celebrations" })).toBeInTheDocument();
   });
 
@@ -63,5 +65,31 @@ describe("Celebrations page", () => {
     await waitFor(async () => expect((await db.giftPlans.toCollection().first())?.linkedEventId).toBeTruthy());
     const savedPlan = await db.giftPlans.toCollection().first();
     await waitFor(async () => expect((await getEventById(savedPlan!.linkedEventId!))?.prepTasks.length).toBeGreaterThan(0));
+  });
+
+  it("shows celebration readiness badges and overview counts", async () => {
+    const riskDate = addDaysToDateKey(currentDateKey(), 5);
+    render(<MemoryRouter><CelebrationsPage /></MemoryRouter>);
+
+    fireEvent.change(await screen.findByLabelText("Occasion title"), { target: { value: "Alex birthday" } });
+    fireEvent.change((await screen.findAllByLabelText("Occasion type"))[0], { target: { value: "birthday_party" } });
+    fireEvent.change(screen.getByLabelText("Date"), { target: { value: riskDate } });
+    fireEvent.click(screen.getByRole("button", { name: "Create celebration" }));
+    await screen.findByText("Celebration created.");
+
+    const occasionSelect = screen.getByLabelText("Occasion") as HTMLSelectElement;
+    await waitFor(() => expect([...occasionSelect.options].some((option) => option.textContent?.includes("Alex birthday"))).toBe(true));
+    fireEvent.change(occasionSelect, { target: { value: [...occasionSelect.options].find((option) => option.textContent?.includes("Alex birthday"))?.value } });
+    const recipientFields = await screen.findAllByLabelText("Recipient name");
+    fireEvent.change(recipientFields[1], { target: { value: "Alex" } });
+    fireEvent.change(screen.getByLabelText("Gift status"), { target: { value: "to_buy" } });
+    fireEvent.change(screen.getByLabelText("Occasion date"), { target: { value: riskDate } });
+    fireEvent.change(screen.getByLabelText("Buy by"), { target: { value: riskDate } });
+    fireEvent.click(screen.getByRole("button", { name: "Create gift plan" }));
+
+    expect(await screen.findByText("Gift plan created.")).toBeInTheDocument();
+    expect(screen.getByText("Readiness overview")).toBeInTheDocument();
+    expect(screen.getByText("Start with the highest-risk celebration work")).toBeInTheDocument();
+    expect(screen.getByText("Add a gift plan for this occasion.")).toBeInTheDocument();
   });
 });
