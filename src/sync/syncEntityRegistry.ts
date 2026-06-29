@@ -18,6 +18,7 @@ export const SYNC_ENTITY_DEFINITIONS: SyncEntityDefinition[] = [
   { entityType: "settings", tableName: "settings" },
   { entityType: "celebrationOccasions", tableName: "celebrationOccasions", updatedAtField: "updatedAt", titleField: "title" },
   { entityType: "giftPlans", tableName: "giftPlans", updatedAtField: "updatedAt", titleField: "recipientName" },
+  { entityType: "householdAdminItems", tableName: "householdAdminItems", updatedAtField: "updatedAt", titleField: "title" },
   { entityType: "schoolCalendars", tableName: "schoolCalendars", updatedAtField: "updatedAt", titleField: "schoolName" },
   { entityType: "schoolHalfTermConfigs", tableName: "schoolHalfTermConfigs", updatedAtField: "updatedAt", titleField: "label" },
   { entityType: "schoolReadinessPrepActions", tableName: "schoolReadinessPrepActions", updatedAtField: "updatedAt", titleField: "title" },

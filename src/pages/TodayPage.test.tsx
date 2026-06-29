@@ -2,7 +2,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { db } from "../data/db";
-import { seedInitialDataIfNeeded } from "../data/repositories";
+import { createHouseholdAdminItem, seedInitialDataIfNeeded } from "../data/repositories";
 import { createCelebration } from "../data/repositories/celebrationRepository";
 import { createGiftPlan } from "../data/repositories/giftPlanRepository";
 import { addDaysToDateKey, currentDateKey } from "../utils/dates";
@@ -29,5 +29,12 @@ describe("Today page celebration readiness", () => {
 
     expect(await screen.findByText("Celebration prep")).toBeInTheDocument();
     expect(await screen.findByText("Present or card still needs packing for tomorrow.")).toBeInTheDocument();
+  });
+
+  it("shows due and overdue household admin only", async () => {
+    await createHouseholdAdminItem({ title: "Boiler service", category: "home_maintenance", adminType: "boiler_service", status: "active", dueDate: currentDateKey(), renewalCycle: "annual", ownerMemberId: "member_phil", reminderDaysBefore: [30, 14, 7] });
+    render(<MemoryRouter><TodayPage /></MemoryRouter>);
+    expect(await screen.findByText("Due or overdue today")).toBeInTheDocument();
+    expect(screen.getByText("Boiler service")).toBeInTheDocument();
   });
 });

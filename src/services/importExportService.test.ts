@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { db } from "../data/db";
+import { createHouseholdAdminItem } from "../data/repositories";
 import { seedInitialDataIfNeeded } from "../data/repositories/appRepository";
 import type { ExportEnvelope } from "../types/importExport";
 import { createExportPayload, getLocalDataSummary, parseImportJson, resetLocalDataAndReseed, restoreFromImport, validateImportPayload } from "./importExportService";
@@ -10,15 +11,16 @@ describe("local backup and restore", () => {
     await db.delete(); await db.open(); await seedInitialDataIfNeeded();
     const now = new Date().toISOString();
     await db.events.add({ id: "event_test", title: "Seb swimming", category: "lesson", status: "confirmed", startAt: "2026-06-22T16:00:00.000Z", endAt: "2026-06-22T17:00:00.000Z", allDay: false, participants: ["member_seb"], responsibleAdults: ["member_phil"], prepTasks: [{ id: "prep_test", title: "Pack kit", ownerIds: ["member_phil"], priority: "normal", status: "open", blocksEvent: false, createdAt: now, updatedAt: now }], resourceNeeds: [{ id: "need_test", resourceId: "resource_family_car", needStatus: "required", createdAt: now, updatedAt: now }], templateId: "template_swimming_lesson", createdAt: now, updatedAt: now });
+    await createHouseholdAdminItem({ title: "Boiler service", category: "home_maintenance", adminType: "boiler_service", status: "active", dueDate: "2026-07-01", renewalCycle: "annual", ownerMemberId: "member_phil", reminderDaysBefore: [30, 14, 7] });
     valid = await createExportPayload();
   });
   afterEach(async () => { await db.delete(); });
 
   it("exports every persistent store with Officially Organised metadata and counts", () => {
-    expect(valid.schema).toBe("officially-organised-data-v4");
+    expect(valid.schema).toBe("officially-organised-data-v5");
     expect(valid.sourceAppName).toBe("Officially Organised");
     expect(valid.exportedAt).toMatch(/^\d{4}-/);
-    expect(Object.keys(valid.data)).toEqual(expect.arrayContaining(["events", "eventSeries", "celebrationOccasions", "giftPlans", "schoolCalendars", "countdownTargets", "auditLog"]));
+    expect(Object.keys(valid.data)).toEqual(expect.arrayContaining(["events", "eventSeries", "celebrationOccasions", "giftPlans", "householdAdminItems", "schoolCalendars", "countdownTargets", "auditLog"]));
     expect(valid.recordCounts.events).toBe(1);
     expect(() => JSON.parse(JSON.stringify(valid))).not.toThrow();
     expect(valid.data).not.toHaveProperty("conflicts");
@@ -46,6 +48,7 @@ describe("local backup and restore", () => {
     ["broken series", (p: ExportEnvelope) => p.data.events[0].seriesId = "missing", "missing_series_reference"],
     ["bad school dates", (p: ExportEnvelope) => p.data.schoolCalendars[0].periods[0].startDate = "2026-99-40", "invalid_school_period"],
     ["bad countdown date", (p: ExportEnvelope) => p.data.countdownTargets[0].targetDate = "not-a-date", "invalid_countdown_date"],
+    ["bad household admin enum", (p: ExportEnvelope) => { (p.data.householdAdminItems[0] as { category: string }).category = "mystery"; }, "invalid_household_admin_category"],
   ])("rejects %s with a readable issue", (_name, mutate, code) => {
     const payload = structuredClone(valid); mutate(payload);
     const result = validateImportPayload(payload);
@@ -81,5 +84,13 @@ describe("local backup and restore", () => {
     await restoreFromImport(payload);
     expect(await db.celebrationOccasions.get("celebration_test")).toBeTruthy();
     expect(await db.giftPlans.get("gift_test")).toBeTruthy();
+  });
+
+  it("exports, restores and validates household admin items", async () => {
+    await createHouseholdAdminItem({ title: "Boiler service", category: "home_maintenance", adminType: "boiler_service", status: "active", dueDate: "2026-07-01", renewalCycle: "annual", ownerMemberId: "member_phil", reminderDaysBefore: [30, 14, 7] });
+    const payload = await createExportPayload();
+    expect(payload.recordCounts.householdAdminItems).toBe(2);
+    await restoreFromImport(payload);
+    expect(await db.householdAdminItems.count()).toBe(2);
   });
 });

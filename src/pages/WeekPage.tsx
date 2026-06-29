@@ -11,7 +11,7 @@ import { SchoolPrepActionList } from "../components/prep/SchoolPrepActionCard";
 import { SchoolDayIndicator } from "../components/school/SchoolStatus";
 import { SchoolReadiness } from "../components/school/SchoolReadiness";
 import { WeatherSuggestionCard } from "../components/weather/WeatherSuggestionCard";
-import { getEvents, getEventsForDateRange, getFamilyMembers, getPlaces, getSchoolCalendar, listCelebrations, listGiftPlans, listSchoolHalfTermConfigs } from "../data/repositories";
+import { getEvents, getEventsForDateRange, getFamilyMembers, getPlaces, getSchoolCalendar, listCelebrations, listGiftPlans, listHouseholdAdminItems, listSchoolHalfTermConfigs } from "../data/repositories";
 import { useRepositoryQuery } from "../hooks/useRepositoryQuery";
 import { calculateConflicts, conflictsForEvent, conflictsForEvents } from "../services/conflictService";
 import { deriveCelebrationReadinessForRange } from "../services/celebrationReadinessService";
@@ -20,13 +20,14 @@ import { getSchoolReadinessForDate } from "../services/schoolReadinessService";
 import { schoolPrepSummary, upsertSchoolReadinessPrepActionsForRange } from "../services/schoolReadinessPrepActionService";
 import { getWeatherSchoolContexts } from "../services/weatherService";
 import { addDaysToDateKey, currentDateKey, dateKeyToIsoStart, formatLongDate, formatWeekRange, getWeekStartDateKey } from "../utils/dates";
+import { deriveHouseholdAdminSignal, sortHouseholdAdminSignals } from "../services/householdAdminService";
 
 export function WeekPage() {
   const [weekStart, setWeekStart] = useState(getWeekStartDateKey());
   const [refreshVersion, setRefreshVersion] = useState(0);
   const weekEndExclusive = addDaysToDateKey(weekStart, 7);
   const state = useRepositoryQuery(async () => {
-    const [events, allEvents, familyMembers, places, schoolCalendar, halfTermConfigs, celebrations, giftPlans] = await Promise.all([
+    const [events, allEvents, familyMembers, places, schoolCalendar, halfTermConfigs, celebrations, giftPlans, householdAdminItems] = await Promise.all([
       getEventsForDateRange(new Date(dateKeyToIsoStart(weekStart)), new Date(dateKeyToIsoStart(weekEndExclusive))),
       getEvents(),
       getFamilyMembers(),
@@ -35,11 +36,12 @@ export function WeekPage() {
       listSchoolHalfTermConfigs(),
       listCelebrations(),
       listGiftPlans(),
+      listHouseholdAdminItems(),
     ]);
     const readiness = Array.from({ length: 7 }, (_, index) => getSchoolReadinessForDate(schoolCalendar, halfTermConfigs, addDaysToDateKey(weekStart, index)));
     const weather = await getWeatherSchoolContexts(readiness);
     const schoolPrepActions = await upsertSchoolReadinessPrepActionsForRange(readiness, Object.fromEntries(Object.entries(weather).map(([date, context]) => [date, context.suggestions])));
-    return { events, allEvents, familyMembers, places, schoolCalendar, readiness, weather, schoolPrepActions, celebrations, giftPlans };
+    return { events, allEvents, familyMembers, places, schoolCalendar, readiness, weather, schoolPrepActions, celebrations, giftPlans, householdAdminItems };
   }, [weekStart, refreshVersion]);
 
   const data = state.data;
@@ -61,6 +63,10 @@ export function WeekPage() {
   const weekCelebrationReadiness = celebrationReadiness
     .filter((summary) => ["needs_attention", "at_risk", "overdue"].includes(summary.level))
     .slice(0, 3);
+  const householdAdminWeek = data
+    ? sortHouseholdAdminSignals(data.householdAdminItems.map((item) => deriveHouseholdAdminSignal(item, weekStart)))
+      .filter((item) => item.dueState === "overdue" || (item.item.dueDate && item.item.dueDate >= weekStart && item.item.dueDate <= addDaysToDateKey(weekStart, 6)))
+    : [];
 
   return <div className="page-stack">
     <div className="page-title-row"><PageHeader eyebrow="Monday to Sunday" title="Week">{formatWeekRange(weekStart)}</PageHeader><Link className="compact-action" to="/events/new"><Icon name="plus" /> Add event</Link></div>
@@ -70,6 +76,7 @@ export function WeekPage() {
     {data ? <>
       <section className="section-block attention-section"><div className="section-heading"><div><p className="eyebrow">Needs attention</p><h2>{visibleConflicts.length ? `${visibleConflicts.length} issue${visibleConflicts.length === 1 ? "" : "s"} this week` : "This week is clear"}</h2></div></div><ConflictList conflicts={visibleConflicts} events={data.allEvents} />{!visibleConflicts.length ? <p className="section-empty-copy">No current conflicts affect this week's events.</p> : null}</section>
       <section className="section-block"><div className="section-heading"><div><p className="eyebrow">Celebration prep</p><h2>{weekCelebrationReadiness.length ? "Only the celebration risks for this week" : "No celebration prep due this week"}</h2></div><Link className="back-link" to="/celebrations">Open Gifts &amp; Celebrations</Link></div>{weekCelebrationReadiness.length ? <div className="celebration-issue-list">{weekCelebrationReadiness.map((summary) => <article className={`celebration-issue-card celebration-issue-card--${summary.level === "overdue" ? "critical" : "warning"}`} key={summary.occasionId}><div className="celebration-issue-card__top"><div className="event-detail__badges"><CelebrationReadinessBadge level={summary.level} /><Badge tone="accent">{summary.occasionTitle}</Badge></div>{summary.occasionDate ? <small>{formatLongDate(summary.occasionDate)}</small> : null}</div><strong>{summary.issues[0]?.message ?? "Celebration work needs attention."}</strong></article>)}</div> : <p className="section-empty-copy">No celebration prep due this week.</p>}</section>
+      {householdAdminWeek.length ? <section className="section-block"><div className="section-heading"><div><p className="eyebrow">Household admin</p><h2>Due this week</h2></div><Link className="back-link" to="/household-admin">Open Household Admin</Link></div><div className="celebration-issue-list">{householdAdminWeek.slice(0, 6).map((signal) => <Link className={`celebration-issue-card celebration-issue-card--${signal.severity === "critical" ? "critical" : "warning"}`} key={signal.item.id} to={`/household-admin?edit=${encodeURIComponent(signal.item.id)}`}><div className="celebration-issue-card__top"><div className="event-detail__badges"><Badge tone={signal.severity === "critical" ? "critical" : "warning"}>{signal.label}</Badge><Badge tone="accent">{signal.item.title}</Badge></div>{signal.item.dueDate ? <small>{formatLongDate(signal.item.dueDate)}</small> : null}</div><strong>{signal.message}</strong></Link>)}</div></section> : null}
       <section className="week-list" aria-label={`Week of ${formatWeekRange(weekStart)}`}>{days.map((day) => {
         const dayStart = Date.parse(dateKeyToIsoStart(day));
         const dayEnd = Date.parse(dateKeyToIsoStart(addDaysToDateKey(day, 1)));

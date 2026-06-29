@@ -30,6 +30,16 @@ export {
 } from "./giftPlanRepository";
 
 export {
+  archiveHouseholdAdminItem,
+  createHouseholdAdminItem,
+  getHouseholdAdminItemById,
+  listHouseholdAdminItems,
+  listHouseholdAdminItemsByDueDateRange,
+  listHouseholdAdminItemsByStatus,
+  updateHouseholdAdminItem,
+} from "./householdAdminRepository";
+
+export {
   createEvent,
   deleteEvent,
   getEventById,

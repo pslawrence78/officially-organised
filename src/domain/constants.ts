@@ -7,6 +7,10 @@ import type {
   EventCategory,
   EventStatus,
   GiftStatus,
+  HouseholdAdminCategory,
+  HouseholdAdminCycle,
+  HouseholdAdminStatus,
+  HouseholdAdminType,
   PlaceType,
   PrepTaskPriority,
   PrepTaskStatus,
@@ -15,10 +19,10 @@ import type {
 } from "./types";
 
 export const DATABASE_NAME = "lawrence_loop_db";
-export const DATABASE_SCHEMA_VERSION = 12;
-export const APP_DATA_SCHEMA = "lawrence-loop-data-v12";
-export const EXPORT_DATA_SCHEMA = "officially-organised-data-v4";
-export const EXPORT_SCHEMA_VERSION = 4;
+export const DATABASE_SCHEMA_VERSION = 13;
+export const APP_DATA_SCHEMA = "lawrence-loop-data-v13";
+export const EXPORT_DATA_SCHEMA = "officially-organised-data-v5";
+export const EXPORT_SCHEMA_VERSION = 5;
 export const HOUSEHOLD_TIME_ZONE = "Europe/London";
 export const FAMILY_CAR_RESOURCE_ID = "resource_family_car";
 export const SCHOOL_LUNCH_TYPES = ["packed_lunch", "school_dinner", "home_lunch", "not_required", "unknown"] as const;
@@ -189,4 +193,98 @@ export const RSVP_STATUS_LABELS: Record<RsvpStatus, string> = {
   accepted: "Accepted",
   declined: "Declined",
   maybe: "Maybe",
+};
+
+export const HOUSEHOLD_ADMIN_CATEGORIES: HouseholdAdminCategory[] = [
+  "vehicle",
+  "insurance",
+  "home_maintenance",
+  "utilities",
+  "warranty",
+  "finance",
+  "documents",
+  "other",
+];
+
+export const HOUSEHOLD_ADMIN_TYPES: HouseholdAdminType[] = [
+  "car_service",
+  "mot",
+  "car_tax",
+  "car_insurance",
+  "home_insurance",
+  "travel_insurance",
+  "breakdown_cover",
+  "boiler_service",
+  "aircon_service",
+  "appliance_service",
+  "home_maintenance",
+  "warranty_expiry",
+  "subscription_renewal",
+  "other",
+];
+
+export const HOUSEHOLD_ADMIN_STATUSES: HouseholdAdminStatus[] = [
+  "active",
+  "booked",
+  "renewed",
+  "completed",
+  "not_needed",
+  "archived",
+];
+
+export const HOUSEHOLD_ADMIN_CYCLES: HouseholdAdminCycle[] = [
+  "none",
+  "monthly",
+  "quarterly",
+  "six_monthly",
+  "annual",
+  "two_yearly",
+  "custom",
+];
+
+export const HOUSEHOLD_ADMIN_CATEGORY_LABELS: Record<HouseholdAdminCategory, string> = {
+  vehicle: "Vehicle",
+  insurance: "Insurance & cover",
+  home_maintenance: "Home maintenance",
+  utilities: "Utilities",
+  warranty: "Warranty",
+  finance: "Finance",
+  documents: "Documents",
+  other: "Other",
+};
+
+export const HOUSEHOLD_ADMIN_TYPE_LABELS: Record<HouseholdAdminType, string> = {
+  car_service: "Car service",
+  mot: "MOT",
+  car_tax: "Car tax",
+  car_insurance: "Car insurance",
+  home_insurance: "Home insurance",
+  travel_insurance: "Travel insurance",
+  breakdown_cover: "Breakdown cover",
+  boiler_service: "Boiler service",
+  aircon_service: "Air-conditioning service",
+  appliance_service: "Appliance service",
+  home_maintenance: "Household maintenance",
+  warranty_expiry: "Warranty expiry",
+  subscription_renewal: "Subscription renewal",
+  other: "Other",
+};
+
+export const HOUSEHOLD_ADMIN_STATUS_LABELS: Record<HouseholdAdminStatus, string> = {
+  active: "Active",
+  booked: "Booked",
+  renewed: "Renewed",
+  completed: "Completed",
+  not_needed: "Not needed",
+  archived: "Archived",
+};
+
+export const HOUSEHOLD_ADMIN_CYCLE_LABELS: Record<HouseholdAdminCycle, string> = {
+  none: "No repeat",
+  monthly: "Monthly",
+  quarterly: "Quarterly",
+  six_monthly: "Six-monthly",
+  annual: "Annual",
+  two_yearly: "Every two years",
+  custom: "Custom months",
 };

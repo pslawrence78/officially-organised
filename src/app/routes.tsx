@@ -9,6 +9,7 @@ import { EventFormPage } from "../pages/EventFormPage";
 import { ExportPage } from "../pages/ExportPage";
 import { HubPage } from "../pages/HubPage";
 import { HubWallboardPage } from "../pages/HubWallboardPage";
+import { HouseholdAdminPage } from "../pages/HouseholdAdminPage";
 import { ImportPage } from "../pages/ImportPage";
 import { NotFoundPage } from "../pages/NotFoundPage";
 import { PeoplePage } from "../pages/PeoplePage";
@@ -38,6 +39,7 @@ export const requiredRoutePaths = [
   "/prep",
   "/school",
   "/celebrations",
+  "/household-admin",
   "/people",
   "/people/:memberId",
   "/routines",
@@ -89,6 +91,7 @@ export const appRoutes: RouteObject[] = [
       { path: "prep", element: <PrepPage /> },
       { path: "school", element: <SchoolPage /> },
       { path: "celebrations", element: <CelebrationsPage /> },
+      { path: "household-admin", element: <HouseholdAdminPage /> },
       { path: "events/new", element: <EventFormPage /> },
       { path: "events/:eventId", element: <EventDetailPage /> },
       { path: "events/:eventId/edit", element: <EventFormPage /> },

@@ -568,3 +568,74 @@ export interface CountdownDisplay {
 }
 
 export type CountdownSuggestion = Omit<CountdownTarget, "createdAt" | "updatedAt" | "active" | "visibility" | "showSleeps">;
+
+export type HouseholdAdminCategory =
+  | "vehicle"
+  | "insurance"
+  | "home_maintenance"
+  | "utilities"
+  | "warranty"
+  | "finance"
+  | "documents"
+  | "other";
+
+export type HouseholdAdminType =
+  | "car_service"
+  | "mot"
+  | "car_tax"
+  | "car_insurance"
+  | "home_insurance"
+  | "travel_insurance"
+  | "breakdown_cover"
+  | "boiler_service"
+  | "aircon_service"
+  | "appliance_service"
+  | "home_maintenance"
+  | "warranty_expiry"
+  | "subscription_renewal"
+  | "other";
+
+export type HouseholdAdminStatus =
+  | "active"
+  | "booked"
+  | "renewed"
+  | "completed"
+  | "not_needed"
+  | "archived";
+
+export type HouseholdAdminCycle =
+  | "none"
+  | "monthly"
+  | "quarterly"
+  | "six_monthly"
+  | "annual"
+  | "two_yearly"
+  | "custom";
+
+export interface HouseholdAdminItem {
+  id: string;
+  title: string;
+  category: HouseholdAdminCategory;
+  adminType: HouseholdAdminType;
+  status: HouseholdAdminStatus;
+  dueDate?: string;
+  startDate?: string;
+  lastCompletedDate?: string;
+  renewalCycle: HouseholdAdminCycle;
+  customCycleMonths?: number;
+  ownerMemberId?: string;
+  relatedResourceId?: string;
+  relatedPlaceId?: string;
+  providerName?: string;
+  referenceLabel?: string;
+  costAmount?: number;
+  costCurrency?: "GBP";
+  reminderDaysBefore?: number[];
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+  archivedAt?: string;
+}
+
+export type HouseholdAdminItemInput = Omit<HouseholdAdminItem, "id" | "createdAt" | "updatedAt" | "archivedAt">;
+export type HouseholdAdminItemPatch = Partial<HouseholdAdminItemInput>;

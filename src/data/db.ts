@@ -12,6 +12,7 @@ import type {
   EventSeries,
   FamilyMember,
   GiftPlan,
+  HouseholdAdminItem,
   Household,
   Place,
   Resource,
@@ -40,6 +41,7 @@ export class LawrenceLoopDatabase extends Dexie {
   auditLog!: EntityTable<AuditLogEntry, "id">;
   celebrationOccasions!: EntityTable<CelebrationOccasion, "id">;
   giftPlans!: EntityTable<GiftPlan, "id">;
+  householdAdminItems!: EntityTable<HouseholdAdminItem, "id">;
   schoolCalendars!: EntityTable<SchoolCalendar, "id">;
   schoolHalfTermConfigs!: EntityTable<SchoolHalfTermConfig, "id">;
   countdownTargets!: EntityTable<CountdownTarget, "id">;
@@ -118,6 +120,7 @@ export class LawrenceLoopDatabase extends Dexie {
         events: "&id, startAt, endAt, category, status",
         celebrationOccasions: "&id, date, status, linkedEventId, linkedMemberId, updatedAt",
         giftPlans: "&id, celebrationId, linkedEventId, recipientMemberId, responsibleAdultId, archived, updatedAt",
+        householdAdminItems: "&id, dueDate, status, category, adminType, ownerMemberId, updatedAt, [status+dueDate], [category+status]",
         schoolCalendars: "&id, childMemberId, academicYearLabel",
         schoolHalfTermConfigs: "&id, schoolCalendarId, startDate, endDate, updatedAt",
         countdownTargets: "&id, targetDate, visibility, active, sourceType, sourceId",
@@ -150,6 +153,13 @@ export class LawrenceLoopDatabase extends Dexie {
           giftPlan.linkedPrepTaskIds ??= [];
           giftPlan.createdAt ??= new Date().toISOString();
           giftPlan.updatedAt ??= giftPlan.createdAt;
+        });
+
+        await transaction.table("householdAdminItems").toCollection().modify((item) => {
+          item.status ??= "active";
+          item.renewalCycle ??= "none";
+          item.createdAt ??= new Date().toISOString();
+          item.updatedAt ??= item.createdAt;
         });
 
         await transaction.table("settings").put({

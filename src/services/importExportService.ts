@@ -13,6 +13,10 @@ import {
   CELEBRATION_STATUSES,
   EVENT_CATEGORIES, EVENT_STATUSES, EXPORT_DATA_SCHEMA, EXPORT_SCHEMA_VERSION,
   GIFT_STATUSES,
+  HOUSEHOLD_ADMIN_CATEGORIES,
+  HOUSEHOLD_ADMIN_CYCLES,
+  HOUSEHOLD_ADMIN_STATUSES,
+  HOUSEHOLD_ADMIN_TYPES,
   PLACE_TYPES, PREP_TASK_PRIORITIES, PREP_TASK_STATUSES, RESOURCE_NEED_STATUSES, RSVP_STATUSES, SCHOOL_ATTIRE_TYPES, SCHOOL_LUNCH_TYPES,
 } from "../domain/constants";
 import type { ExportEnvelope, ExportDataPayload, ImportPreview, ImportRecordCounts, ImportValidationIssue, ImportValidationResult, ParseImportResult, RestoreResult } from "../types/importExport";
@@ -188,6 +192,22 @@ export function validateImportPayload(value: unknown): Omit<ImportValidationResu
     if (r.linkedPrepTaskIds !== undefined && !Array.isArray(r.linkedPrepTaskIds)) errors.push(issue("field_not_array", "Gift plan linkedPrepTaskIds must be an array.", `data.giftPlans[${i}].linkedPrepTaskIds`, r.id));
     if (typeof r.archived !== "boolean") errors.push(issue("invalid_archived_flag", `Gift plan for â€˜${r.recipientName}â€™ has an invalid archived value.`, `data.giftPlans[${i}].archived`, r.id));
     if (!validIso(r.createdAt) || !validIso(r.updatedAt)) errors.push(issue("invalid_timestamp", `Gift plan for â€˜${r.recipientName}â€™ has an invalid timestamp.`, `data.giftPlans[${i}]`, r.id));
+  });
+  d.householdAdminItems.forEach((r, i) => {
+    requireFields(r as unknown as Record<string, unknown>, ["id", "title", "category", "adminType", "status", "renewalCycle", "createdAt", "updatedAt"], "household admin item", i, errors);
+    if (!oneOf(r.category, HOUSEHOLD_ADMIN_CATEGORIES)) errors.push(issue("invalid_household_admin_category", `Household admin item ‘${r.title}’ has an unknown category.`, `data.householdAdminItems[${i}].category`, r.id));
+    if (!oneOf(r.adminType, HOUSEHOLD_ADMIN_TYPES)) errors.push(issue("invalid_household_admin_type", `Household admin item ‘${r.title}’ has an unknown type.`, `data.householdAdminItems[${i}].adminType`, r.id));
+    if (!oneOf(r.status, HOUSEHOLD_ADMIN_STATUSES)) errors.push(issue("invalid_household_admin_status", `Household admin item ‘${r.title}’ has an unknown status.`, `data.householdAdminItems[${i}].status`, r.id));
+    if (!oneOf(r.renewalCycle, HOUSEHOLD_ADMIN_CYCLES)) errors.push(issue("invalid_household_admin_cycle", `Household admin item ‘${r.title}’ has an unknown renewal cycle.`, `data.householdAdminItems[${i}].renewalCycle`, r.id));
+    if ((r.dueDate && !validDate(r.dueDate)) || (r.startDate && !validDate(r.startDate)) || (r.lastCompletedDate && !validDate(r.lastCompletedDate))) errors.push(issue("invalid_household_admin_date", `Household admin item ‘${r.title}’ has an invalid date.`, `data.householdAdminItems[${i}]`, r.id));
+    if (r.ownerMemberId && !members.has(r.ownerMemberId)) errors.push(issue("missing_member_reference", `Household admin item ‘${r.title}’ references missing owner ‘${r.ownerMemberId}’.`, `data.householdAdminItems[${i}].ownerMemberId`, r.id));
+    if (r.relatedResourceId && !resources.has(r.relatedResourceId)) errors.push(issue("missing_resource_reference", `Household admin item ‘${r.title}’ references missing resource ‘${r.relatedResourceId}’.`, `data.householdAdminItems[${i}].relatedResourceId`, r.id));
+    if (r.relatedPlaceId && !places.has(r.relatedPlaceId)) errors.push(issue("missing_place_reference", `Household admin item ‘${r.title}’ references missing place ‘${r.relatedPlaceId}’.`, `data.householdAdminItems[${i}].relatedPlaceId`, r.id));
+    if (r.customCycleMonths !== undefined && (!Number.isInteger(r.customCycleMonths) || r.customCycleMonths < 1 || r.customCycleMonths > 60)) errors.push(issue("invalid_household_admin_custom_cycle", `Household admin item ‘${r.title}’ has an invalid custom cycle.`, `data.householdAdminItems[${i}].customCycleMonths`, r.id));
+    if (r.reminderDaysBefore !== undefined && (!Array.isArray(r.reminderDaysBefore) || r.reminderDaysBefore.some((value) => !Number.isInteger(value) || value < 0 || value > 365))) errors.push(issue("invalid_household_admin_reminders", `Household admin item ‘${r.title}’ has invalid reminder days.`, `data.householdAdminItems[${i}].reminderDaysBefore`, r.id));
+    if (r.costAmount !== undefined && (typeof r.costAmount !== "number" || r.costAmount < 0)) errors.push(issue("invalid_household_admin_cost", `Household admin item ‘${r.title}’ has an invalid cost.`, `data.householdAdminItems[${i}].costAmount`, r.id));
+    if (r.costCurrency !== undefined && r.costCurrency !== "GBP") errors.push(issue("invalid_household_admin_currency", `Household admin item ‘${r.title}’ must use GBP.`, `data.householdAdminItems[${i}].costCurrency`, r.id));
+    if (!validIso(r.createdAt) || !validIso(r.updatedAt) || (r.archivedAt && !validIso(r.archivedAt))) errors.push(issue("invalid_timestamp", `Household admin item ‘${r.title}’ has an invalid timestamp.`, `data.householdAdminItems[${i}]`, r.id));
   });
   d.events.forEach((r, i) => {
     requireFields(r as unknown as Record<string, unknown>, ["id", "title", "category", "status", "startAt", "endAt", "participants", "responsibleAdults", "prepTasks", "resourceNeeds", "createdAt", "updatedAt"], "event", i, errors);

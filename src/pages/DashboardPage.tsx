@@ -22,6 +22,7 @@ import {
   getEventsForDateRange,
   getFamilyMembers,
   getHousehold,
+  listHouseholdAdminItems,
   listCelebrations,
   listGiftPlans,
   getPlaces,
@@ -43,6 +44,7 @@ import { dashboardCountdowns } from "../services/countdownService";
 import { deriveCelebrationReadinessForRange } from "../services/celebrationReadinessService";
 import { getWeatherSchoolContexts } from "../services/weatherService";
 import { upsertSchoolReadinessPrepActionsForRange } from "../services/schoolReadinessPrepActionService";
+import { deriveHouseholdAdminSignal, sortHouseholdAdminSignals } from "../services/householdAdminService";
 
 const ATTENTION_TYPE_ORDER: Record<Conflict["type"], number> = {
   car_clash: 0,
@@ -61,7 +63,7 @@ export function DashboardPage() {
   const state = useRepositoryQuery(async () => {
     const today = currentDateKey();
     const weekStart = getWeekStartDateKey(today);
-    const [household, familyMembers, resources, places, todayEvents, weekEvents, allEvents, prepItems, carItems, schoolCalendar, countdownTargets, halfTermConfigs, celebrations, giftPlans] = await Promise.all([
+    const [household, familyMembers, resources, places, todayEvents, weekEvents, allEvents, prepItems, carItems, schoolCalendar, countdownTargets, halfTermConfigs, celebrations, giftPlans, householdAdminItems] = await Promise.all([
       getHousehold(),
       getFamilyMembers(),
       getResources(),
@@ -76,12 +78,13 @@ export function DashboardPage() {
       listSchoolHalfTermConfigs(),
       listCelebrations(),
       listGiftPlans(),
+      listHouseholdAdminItems(),
     ]);
     const schoolReadiness = getSchoolReadinessForDate(schoolCalendar, halfTermConfigs, today);
     const tomorrowReadiness = getSchoolReadinessForDate(schoolCalendar, halfTermConfigs, addDaysToDateKey(today, 1));
     const weather = await getWeatherSchoolContexts([schoolReadiness, tomorrowReadiness]);
     const schoolPrepActions = await upsertSchoolReadinessPrepActionsForRange([schoolReadiness, tomorrowReadiness], Object.fromEntries(Object.entries(weather).map(([date, context]) => [date, context.suggestions])));
-    return { today, household, familyMembers, resources, places, todayEvents, weekEvents, allEvents, prepItems, carItems, schoolCalendar, countdownTargets, halfTermConfigs, schoolReadiness, tomorrowReadiness, weather, schoolPrepActions, celebrations, giftPlans };
+    return { today, household, familyMembers, resources, places, todayEvents, weekEvents, allEvents, prepItems, carItems, schoolCalendar, countdownTargets, halfTermConfigs, schoolReadiness, tomorrowReadiness, weather, schoolPrepActions, celebrations, giftPlans, householdAdminItems };
   }, [refreshVersion]);
   const data = state.data;
   const activeEvents = data?.allEvents.filter((event) => event.status !== "cancelled") ?? [];
@@ -111,6 +114,11 @@ export function DashboardPage() {
       includeOutsideRangeWithOverdue: true,
     }).filter((summary) => summary.level === "overdue" || summary.level === "at_risk")
       .slice(0, 3)
+    : [];
+  const householdAdminWatch = data
+    ? sortHouseholdAdminSignals(data.householdAdminItems.map((item) => deriveHouseholdAdminSignal(item, data.today)))
+      .filter((item) => ["overdue", "due_today", "due_soon", "no_date"].includes(item.dueState))
+      .slice(0, 4)
     : [];
 
   const updatePrep = async (eventId: string, taskId: string, status: "open" | "done" | "skipped") => {
@@ -156,6 +164,8 @@ export function DashboardPage() {
               </article>
             ))}</div> : <DashboardEmpty icon="gift" title="No urgent celebration work" copy="Only at-risk or overdue celebration issues appear here." />}
           </section>
+
+          {householdAdminWatch.length ? <section className="section-block" data-dashboard-section="household-admin"><div className="section-heading"><div><p className="eyebrow">Household Admin Watch</p><h2>Only the practical items that need attention</h2></div><Link className="back-link" to="/household-admin">Open Household Admin</Link></div><div className="celebration-issue-list">{householdAdminWatch.map((signal) => <Link className={`celebration-issue-card celebration-issue-card--${signal.severity === "critical" ? "critical" : signal.severity === "warning" ? "warning" : "warning"}`} key={signal.item.id} to={`/household-admin?edit=${encodeURIComponent(signal.item.id)}`}><div className="celebration-issue-card__top"><div className="event-detail__badges"><Badge tone={signal.severity === "critical" ? "critical" : signal.severity === "warning" ? "warning" : "accent"}>{signal.label}</Badge><Badge tone="accent">{signal.item.title}</Badge></div>{signal.item.dueDate ? <small>{formatLongDate(signal.item.dueDate)}</small> : null}</div><strong>{signal.message}</strong><p>{signal.suggestedAction}</p></Link>)}</div></section> : null}
 
           <section className="section-block" data-dashboard-section="today">
             <div className="section-heading"><div><p className="eyebrow">Today’s events</p><h2>{todayEvents.length ? `${todayEvents.length} thing${todayEvents.length === 1 ? "" : "s"} on today` : "A clear day"}</h2></div><Link className="back-link" to="/today">Open Today</Link></div>

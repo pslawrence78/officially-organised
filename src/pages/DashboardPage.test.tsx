@@ -7,6 +7,7 @@ import { db } from "../data/db";
 import { createEvent, getEventById, saveCountdownTarget, seedInitialDataIfNeeded } from "../data/repositories";
 import { createCelebration } from "../data/repositories/celebrationRepository";
 import { createGiftPlan } from "../data/repositories/giftPlanRepository";
+import { createHouseholdAdminItem } from "../data/repositories/householdAdminRepository";
 import { addDaysToDateKey, currentDateKey, localDateTimeToIso } from "../utils/dates";
 import { DashboardPage } from "./DashboardPage";
 
@@ -171,5 +172,12 @@ describe("Dashboard operational readiness", () => {
     expect(await screen.findByText("Celebration prep")).toBeInTheDocument();
     expect(screen.getByText("Urgent party")).toBeInTheDocument();
     expect(screen.queryByText("Far away party")).not.toBeInTheDocument();
+  });
+
+  it("shows the household admin watch only when relevant items exist", async () => {
+    await createHouseholdAdminItem({ title: "Home insurance", category: "insurance", adminType: "home_insurance", status: "active", dueDate: addDaysToDateKey(currentDateKey(), 5), renewalCycle: "annual", ownerMemberId: "member_phil", reminderDaysBefore: [30, 14, 7] });
+    renderDashboard();
+    expect(await screen.findByText("Household Admin Watch")).toBeInTheDocument();
+    expect(screen.getByText(/Home insurance due in 5 days/i)).toBeInTheDocument();
   });
 });

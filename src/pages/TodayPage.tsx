@@ -11,7 +11,7 @@ import { SchoolStatus } from "../components/school/SchoolStatus";
 import { SchoolReadiness } from "../components/school/SchoolReadiness";
 import { WeatherSuggestionCard } from "../components/weather/WeatherSuggestionCard";
 import { SchoolPrepActionList } from "../components/prep/SchoolPrepActionCard";
-import { getEvents, getEventsForDate, getFamilyMembers, getPlaces, getSchoolCalendar, listCelebrations, listGiftPlans, listSchoolHalfTermConfigs } from "../data/repositories";
+import { getEvents, getEventsForDate, getFamilyMembers, getPlaces, getSchoolCalendar, listCelebrations, listGiftPlans, listHouseholdAdminItems, listSchoolHalfTermConfigs } from "../data/repositories";
 import { useRepositoryQuery } from "../hooks/useRepositoryQuery";
 import { calculateConflicts, conflictsForEvent, conflictsForEvents } from "../services/conflictService";
 import { deriveCelebrationReadinessForRange } from "../services/celebrationReadinessService";
@@ -20,18 +20,19 @@ import { getSchoolReadinessForDate } from "../services/schoolReadinessService";
 import { addDaysToDateKey, currentDateKey, formatLongDate } from "../utils/dates";
 import { getWeatherSchoolContext } from "../services/weatherService";
 import { upsertSchoolReadinessPrepActionsForRange } from "../services/schoolReadinessPrepActionService";
+import { deriveHouseholdAdminSignal, sortHouseholdAdminSignals } from "../services/householdAdminService";
 
 export function TodayPage() {
   const [refreshVersion, setRefreshVersion] = useState(0);
   const today = currentDateKey();
   const state = useRepositoryQuery(async () => {
-    const [events, allEvents, familyMembers, places, schoolCalendar, halfTermConfigs, celebrations, giftPlans] = await Promise.all([
-      getEventsForDate(today), getEvents(), getFamilyMembers(), getPlaces(), getSchoolCalendar(), listSchoolHalfTermConfigs(), listCelebrations(), listGiftPlans(),
+    const [events, allEvents, familyMembers, places, schoolCalendar, halfTermConfigs, celebrations, giftPlans, householdAdminItems] = await Promise.all([
+      getEventsForDate(today), getEvents(), getFamilyMembers(), getPlaces(), getSchoolCalendar(), listSchoolHalfTermConfigs(), listCelebrations(), listGiftPlans(), listHouseholdAdminItems(),
     ]);
     const readiness = getSchoolReadinessForDate(schoolCalendar, halfTermConfigs, today);
     const weather = await getWeatherSchoolContext(today, readiness);
     const schoolPrepActions = await upsertSchoolReadinessPrepActionsForRange([readiness], { [today]: weather.suggestions });
-    return { events, allEvents, familyMembers, places, schoolCalendar, halfTermConfigs, readiness, weather, schoolPrepActions, celebrations, giftPlans };
+    return { events, allEvents, familyMembers, places, schoolCalendar, halfTermConfigs, readiness, weather, schoolPrepActions, celebrations, giftPlans, householdAdminItems };
   }, [today, refreshVersion]);
   const data = state.data;
   const conflicts = calculateConflicts(data?.allEvents ?? []);
@@ -47,6 +48,10 @@ export function TodayPage() {
       includeOutsideRangeWithOverdue: true,
     }).filter((summary) => ["needs_attention", "at_risk", "overdue"].includes(summary.level))
     : [];
+  const householdAdminAttention = data
+    ? sortHouseholdAdminSignals(data.householdAdminItems.map((item) => deriveHouseholdAdminSignal(item, today)))
+      .filter((item) => item.dueState === "overdue" || item.dueState === "due_today")
+    : [];
 
   return (
     <div className="page-stack">
@@ -57,6 +62,7 @@ export function TodayPage() {
       {data ? <SchoolReadiness readiness={data.readiness} /> : null}
       {data?.weather.settings.showOnToday && data.readiness.schoolStatus === "open" ? <WeatherSuggestionCard context={data.weather} /> : null}
       {data && data.readiness.schoolStatus === "open" ? <section className="section-block"><div className="section-heading"><div><p className="eyebrow">School prep</p><h2>Actions for Seb</h2></div></div><SchoolPrepActionList actions={data.schoolPrepActions.filter((item) => item.status !== "stale")} onChanged={() => setRefreshVersion((value) => value + 1)} /></section> : null}
+      {householdAdminAttention.length ? <section className="section-block"><div className="section-heading"><div><p className="eyebrow">Household admin</p><h2>Due or overdue today</h2></div><Link className="back-link" to="/household-admin">Open Household Admin</Link></div><div className="celebration-issue-list">{householdAdminAttention.map((signal) => <Link className={`celebration-issue-card celebration-issue-card--${signal.severity === "critical" ? "critical" : "warning"}`} key={signal.item.id} to={`/household-admin?edit=${encodeURIComponent(signal.item.id)}`}><div className="celebration-issue-card__top"><div className="event-detail__badges"><Badge tone={signal.severity === "critical" ? "critical" : "warning"}>{signal.label}</Badge><Badge tone="accent">{signal.item.title}</Badge></div>{signal.item.dueDate ? <small>{formatLongDate(signal.item.dueDate)}</small> : null}</div><strong>{signal.message}</strong></Link>)}</div></section> : null}
       <section className="section-block">
         <div className="section-heading"><div><p className="eyebrow">Celebration prep</p><h2>{celebrationReadiness.length ? "Today and tomorrow only" : "Nothing urgent for celebrations"}</h2></div><Link className="back-link" to="/celebrations">Open Gifts &amp; Celebrations</Link></div>
         {celebrationReadiness.length ? <div className="celebration-issue-list">{celebrationReadiness.map((summary) => <article className={`celebration-issue-card celebration-issue-card--${summary.level === "overdue" ? "critical" : "warning"}`} key={summary.occasionId}><div className="celebration-issue-card__top"><div className="event-detail__badges"><CelebrationReadinessBadge level={summary.level} /><Badge tone="accent">{summary.occasionTitle}</Badge></div>{summary.occasionDate ? <small>{formatLongDate(summary.occasionDate)}</small> : null}</div><strong>{summary.issues[0]?.message ?? "Gift or celebration work needs attention."}</strong></article>)}</div> : <p className="section-empty-copy">Nothing urgent for celebrations today.</p>}

@@ -30,7 +30,7 @@ afterEach(async () => {
 });
 
 describe("database migration", () => {
-  it("adds celebration stores and preserves existing event data", async () => {
+  it("adds celebration and household admin stores and preserves existing event data", async () => {
     const legacy = new Dexie(DATABASE_NAME);
     legacy.version(11).stores(legacySchema);
     await legacy.open();
@@ -58,7 +58,8 @@ describe("database migration", () => {
     expect(await migrated.events.get("event_legacy")).toMatchObject({ title: "Legacy event" });
     expect(migrated.tables.some((table) => table.name === "celebrationOccasions")).toBe(true);
     expect(migrated.tables.some((table) => table.name === "giftPlans")).toBe(true);
-    expect((await migrated.settings.get("app_data_schema"))?.value).toBe("lawrence-loop-data-v12");
+    expect(migrated.tables.some((table) => table.name === "householdAdminItems")).toBe(true);
+    expect((await migrated.settings.get("app_data_schema"))?.value).toBe("lawrence-loop-data-v13");
 
     await migrated.close();
   });
