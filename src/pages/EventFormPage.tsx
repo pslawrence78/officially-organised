@@ -1,5 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import { ErrorState, LoadingState } from "../components/common/AsyncState";
+import { Icon } from "../components/common/Icon";
 import { EventForm } from "../components/events/EventForm";
 import { PageHeader } from "../components/layout/PageHeader";
 import { getEventById, getFamilyMembers, getPlaces, getResources } from "../data/repositories";
@@ -29,6 +30,7 @@ export function EventFormPage() {
       <PageHeader eyebrow={eventId ? "Make a change" : "A new family commitment"} title={eventId ? "Edit event" : "Add event"}>
         Keep the essentials clear now; car needs and preparation arrive in later tranches.
       </PageHeader>
+      {state.data.event ? <section className="section-block"><div className="section-heading"><div><p className="eyebrow">Optional operational add-on</p><h2>Gifts & Celebrations</h2></div><Link className="button button--secondary" to={`/celebrations?eventId=${encodeURIComponent(state.data.event.id)}`}><Icon name="gift" /> Manage linked plan</Link></div><p className="supporting-copy">Use this only when the event needs a present, card, RSVP or “remember to take it” prep trail.</p></section> : null}
       <EventForm event={state.data.event} familyMembers={state.data.familyMembers} places={state.data.places} resources={state.data.resources} />
     </div>
   );

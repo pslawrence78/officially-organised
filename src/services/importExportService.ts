@@ -6,11 +6,18 @@ import {
 import { defaultSyncSettings } from "../data/repositories/syncRepository";
 import { clearLocalSyncMetadataForReset, markAllSyncableRecordsDirty } from "../sync/syncEngine";
 import {
+  CARD_STATUSES,
+  CELEBRATION_OCCASION_TYPES,
+  CELEBRATION_RECURRENCES,
+  CELEBRATION_RELATIONSHIP_CONTEXTS,
+  CELEBRATION_STATUSES,
   EVENT_CATEGORIES, EVENT_STATUSES, EXPORT_DATA_SCHEMA, EXPORT_SCHEMA_VERSION,
-  PLACE_TYPES, PREP_TASK_PRIORITIES, PREP_TASK_STATUSES, RESOURCE_NEED_STATUSES, SCHOOL_ATTIRE_TYPES, SCHOOL_LUNCH_TYPES,
+  GIFT_STATUSES,
+  PLACE_TYPES, PREP_TASK_PRIORITIES, PREP_TASK_STATUSES, RESOURCE_NEED_STATUSES, RSVP_STATUSES, SCHOOL_ATTIRE_TYPES, SCHOOL_LUNCH_TYPES,
 } from "../domain/constants";
 import type { ExportEnvelope, ExportDataPayload, ImportPreview, ImportRecordCounts, ImportValidationIssue, ImportValidationResult, ParseImportResult, RestoreResult } from "../types/importExport";
 import { EXPORT_STORE_NAMES } from "../types/importExport";
+import { validDateKey } from "../utils/celebrations";
 
 const APP_VERSION = "0.4.0";
 const MEMBER_TYPES = ["adult", "child", "pet"];
@@ -91,11 +98,7 @@ function isObject(value: unknown): value is Record<string, unknown> {
 
 function nonEmptyId(value: unknown) { return typeof value === "string" && value.trim().length > 0; }
 function validIso(value: unknown) { return typeof value === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(value) && !Number.isNaN(Date.parse(value)); }
-function validDate(value: unknown) {
-  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-  const date = new Date(`${value}T00:00:00Z`);
-  return !Number.isNaN(date.valueOf()) && date.toISOString().slice(0, 10) === value;
-}
+function validDate(value: unknown) { return typeof value === "string" && validDateKey(value); }
 function oneOf(value: unknown, options: readonly string[]) { return typeof value === "string" && options.includes(value); }
 
 function validateIds(records: unknown[], store: string, errors: ImportValidationIssue[]) {
@@ -152,6 +155,7 @@ export function validateImportPayload(value: unknown): Omit<ImportValidationResu
   const series = new Set(d.eventSeries.map((x) => x.id));
   const templates = new Set(d.templates.map((x) => x.id));
   const events = new Set(d.events.map((x) => x.id));
+  const celebrations = new Set(d.celebrationOccasions.map((x) => x.id));
   const calendars = new Set(d.schoolCalendars.map((x) => x.id));
 
   d.households.forEach((r, i) => { requireFields(r as unknown as Record<string, unknown>, ["id", "name", "timezone", "defaultStartOfWeek"], "household", i, errors); if (!oneOf(r.defaultStartOfWeek, ["monday", "sunday"])) errors.push(issue("unknown_week_start", `Household ‘${r.name}’ has an unknown week start.`, `data.households[${i}].defaultStartOfWeek`, r.id)); });
@@ -160,6 +164,31 @@ export function validateImportPayload(value: unknown): Omit<ImportValidationResu
   d.places.forEach((r, i) => { requireFields(r as unknown as Record<string, unknown>, ["id", "name", "placeType", "createdAt", "updatedAt"], "place", i, errors); if (!oneOf(r.placeType, PLACE_TYPES)) errors.push(issue("unknown_place_type", `Place ‘${r.name}’ has an unknown type.`, `data.places[${i}].placeType`, r.id)); if (!validIso(r.createdAt) || !validIso(r.updatedAt)) errors.push(issue("invalid_timestamp", `Place ‘${r.name}’ has an invalid timestamp.`, `data.places[${i}]`, r.id)); });
   d.templates.forEach((r, i) => { requireFields(r as unknown as Record<string, unknown>, ["id", "name", "category"], "template", i, errors); if (!oneOf(r.category, EVENT_CATEGORIES)) errors.push(issue("unknown_category", `Template ‘${r.name}’ has an unknown category.`, `data.templates[${i}].category`, r.id)); });
 
+  d.celebrationOccasions.forEach((r, i) => {
+    requireFields(r as unknown as Record<string, unknown>, ["id", "householdId", "title", "occasionType", "date", "recurrence", "ownerAdultIds", "status", "createdAt", "updatedAt"], "celebration", i, errors);
+    if (!oneOf(r.occasionType, CELEBRATION_OCCASION_TYPES)) errors.push(issue("unknown_celebration_type", `Celebration â€˜${r.title}â€™ has an unknown type.`, `data.celebrationOccasions[${i}].occasionType`, r.id));
+    if (!oneOf(r.recurrence, CELEBRATION_RECURRENCES)) errors.push(issue("unknown_celebration_recurrence", `Celebration â€˜${r.title}â€™ has an unknown recurrence.`, `data.celebrationOccasions[${i}].recurrence`, r.id));
+    if (!oneOf(r.status, CELEBRATION_STATUSES)) errors.push(issue("unknown_celebration_status", `Celebration â€˜${r.title}â€™ has an unknown status.`, `data.celebrationOccasions[${i}].status`, r.id));
+    if (!validDate(r.date)) errors.push(issue("invalid_celebration_date", `Celebration â€˜${r.title}â€™ has an invalid date.`, `data.celebrationOccasions[${i}].date`, r.id));
+    if (!Array.isArray(r.ownerAdultIds)) errors.push(issue("field_not_array", "Celebration ownerAdultIds must be an array.", `data.celebrationOccasions[${i}].ownerAdultIds`, r.id));
+    if (r.linkedEventId && !events.has(r.linkedEventId)) errors.push(issue("missing_event_reference", `Celebration â€˜${r.title}â€™ references missing event â€˜${r.linkedEventId}â€™.`, `data.celebrationOccasions[${i}].linkedEventId`, r.id));
+    if (r.linkedMemberId && !members.has(r.linkedMemberId)) errors.push(issue("missing_member_reference", `Celebration â€˜${r.title}â€™ references missing family member â€˜${r.linkedMemberId}â€™.`, `data.celebrationOccasions[${i}].linkedMemberId`, r.id));
+    if (r.relationshipContext && !oneOf(r.relationshipContext, CELEBRATION_RELATIONSHIP_CONTEXTS)) errors.push(issue("unknown_relationship_context", `Celebration â€˜${r.title}â€™ has an unknown relationship context.`, `data.celebrationOccasions[${i}].relationshipContext`, r.id));
+    r.ownerAdultIds?.forEach((id) => { if (!members.has(id)) errors.push(issue("missing_responsible_adult", `Celebration â€˜${r.title}â€™ references missing responsible adult â€˜${id}â€™.`, `data.celebrationOccasions[${i}].ownerAdultIds`, r.id)); });
+    if (!validIso(r.createdAt) || !validIso(r.updatedAt)) errors.push(issue("invalid_timestamp", `Celebration â€˜${r.title}â€™ has an invalid timestamp.`, `data.celebrationOccasions[${i}]`, r.id));
+  });
+  d.giftPlans.forEach((r, i) => {
+    requireFields(r as unknown as Record<string, unknown>, ["id", "celebrationId", "recipientName", "giftStatus", "cardStatus", "rsvpStatus", "archived", "createdAt", "updatedAt"], "gift plan", i, errors);
+    if (!celebrations.has(r.celebrationId)) errors.push(issue("missing_celebration_reference", `Gift plan for â€˜${r.recipientName}â€™ references missing celebration â€˜${r.celebrationId}â€™.`, `data.giftPlans[${i}].celebrationId`, r.id));
+    if (r.linkedEventId && !events.has(r.linkedEventId)) errors.push(issue("missing_event_reference", `Gift plan for â€˜${r.recipientName}â€™ references missing event â€˜${r.linkedEventId}â€™.`, `data.giftPlans[${i}].linkedEventId`, r.id));
+    if (r.recipientMemberId && !members.has(r.recipientMemberId)) errors.push(issue("missing_member_reference", `Gift plan for â€˜${r.recipientName}â€™ references missing recipient member â€˜${r.recipientMemberId}â€™.`, `data.giftPlans[${i}].recipientMemberId`, r.id));
+    if (r.responsibleAdultId && !["member_phil", "member_beck"].includes(r.responsibleAdultId)) errors.push(issue("invalid_responsible_adult", `Gift plan for â€˜${r.recipientName}â€™ must be assigned to Phil or Beck.`, `data.giftPlans[${i}].responsibleAdultId`, r.id));
+    if (!oneOf(r.giftStatus, GIFT_STATUSES) || !oneOf(r.cardStatus, CARD_STATUSES) || !oneOf(r.rsvpStatus, RSVP_STATUSES)) errors.push(issue("invalid_gift_plan_status", `Gift plan for â€˜${r.recipientName}â€™ has an unknown gift, card or RSVP status.`, `data.giftPlans[${i}]`, r.id));
+    if ((r.targetDate && !validDate(r.targetDate)) || (r.buyBy && !validDate(r.buyBy)) || (r.wrapBy && !validDate(r.wrapBy)) || (r.takeBy && !validDate(r.takeBy))) errors.push(issue("invalid_gift_plan_date", `Gift plan for â€˜${r.recipientName}â€™ has an invalid operational date.`, `data.giftPlans[${i}]`, r.id));
+    if (r.linkedPrepTaskIds !== undefined && !Array.isArray(r.linkedPrepTaskIds)) errors.push(issue("field_not_array", "Gift plan linkedPrepTaskIds must be an array.", `data.giftPlans[${i}].linkedPrepTaskIds`, r.id));
+    if (typeof r.archived !== "boolean") errors.push(issue("invalid_archived_flag", `Gift plan for â€˜${r.recipientName}â€™ has an invalid archived value.`, `data.giftPlans[${i}].archived`, r.id));
+    if (!validIso(r.createdAt) || !validIso(r.updatedAt)) errors.push(issue("invalid_timestamp", `Gift plan for â€˜${r.recipientName}â€™ has an invalid timestamp.`, `data.giftPlans[${i}]`, r.id));
+  });
   d.events.forEach((r, i) => {
     requireFields(r as unknown as Record<string, unknown>, ["id", "title", "category", "status", "startAt", "endAt", "participants", "responsibleAdults", "prepTasks", "resourceNeeds", "createdAt", "updatedAt"], "event", i, errors);
     if (!oneOf(r.category, EVENT_CATEGORIES)) errors.push(issue("unknown_category", `Event ‘${r.title}’ has an unknown category.`, `data.events[${i}].category`, r.id));

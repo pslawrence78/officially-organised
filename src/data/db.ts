@@ -6,10 +6,12 @@ import {
 } from "../domain/constants";
 import type {
   AuditLogEntry,
+  CelebrationOccasion,
   CountdownTarget,
   FamilyEvent,
   EventSeries,
   FamilyMember,
+  GiftPlan,
   Household,
   Place,
   Resource,
@@ -36,6 +38,8 @@ export class LawrenceLoopDatabase extends Dexie {
   templates!: EntityTable<StarterTemplate, "id">;
   settings!: EntityTable<Setting, "id">;
   auditLog!: EntityTable<AuditLogEntry, "id">;
+  celebrationOccasions!: EntityTable<CelebrationOccasion, "id">;
+  giftPlans!: EntityTable<GiftPlan, "id">;
   schoolCalendars!: EntityTable<SchoolCalendar, "id">;
   schoolHalfTermConfigs!: EntityTable<SchoolHalfTermConfig, "id">;
   countdownTargets!: EntityTable<CountdownTarget, "id">;
@@ -112,6 +116,8 @@ export class LawrenceLoopDatabase extends Dexie {
     this.version(DATABASE_SCHEMA_VERSION)
       .stores({
         events: "&id, startAt, endAt, category, status",
+        celebrationOccasions: "&id, date, status, linkedEventId, linkedMemberId, updatedAt",
+        giftPlans: "&id, celebrationId, linkedEventId, recipientMemberId, responsibleAdultId, archived, updatedAt",
         schoolCalendars: "&id, childMemberId, academicYearLabel",
         schoolHalfTermConfigs: "&id, schoolCalendarId, startDate, endDate, updatedAt",
         countdownTargets: "&id, targetDate, visibility, active, sourceType, sourceId",
@@ -126,6 +132,24 @@ export class LawrenceLoopDatabase extends Dexie {
       .upgrade(async (transaction) => {
         await transaction.table("events").toCollection().modify((event) => {
           event.resourceNeeds ??= [];
+        });
+
+        await transaction.table("celebrationOccasions").toCollection().modify((celebration) => {
+          celebration.ownerAdultIds ??= [];
+          celebration.recurrence ??= "none";
+          celebration.status ??= "planned";
+          celebration.createdAt ??= new Date().toISOString();
+          celebration.updatedAt ??= celebration.createdAt;
+        });
+
+        await transaction.table("giftPlans").toCollection().modify((giftPlan) => {
+          giftPlan.giftStatus ??= "idea";
+          giftPlan.cardStatus ??= "not_needed";
+          giftPlan.rsvpStatus ??= "not_needed";
+          giftPlan.archived ??= false;
+          giftPlan.linkedPrepTaskIds ??= [];
+          giftPlan.createdAt ??= new Date().toISOString();
+          giftPlan.updatedAt ??= giftPlan.createdAt;
         });
 
         await transaction.table("settings").put({

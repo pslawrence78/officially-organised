@@ -23,6 +23,7 @@ The documents in this folder define **Officially Organised**, a private, mobile-
 | 08A | [Tranche 8A: Supabase Sync Foundation v0.1](08A-supabase-sync-foundation-v0.1.md) | Records the optional Supabase client, auth, local sync metadata, SQL/RLS scripts and local-first safety boundary. | Implemented |
 | 08B | [Tranche 8B: Local-First Supabase Sync Engine v0.1](08B-local-first-supabase-sync-engine-v0.1.md) | Records the manual sync engine, durable-store scope, conflict policy, tombstones and restore/reset sync safety rules. | Implemented |
 | 08C | [Tranche 8C: Supabase Sync Polish and Hardening v0.1](08C-supabase-sync-polish-and-hardening-v0.1.md) | Records first-sync confirmation, pause/disconnect, diagnostics, conflict review polish and production readiness guidance. | Implemented |
+| 09A | [Tranche 9A: Gifts and Celebrations Foundation v0.1](09A-gifts-and-celebrations-foundation-v0.1.md) | Records the bounded celebration and gift-plan data model, prep-task generation, event integration, local safety flows, and sync registration. | Implemented |
 | 08 Setup | [Supabase Configuration Guide v0.1](08-supabase-configuration-guide-v0.1.md) | Operator guide for Supabase Auth URLs, SQL/RLS, local env, GitHub Pages variables and safe first sync. | Current setup guide |
 
 ## Reading order
@@ -54,6 +55,6 @@ If documents disagree, prefer the later document for its area of authority:
 
 ## Current implementation boundary
 
-The application is implemented through **Tranche 8C**, including versioned local backup, validated transactional restore, protected reset, the landscape-first read-only Hub display polish, the optional Supabase foundation, the first manual local-first sync engine, and a hardened sync setup/recovery UX. The Supabase setup guide covers authenticated household bootstrap, private RLS helper functions, schema-cache troubleshooting, redirect URLs and GitHub Pages variables. See documents 07, 07F, 08A, 08B, 08C and the Supabase configuration guide for the current boundary.
+The application is implemented through **Tranche 9A**, including versioned local backup, validated transactional restore, protected reset, the landscape-first read-only Hub display polish, the optional Supabase foundation, the manual local-first sync engine and hardening UX, plus the bounded Gifts and Celebrations operational module. Gifts and Celebrations adds celebration occasions, gift plans, linked event context, generated prep-task flow-through, and durable-store coverage for export/import/reset/sync without expanding the product into a general planning or shopping tool. See documents 07, 07F, 08A, 08B, 08C, 09A and the Supabase configuration guide for the current boundary.
 
 When adding a document, retain the numeric prefix, include its version in the filename, and update this index with its purpose, status, and authority.

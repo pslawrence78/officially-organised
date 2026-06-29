@@ -24,6 +24,7 @@ const secondaryNavigation: NavItem[] = [
   { label: "Routines", to: "/routines", icon: "repeat" },
   { label: "Templates", to: "/templates", icon: "template" },
   { label: "Places", to: "/places", icon: "place" },
+  { label: "Gifts & Celebrations", to: "/celebrations", icon: "gift" },
   { label: "Settings", to: "/settings", icon: "settings" },
 ];
 

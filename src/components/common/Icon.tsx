@@ -21,7 +21,8 @@ export type IconName =
   | "trash"
   | "arrowLeft"
   | "clock"
-  | "school";
+  | "school"
+  | "gift";
 
 const paths: Record<IconName, React.ReactNode> = {
   home: <><path d="m3 11 9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></>,
@@ -45,6 +46,7 @@ const paths: Record<IconName, React.ReactNode> = {
   arrowLeft: <><path d="m15 18-6-6 6-6M9 12h12"/></>,
   clock: <><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></>,
   school: <><path d="m3 10 9-6 9 6-9 6Z"/><path d="M7 13v5c3 2 7 2 10 0v-5M21 10v6"/></>,
+  gift: <><path d="M20 12v8H4v-8"/><path d="M2 7h20v5H2z"/><path d="M12 7v13"/><path d="M12 7c0-2-1.5-4-3.5-4S5 4.5 5 6c0 .6.2 1 .6 1H12Z"/><path d="M12 7c0-2 1.5-4 3.5-4S19 4.5 19 6c0 .6-.2 1-.6 1H12Z"/></>,
 };
 
 interface IconProps extends SVGProps<SVGSVGElement> {

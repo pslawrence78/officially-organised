@@ -11,6 +11,25 @@ export {
 } from "./appRepository";
 
 export {
+  archiveCelebration,
+  createCelebration,
+  getCelebrationById,
+  listCelebrations,
+  listUpcomingCelebrations,
+  updateCelebration,
+} from "./celebrationRepository";
+
+export {
+  archiveGiftPlan,
+  createGiftPlan,
+  getGiftPlanById,
+  listGiftPlans,
+  listGiftPlansForCelebration,
+  listGiftPlansForEvent,
+  updateGiftPlan,
+} from "./giftPlanRepository";
+
+export {
   createEvent,
   deleteEvent,
   getEventById,

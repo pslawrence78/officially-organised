@@ -1,12 +1,15 @@
 import { cleanup, render, screen } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { createMemoryRouter, MemoryRouter, RouterProvider } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { FamilyEvent, FamilyEventInput } from "../domain/types";
 import { EventCard } from "../components/events/EventCard";
 import { createEvent, seedInitialDataIfNeeded } from "../data/repositories";
+import { createCelebration } from "../data/repositories/celebrationRepository";
 import { db } from "../data/db";
 import { seedFamilyMembers } from "../data/seedData/initialData";
+import { createGiftPlan } from "../data/repositories/giftPlanRepository";
 import { addDaysToDateKey, currentDateKey, localDateTimeToIso } from "../utils/dates";
+import { EventDetailPage } from "./EventDetailPage";
 import { TodayPage } from "./TodayPage";
 import { WeekPage } from "./WeekPage";
 
@@ -98,5 +101,17 @@ describe("event views", () => {
     };
     render(<MemoryRouter><EventCard event={event} familyMembers={seedFamilyMembers} /></MemoryRouter>);
     expect(screen.getByText(/Car required/)).toBeInTheDocument();
+  });
+
+  it("event detail shows a linked gift plan when present", async () => {
+    const event = await createEvent(inputForDate("Birthday party", currentDateKey()));
+    const celebration = await createCelebration({ householdId: "household_lawrence", title: "Alex birthday", occasionType: "birthday_party", date: currentDateKey(), recurrence: "none", linkedEventId: event.id, ownerAdultIds: ["member_phil"], status: "planned" });
+    await createGiftPlan({ celebrationId: celebration.id, linkedEventId: event.id, recipientName: "Alex", responsibleAdultId: "member_phil", giftStatus: "to_buy", cardStatus: "to_buy", rsvpStatus: "to_reply", archived: false, linkedPrepTaskIds: [] });
+    const router = createMemoryRouter([{ path: "/events/:eventId", element: <EventDetailPage /> }], { initialEntries: [`/events/${event.id}`] });
+
+    render(<RouterProvider router={router} />);
+
+    expect(await screen.findByRole("heading", { name: "Gifts & Celebrations" })).toBeInTheDocument();
+    expect(screen.getByText("Alex birthday")).toBeInTheDocument();
   });
 });

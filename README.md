@@ -2,9 +2,9 @@
 
 A private, mobile-first, local-first family logistics PWA for the Lawrence family.
 
-## Current implementation: Tranche 8C
+## Current implementation: Tranche 9A
 
-The application now includes local data safety tools and a cautious manual Supabase sync engine alongside recurring routines and one-off events:
+The application now includes local data safety tools, a cautious manual Supabase sync engine, and a bounded Gifts and Celebrations operational module alongside recurring routines and one-off events:
 
 - versioned JSON export of all persistent family data
 - file and pasted-JSON import with validation and preview
@@ -13,10 +13,13 @@ The application now includes local data safety tools and a cautious manual Supab
 - optional Supabase configuration via `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`
 - local-only sync metadata, conflict review, household linking, derived auth redirect handling, first-sync confirmation, pause/resume, disconnect-device, diagnostics, and a manual `Sync now` flow in Settings
 - corrected Supabase SQL/RLS setup for authenticated household bootstrap and manual sync
+- secondary `/celebrations` route for compact celebration occasions and gift plans
+- deterministic gift-plan prep-task generation flowing into the existing Prep system
+- event-detail linking for Gifts and Celebrations context with safe fallback rendering
 - clear local-only and private-data warnings
 - audit entries for export, restore and reset
 
-Event CRUD, places, preparation, car needs, conflicts, routines, School Calendar and Family Countdown remain intact. IndexedDB is still the live source of truth. Realtime sync, background sync, merge import, external upload, invitations, cloud wipe and encrypted exports remain out of scope.
+Event CRUD, places, preparation, car needs, conflicts, routines, School Calendar and Family Countdown remain intact. IndexedDB is still the live source of truth. The new celebration data is also covered by export/import/reset and record-level sync registration. Realtime sync, background sync, merge import, external upload, invitations, cloud wipe and encrypted exports remain out of scope.
 
 Live Supabase validation reached successful manual sync after applying the corrected SQL/RLS design in `supabase/schema.sql` and `supabase/rls.sql`. Run both scripts and refresh the schema cache with `notify pgrst, 'reload schema';` if the Supabase Data API reports stale schema metadata.
 
@@ -32,10 +35,10 @@ pnpm build
 
 Static hosts must serve `index.html` as the fallback for client-side deep routes. Installable PWA hosting also requires HTTPS.
 
-See [Tranche 8C documentation](docs/08C-supabase-sync-polish-and-hardening-v0.1.md) and the [Supabase configuration guide](docs/08-supabase-configuration-guide-v0.1.md).
+See [Tranche 9A documentation](docs/09A-gifts-and-celebrations-foundation-v0.1.md), [Tranche 8C documentation](docs/08C-supabase-sync-polish-and-hardening-v0.1.md), and the [Supabase configuration guide](docs/08-supabase-configuration-guide-v0.1.md).
 
 ## Suggested commit
 
 ```text
-Polish and harden Supabase sync
+Add Gifts and Celebrations foundation
 ```

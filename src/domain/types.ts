@@ -239,6 +239,71 @@ export type FamilyEventUpdates = Partial<FamilyEventInput>;
 export type PlaceInput = Omit<Place, "id" | "createdAt" | "updatedAt">;
 export type PlaceUpdates = Partial<PlaceInput>;
 
+export type CelebrationOccasionType =
+  | "birthday"
+  | "birthday_party"
+  | "anniversary"
+  | "seasonal"
+  | "school"
+  | "family_social"
+  | "thank_you"
+  | "other";
+
+export type CelebrationRecurrence = "none" | "annual";
+export type CelebrationRelationshipContext = "family" | "school_friend" | "friend" | "club" | "neighbour" | "work" | "other";
+export type CelebrationStatus = "planned" | "active" | "complete" | "archived";
+
+export interface CelebrationOccasion {
+  id: string;
+  householdId: string;
+  title: string;
+  occasionType: CelebrationOccasionType;
+  date: string;
+  recurrence: CelebrationRecurrence;
+  linkedEventId?: string;
+  linkedMemberId?: string;
+  recipientName?: string;
+  relationshipContext?: CelebrationRelationshipContext;
+  ownerAdultIds: string[];
+  status: CelebrationStatus;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CelebrationOccasionInput = Omit<CelebrationOccasion, "id" | "createdAt" | "updatedAt">;
+export type CelebrationOccasionPatch = Partial<CelebrationOccasionInput>;
+
+export type GiftStatus = "not_needed" | "idea" | "to_buy" | "ordered" | "bought" | "wrapped" | "packed" | "given";
+export type CardStatus = "not_needed" | "to_buy" | "bought" | "written" | "packed" | "given";
+export type RsvpStatus = "not_needed" | "to_reply" | "accepted" | "declined" | "maybe";
+
+export interface GiftPlan {
+  id: string;
+  celebrationId: string;
+  linkedEventId?: string;
+  recipientMemberId?: string;
+  recipientName: string;
+  responsibleAdultId?: "member_phil" | "member_beck";
+  giftSummary?: string;
+  giftStatus: GiftStatus;
+  cardStatus: CardStatus;
+  rsvpStatus: RsvpStatus;
+  targetDate?: string;
+  buyBy?: string;
+  wrapBy?: string;
+  takeBy?: string;
+  budgetNote?: string;
+  linkedPrepTaskIds?: string[];
+  notes?: string;
+  archived: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type GiftPlanInput = Omit<GiftPlan, "id" | "createdAt" | "updatedAt">;
+export type GiftPlanPatch = Partial<GiftPlanInput>;
+
 export interface PrepTaskWithEvent {
   task: PrepTask;
   event: FamilyEvent;

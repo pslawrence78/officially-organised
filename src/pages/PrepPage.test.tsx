@@ -4,6 +4,9 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { FamilyEventInput, PrepTask } from "../domain/types";
 import { db } from "../data/db";
 import { createEvent, getEventById, seedInitialDataIfNeeded } from "../data/repositories";
+import { createCelebration } from "../data/repositories/celebrationRepository";
+import { createGiftPlan } from "../data/repositories/giftPlanRepository";
+import { generateGiftPlanPrepTasks } from "../services/giftPlanPrepService";
 import { currentDateKey, localDateTimeToIso } from "../utils/dates";
 import { PrepPage } from "./PrepPage";
 
@@ -51,5 +54,17 @@ describe("Prep view", () => {
 
     await waitFor(async () => expect((await getEventById(event.id))?.prepTasks[0].status).toBe("done"));
     expect(await screen.findByText("Done or skipped")).toBeInTheDocument();
+  });
+
+  it("shows generated gift plan prep tasks in the normal Prep flow", async () => {
+    const event = await createEvent(eventInput([]));
+    const celebration = await createCelebration({ householdId: "household_lawrence", title: "Party", occasionType: "birthday_party", date: currentDateKey(), recurrence: "none", linkedEventId: event.id, ownerAdultIds: ["member_phil"], status: "planned" });
+    const giftPlan = await createGiftPlan({ celebrationId: celebration.id, linkedEventId: event.id, recipientName: "Jamie", responsibleAdultId: "member_phil", giftStatus: "to_buy", cardStatus: "to_buy", rsvpStatus: "to_reply", archived: false, linkedPrepTaskIds: [] });
+    await generateGiftPlanPrepTasks(giftPlan.id);
+
+    render(<MemoryRouter><PrepPage /></MemoryRouter>);
+
+    expect(await screen.findByText("Buy present")).toBeInTheDocument();
+    expect(screen.getByText("RSVP to party")).toBeInTheDocument();
   });
 });

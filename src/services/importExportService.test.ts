@@ -15,10 +15,10 @@ describe("local backup and restore", () => {
   afterEach(async () => { await db.delete(); });
 
   it("exports every persistent store with Officially Organised metadata and counts", () => {
-    expect(valid.schema).toBe("officially-organised-data-v3");
+    expect(valid.schema).toBe("officially-organised-data-v4");
     expect(valid.sourceAppName).toBe("Officially Organised");
     expect(valid.exportedAt).toMatch(/^\d{4}-/);
-    expect(Object.keys(valid.data)).toEqual(expect.arrayContaining(["events", "eventSeries", "schoolCalendars", "countdownTargets", "auditLog"]));
+    expect(Object.keys(valid.data)).toEqual(expect.arrayContaining(["events", "eventSeries", "celebrationOccasions", "giftPlans", "schoolCalendars", "countdownTargets", "auditLog"]));
     expect(valid.recordCounts.events).toBe(1);
     expect(() => JSON.parse(JSON.stringify(valid))).not.toThrow();
     expect(valid.data).not.toHaveProperty("conflicts");
@@ -69,5 +69,17 @@ describe("local backup and restore", () => {
   it("reset clears user data and reseeds baseline records without duplicates", async () => {
     await resetLocalDataAndReseed(); await resetLocalDataAndReseed();
     expect(await db.events.count()).toBe(0); expect(await db.familyMembers.count()).toBe(4); expect(await db.schoolCalendars.count()).toBe(1); expect(await db.countdownTargets.count()).toBe(2);
+  });
+
+  it("exports, restores and validates celebrations and gift plans", async () => {
+    const timestamp = new Date().toISOString();
+    await db.celebrationOccasions.add({ id: "celebration_test", householdId: "household_lawrence", title: "Party", occasionType: "birthday_party", date: "2026-07-05", recurrence: "none", ownerAdultIds: ["member_phil"], status: "planned", createdAt: timestamp, updatedAt: timestamp });
+    await db.giftPlans.add({ id: "gift_test", celebrationId: "celebration_test", recipientName: "Alex", responsibleAdultId: "member_phil", giftStatus: "to_buy", cardStatus: "to_buy", rsvpStatus: "to_reply", linkedPrepTaskIds: [], archived: false, createdAt: timestamp, updatedAt: timestamp });
+    const payload = await createExportPayload();
+    expect(payload.recordCounts.celebrationOccasions).toBe(1);
+    expect(payload.recordCounts.giftPlans).toBe(1);
+    await restoreFromImport(payload);
+    expect(await db.celebrationOccasions.get("celebration_test")).toBeTruthy();
+    expect(await db.giftPlans.get("gift_test")).toBeTruthy();
   });
 });

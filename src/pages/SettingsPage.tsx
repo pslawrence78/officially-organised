@@ -114,6 +114,11 @@ export function SettingsPage() {
           <span><strong>Family countdowns</strong><small>Selected dates, days and sleeps</small></span>
           <Icon className="secondary-navigation__chevron" name="chevron" />
         </Link>
+        <Link to="/celebrations">
+          <span className="secondary-navigation__icon"><Icon name="gift" /></span>
+          <span><strong>Gifts & Celebrations</strong><small>Cards, presents, RSVPs and take-it prep</small></span>
+          <Icon className="secondary-navigation__chevron" name="chevron" />
+        </Link>
         <Link to="/settings/school-calendar">
           <span className="secondary-navigation__icon"><Icon name="school" /></span>
           <span><strong>Seb's school calendar</strong><small>Illustrative terms, holidays and closure days</small></span>

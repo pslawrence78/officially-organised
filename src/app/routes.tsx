@@ -2,6 +2,7 @@ import { createBrowserRouter, Outlet, type RouteObject } from "react-router-dom"
 import { AppShell } from "./AppShell";
 import { CalendarPage } from "../pages/CalendarPage";
 import { CarPage } from "../pages/CarPage";
+import { CelebrationsPage } from "../pages/CelebrationsPage";
 import { DashboardPage } from "../pages/DashboardPage";
 import { EventDetailPage } from "../pages/EventDetailPage";
 import { EventFormPage } from "../pages/EventFormPage";
@@ -34,6 +35,7 @@ export const requiredRoutePaths = [
   "/calendar",
   "/car",
   "/prep",
+  "/celebrations",
   "/people",
   "/people/:memberId",
   "/routines",
@@ -83,6 +85,7 @@ export const appRoutes: RouteObject[] = [
       { path: "calendar", element: <CalendarPage /> },
       { path: "car", element: <CarPage /> },
       { path: "prep", element: <PrepPage /> },
+      { path: "celebrations", element: <CelebrationsPage /> },
       { path: "events/new", element: <EventFormPage /> },
       { path: "events/:eventId", element: <EventDetailPage /> },
       { path: "events/:eventId/edit", element: <EventFormPage /> },

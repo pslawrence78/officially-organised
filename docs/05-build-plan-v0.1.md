@@ -2,6 +2,8 @@
 
 ## Build Plan v0.1
 
+Implementation note: the live codebase has progressed beyond the original MVP plan and is currently implemented through Tranche 9A, including the bounded Gifts and Celebrations foundation. See [Tranche 9A: Gifts and Celebrations Foundation v0.1](09A-gifts-and-celebrations-foundation-v0.1.md) and [docs/README.md](README.md) for the current implemented boundary.
+
 ## 1. Build Purpose
 
 This build plan turns the Product Specification v0.2 and Technical Architecture v0.1 into a practical implementation sequence.

@@ -5,7 +5,7 @@ import { restoreFromImport, validateAndPreviewImport } from "../services/importE
 import { EXPORT_STORE_NAMES, type ImportValidationResult } from "../types/importExport";
 
 const RESTORE_PHRASE = "RESTORE MY DATA";
-const LABELS: Record<string, string> = { households: "Households", familyMembers: "Family members", resources: "Resources", places: "Places", events: "Events", eventSeries: "Routines", templates: "Templates", settings: "Settings", schoolCalendars: "School calendars", schoolHalfTermConfigs: "School half-terms", schoolReadinessPrepActions: "School prep actions", countdownTargets: "Countdowns", auditLog: "Audit entries" };
+const LABELS: Record<string, string> = { households: "Households", familyMembers: "Family members", resources: "Resources", places: "Places", events: "Events", eventSeries: "Routines", templates: "Templates", settings: "Settings", celebrationOccasions: "Celebrations", giftPlans: "Gift plans", schoolCalendars: "School calendars", schoolHalfTermConfigs: "School half-terms", schoolReadinessPrepActions: "School prep actions", countdownTargets: "Countdowns", auditLog: "Audit entries" };
 
 export function ImportPage() {
   const [json, setJson] = useState(""); const [fileName, setFileName] = useState("");
