@@ -20,6 +20,7 @@ const primaryNavigation: NavItem[] = [
 
 const secondaryNavigation: NavItem[] = [
   { label: "Calendar", to: "/calendar", icon: "calendar" },
+  { label: "School", to: "/school", icon: "school" },
   { label: "People", to: "/people", icon: "people" },
   { label: "Routines", to: "/routines", icon: "repeat" },
   { label: "Templates", to: "/templates", icon: "template" },

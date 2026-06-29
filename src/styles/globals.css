@@ -463,6 +463,53 @@ h1, h2, h3 { line-height: 1.12; }
 .school-readiness__badges { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .school-readiness p { color: var(--color-muted); font-size: .76rem; margin: 0; overflow-wrap: anywhere; }
 .school-readiness__warning { color: var(--color-warning) !important; font-weight: 750; }
+.school-hub-top-grid,
+.school-hub-two-column,
+.school-hub-upcoming-list,
+.school-hub-gap-list,
+.school-hub-weather-grid { display: grid; gap: var(--space-4); }
+.school-hub-card {
+  background: var(--color-card-strong);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+.school-hub-card--day-emphasis { background: linear-gradient(160deg, #f4f7f2, #fbf8f4); }
+.school-hub-card__header,
+.school-hub-card__footer,
+.school-hub-gap__header { align-items: flex-start; display: flex; gap: var(--space-3); justify-content: space-between; }
+.school-hub-card__header h2,
+.school-hub-panel .section-heading h2 { margin-bottom: 0; }
+.school-hub-facts { display: grid; gap: var(--space-2); margin: 0; }
+.school-hub-facts div { border-top: 1px solid var(--color-border); display: grid; gap: .2rem; padding-top: var(--space-2); }
+.school-hub-facts dt { color: var(--color-muted); font-size: .72rem; font-weight: 750; text-transform: uppercase; }
+.school-hub-facts dd { margin: 0; }
+.school-hub-inline-list { color: var(--color-muted); display: grid; gap: var(--space-2); margin: 0; padding-left: 1.1rem; }
+.school-hub-gap {
+  background: var(--color-card-strong);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-muted);
+  border-radius: var(--radius-sm);
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+}
+.school-hub-gap--warning { background: #fff8ef; border-left-color: var(--color-warning); }
+.school-hub-gap--info { border-left-color: var(--color-accent); }
+.school-hub-gap p,
+.school-hub-weather-day p { color: var(--color-muted); margin: 0; }
+.school-hub-panel { height: fit-content; }
+.school-hub-weather-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.school-hub-weather-day {
+  background: var(--color-card-strong);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+}
 .half-term-editor { display: grid; gap: var(--space-5); }
 .half-term-bulk { align-items: center; background: var(--color-background); border-radius: var(--radius-sm); display: flex; flex-wrap: wrap; gap: var(--space-2); padding: var(--space-3); }
 .half-term-bulk strong { flex-basis: 100%; font-size: .78rem; }
@@ -1329,6 +1376,7 @@ h1, h2, h3 { line-height: 1.12; }
   .weather-card__heading { flex-wrap: wrap; }
   .weather-suggestion-list li { grid-template-columns: 1fr; }
   .weather-settings .form-actions { align-items: stretch; flex-direction: column; }
+  .school-hub-weather-grid { grid-template-columns: 1fr; }
   .hub-hero__actions { flex-direction: column; }
   .hub-panel { padding: var(--space-4); }
   .hub-panel__header { flex-direction: column; }
@@ -1376,6 +1424,9 @@ h1, h2, h3 { line-height: 1.12; }
 }
 
 @media (min-width: 44rem) {
+  .school-hub-top-grid,
+  .school-hub-two-column { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .school-hub-upcoming-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .hub-hero { grid-template-columns: minmax(0, 1fr) auto; }
   .hub-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .hub-status-footer { grid-template-columns: minmax(0, 1fr) auto; }

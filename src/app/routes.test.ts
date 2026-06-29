@@ -17,6 +17,7 @@ describe("Tranche 0 route contract", () => {
       "/calendar",
       "/car",
       "/prep",
+      "/school",
       "/celebrations",
       "/people",
       "/people/:memberId",
@@ -119,7 +120,7 @@ describe("Tranche 0 route contract", () => {
     expect(screen.getByRole("button", { name: "More" })).toBeInTheDocument();
   });
 
-  it.each(["/", "/today", "/week", "/car", "/prep", "/celebrations", "/settings"])("renders %s through the normal application shell", async (path) => {
+  it.each(["/", "/today", "/week", "/car", "/prep", "/school", "/celebrations", "/settings"])("renders %s through the normal application shell", async (path) => {
     const testRouter = createMemoryRouter(appRoutes, {
       basename: "/officially-organised",
       initialEntries: [`/officially-organised${path === "/" ? "/" : path}`],

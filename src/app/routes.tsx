@@ -21,6 +21,7 @@ import { SettingsPage } from "../pages/SettingsPage";
 import { SyncConflictsPage } from "../pages/SyncConflictsPage";
 import { SchoolCalendarPage } from "../pages/SchoolCalendarPage";
 import { SchoolHalfTermPage } from "../pages/SchoolHalfTermPage";
+import { SchoolPage } from "../pages/SchoolPage";
 import { CountdownsPage } from "../pages/CountdownsPage";
 import { TemplatesPage } from "../pages/TemplatesPage";
 import { TodayPage } from "../pages/TodayPage";
@@ -35,6 +36,7 @@ export const requiredRoutePaths = [
   "/calendar",
   "/car",
   "/prep",
+  "/school",
   "/celebrations",
   "/people",
   "/people/:memberId",
@@ -85,6 +87,7 @@ export const appRoutes: RouteObject[] = [
       { path: "calendar", element: <CalendarPage /> },
       { path: "car", element: <CarPage /> },
       { path: "prep", element: <PrepPage /> },
+      { path: "school", element: <SchoolPage /> },
       { path: "celebrations", element: <CelebrationsPage /> },
       { path: "events/new", element: <EventFormPage /> },
       { path: "events/:eventId", element: <EventDetailPage /> },
