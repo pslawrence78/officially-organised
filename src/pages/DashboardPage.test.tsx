@@ -64,6 +64,9 @@ describe("Dashboard operational readiness", () => {
     expect(screen.getByRole("link", { name: "Add an event" })).toHaveAttribute("href", "/events/new");
     expect(screen.getByRole("link", { name: "Household admin" })).toHaveAttribute("href", "/household-admin");
     expect(screen.getByRole("link", { name: "Open Hub" })).toHaveAttribute("href", "/hub");
+    expect(screen.getByText("Capture plans, appointments and commitments.")).toBeInTheDocument();
+    expect(screen.getByText("Track renewals, services and household checks.")).toBeInTheDocument();
+    expect(screen.getByText("Launch the read-only family display.")).toBeInTheDocument();
     expect(screen.queryByText("Open household Hub")).not.toBeInTheDocument();
     expect(screen.getByText("No events today")).toBeInTheDocument();
     expect(screen.getByText("No car needs today")).toBeInTheDocument();

@@ -129,14 +129,40 @@ export function DashboardPage() {
   return (
     <div className="page-stack">
       <section className="hero-card">
-        <p className="eyebrow">Home base</p>
-        <h1>Family plans,<br /><em>held together.</em></h1>
-        <p>See what needs action first, then move through today and the days ahead.</p>
-        <div className="hero-card__actions">
-          <Link className="hero-card__action hero-card__action--primary" to="/events/new"><Icon name="plus" /> Add an event</Link>
-          <Link className="hero-card__action hero-card__action--secondary" to="/household-admin">Household admin</Link>
+        <div className="hero-card__intro">
+          <p className="eyebrow">Home base</p>
+          <h1>Family plans,<br /><em>held together.</em></h1>
+          <p className="hero-card__copy">Start with what needs attention, then move through today and the days ahead.</p>
         </div>
-        <Link className="hero-card__utility-link" to="/hub">Open Hub</Link>
+        <div className="hero-card__action-panel" aria-label="Quick actions">
+          <p className="hero-card__action-label">Quick actions</p>
+          <div className="hero-card__action-deck">
+            <Link aria-describedby="dashboard-add-event-copy" aria-label="Add an event" className="hero-card__action-card hero-card__action-card--primary" to="/events/new">
+              <span className="hero-card__action-card-icon"><Icon name="plus" /></span>
+              <span className="hero-card__action-card-copy">
+                <strong>Add an event</strong>
+                <small id="dashboard-add-event-copy">Capture plans, appointments and commitments.</small>
+              </span>
+              <Icon className="hero-card__action-card-chevron" name="chevron" />
+            </Link>
+            <Link aria-describedby="dashboard-household-admin-copy" aria-label="Household admin" className="hero-card__action-card hero-card__action-card--secondary" to="/household-admin">
+              <span className="hero-card__action-card-icon"><Icon name="clock" /></span>
+              <span className="hero-card__action-card-copy">
+                <strong>Household admin</strong>
+                <small id="dashboard-household-admin-copy">Track renewals, services and household checks.</small>
+              </span>
+              <Icon className="hero-card__action-card-chevron" name="chevron" />
+            </Link>
+            <Link aria-describedby="dashboard-open-hub-copy" aria-label="Open Hub" className="hero-card__action-card hero-card__action-card--utility" to="/hub">
+              <span className="hero-card__action-card-icon"><Icon name="home" /></span>
+              <span className="hero-card__action-card-copy">
+                <strong>Open Hub</strong>
+                <small id="dashboard-open-hub-copy">Launch the read-only family display.</small>
+              </span>
+              <Icon className="hero-card__action-card-chevron" name="chevron" />
+            </Link>
+          </div>
+        </div>
       </section>
 
       {state.loading ? <LoadingState label="Putting today in order…" /> : null}
