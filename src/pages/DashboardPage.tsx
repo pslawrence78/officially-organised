@@ -136,6 +136,7 @@ export function DashboardPage() {
           <Link className="hero-card__action hero-card__action--primary" to="/events/new"><Icon name="plus" /> Add an event</Link>
           <Link className="hero-card__action hero-card__action--secondary" to="/household-admin">Household admin</Link>
         </div>
+        <Link className="hero-card__utility-link" to="/hub">Open Hub</Link>
       </section>
 
       {state.loading ? <LoadingState label="Putting today in order…" /> : null}

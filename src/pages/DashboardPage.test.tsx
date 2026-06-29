@@ -63,6 +63,7 @@ describe("Dashboard operational readiness", () => {
     expect(await screen.findByText("Nothing needs attention")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Add an event" })).toHaveAttribute("href", "/events/new");
     expect(screen.getByRole("link", { name: "Household admin" })).toHaveAttribute("href", "/household-admin");
+    expect(screen.getByRole("link", { name: "Open Hub" })).toHaveAttribute("href", "/hub");
     expect(screen.queryByText("Open household Hub")).not.toBeInTheDocument();
     expect(screen.getByText("No events today")).toBeInTheDocument();
     expect(screen.getByText("No car needs today")).toBeInTheDocument();

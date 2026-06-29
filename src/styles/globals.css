@@ -191,6 +191,20 @@ h1, h2, h3 { line-height: 1.12; }
   background: rgba(255,255,255,.68);
   border-color: rgba(111, 77, 56, .28);
 }
+.hero-card__utility-link {
+  color: #5e4c40;
+  display: inline-flex;
+  font-size: .76rem;
+  font-weight: 750;
+  margin-top: var(--space-3);
+  min-height: 2.5rem;
+  padding: .35rem 0;
+  position: relative;
+  text-decoration: none;
+  z-index: 1;
+}
+.hero-card__utility-link:hover,
+.hero-card__utility-link:focus-visible { color: var(--color-text); }
 
 .quick-stats { display: grid; gap: var(--space-3); grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .stat-card {
@@ -1014,6 +1028,7 @@ h1, h2, h3 { line-height: 1.12; }
   .section-heading .back-link { font-size: .7rem; white-space: nowrap; }
   .hero-card__actions { align-items: stretch; }
   .hero-card__action { width: 100%; }
+  .hero-card__utility-link { justify-content: center; }
   .event-card { grid-template-columns: 3.8rem minmax(0, 1fr) auto; padding: var(--space-3); }
   .prep-task-card { grid-template-columns: auto minmax(0, 1fr); }
   .prep-task-card__skip { grid-column: 2; justify-self: start; }
