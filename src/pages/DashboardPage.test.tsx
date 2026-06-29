@@ -61,6 +61,9 @@ describe("Dashboard operational readiness", () => {
   it("shows reassuring empty states on a no-events day", async () => {
     renderDashboard();
     expect(await screen.findByText("Nothing needs attention")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Add an event" })).toHaveAttribute("href", "/events/new");
+    expect(screen.getByRole("link", { name: "Household admin" })).toHaveAttribute("href", "/household-admin");
+    expect(screen.queryByText("Open household Hub")).not.toBeInTheDocument();
     expect(screen.getByText("No events today")).toBeInTheDocument();
     expect(screen.getByText("No car needs today")).toBeInTheDocument();
     expect(screen.getByText("No prep due")).toBeInTheDocument();

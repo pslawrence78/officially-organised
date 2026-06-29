@@ -151,25 +151,46 @@ h1, h2, h3 { line-height: 1.12; }
 }
 .hero-card h1 em { color: var(--color-accent); font-weight: 400; }
 .hero-card > p:last-child { color: #5e4c40; margin-bottom: 0; max-width: 32rem; }
+.hero-card__actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+  max-width: 34rem;
+  position: relative;
+  z-index: 1;
+}
 .hero-card__action {
   align-items: center;
-  background: var(--color-text);
+  border: 1px solid transparent;
   border-radius: var(--radius-pill);
-  color: white;
   display: inline-flex;
   font-size: .82rem;
   font-weight: 750;
   gap: var(--space-2);
-  margin-top: var(--space-5);
-  min-height: 3rem;
+  justify-content: center;
+  min-height: 3.1rem;
   padding: .8rem 1.15rem;
-  position: relative;
   text-decoration: none;
-  z-index: 1;
+  transition: background-color .18s ease, border-color .18s ease, color .18s ease, box-shadow .18s ease;
 }
 .hero-card__action svg { height: 1.1rem; width: 1.1rem; }
-.hero-card__actions { align-items: center; display: flex; flex-wrap: wrap; gap: var(--space-3); }
-.hero-card__link { color: var(--color-text); font-size: .82rem; font-weight: 750; text-decoration: none; }
+.hero-card__action--primary {
+  background: var(--color-text);
+  box-shadow: 0 .7rem 1.6rem rgba(76, 56, 42, .16);
+  color: white;
+}
+.hero-card__action--secondary {
+  background: rgba(255,255,255,.48);
+  border-color: rgba(111, 77, 56, .18);
+  color: var(--color-text);
+}
+.hero-card__action--secondary:hover,
+.hero-card__action--secondary:focus-visible {
+  background: rgba(255,255,255,.68);
+  border-color: rgba(111, 77, 56, .28);
+}
 
 .quick-stats { display: grid; gap: var(--space-3); grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .stat-card {
@@ -991,6 +1012,8 @@ h1, h2, h3 { line-height: 1.12; }
   .section-heading { gap: var(--space-2); }
   .section-heading h2 { font-size: 1.4rem; }
   .section-heading .back-link { font-size: .7rem; white-space: nowrap; }
+  .hero-card__actions { align-items: stretch; }
+  .hero-card__action { width: 100%; }
   .event-card { grid-template-columns: 3.8rem minmax(0, 1fr) auto; padding: var(--space-3); }
   .prep-task-card { grid-template-columns: auto minmax(0, 1fr); }
   .prep-task-card__skip { grid-column: 2; justify-self: start; }
