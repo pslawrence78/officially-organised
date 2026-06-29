@@ -27,7 +27,8 @@ describe("Week page celebration readiness", () => {
 
     render(<MemoryRouter><WeekPage /></MemoryRouter>);
 
-    expect(await screen.findByText("Weekend party")).toBeInTheDocument();
+    expect((await screen.findAllByText("Weekend party")).length).toBeGreaterThan(0);
+    expect(screen.getByText("Celebration prep")).toBeInTheDocument();
     expect(screen.getAllByText("At risk").length).toBeGreaterThan(0);
   });
 });

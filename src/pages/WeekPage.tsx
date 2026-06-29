@@ -58,6 +58,9 @@ export function WeekPage() {
       includeOutsideRangeWithOverdue: true,
     })
     : [];
+  const weekCelebrationReadiness = celebrationReadiness
+    .filter((summary) => ["needs_attention", "at_risk", "overdue"].includes(summary.level))
+    .slice(0, 3);
 
   return <div className="page-stack">
     <div className="page-title-row"><PageHeader eyebrow="Monday to Sunday" title="Week">{formatWeekRange(weekStart)}</PageHeader><Link className="compact-action" to="/events/new"><Icon name="plus" /> Add event</Link></div>
@@ -66,6 +69,7 @@ export function WeekPage() {
     {state.error ? <ErrorState /> : null}
     {data ? <>
       <section className="section-block attention-section"><div className="section-heading"><div><p className="eyebrow">Needs attention</p><h2>{visibleConflicts.length ? `${visibleConflicts.length} issue${visibleConflicts.length === 1 ? "" : "s"} this week` : "This week is clear"}</h2></div></div><ConflictList conflicts={visibleConflicts} events={data.allEvents} />{!visibleConflicts.length ? <p className="section-empty-copy">No current conflicts affect this week's events.</p> : null}</section>
+      <section className="section-block"><div className="section-heading"><div><p className="eyebrow">Celebration prep</p><h2>{weekCelebrationReadiness.length ? "Only the celebration risks for this week" : "No celebration prep due this week"}</h2></div><Link className="back-link" to="/celebrations">Open Gifts &amp; Celebrations</Link></div>{weekCelebrationReadiness.length ? <div className="celebration-issue-list">{weekCelebrationReadiness.map((summary) => <article className={`celebration-issue-card celebration-issue-card--${summary.level === "overdue" ? "critical" : "warning"}`} key={summary.occasionId}><div className="celebration-issue-card__top"><div className="event-detail__badges"><CelebrationReadinessBadge level={summary.level} /><Badge tone="accent">{summary.occasionTitle}</Badge></div>{summary.occasionDate ? <small>{formatLongDate(summary.occasionDate)}</small> : null}</div><strong>{summary.issues[0]?.message ?? "Celebration work needs attention."}</strong></article>)}</div> : <p className="section-empty-copy">No celebration prep due this week.</p>}</section>
       <section className="week-list" aria-label={`Week of ${formatWeekRange(weekStart)}`}>{days.map((day) => {
         const dayStart = Date.parse(dateKeyToIsoStart(day));
         const dayEnd = Date.parse(dateKeyToIsoStart(addDaysToDateKey(day, 1)));

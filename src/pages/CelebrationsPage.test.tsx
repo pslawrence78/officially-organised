@@ -3,7 +3,9 @@ import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { db } from "../data/db";
 import { getEventById, seedInitialDataIfNeeded } from "../data/repositories";
+import { createCelebration } from "../data/repositories/celebrationRepository";
 import { addDaysToDateKey, currentDateKey } from "../utils/dates";
+import { seedCelebrationFixtureSet } from "../test/celebrationFixtures";
 import { CelebrationsPage } from "./CelebrationsPage";
 
 describe("Celebrations page", () => {
@@ -18,11 +20,20 @@ describe("Celebrations page", () => {
     await db.delete();
   });
 
-  it("renders the empty state for celebrations", async () => {
+  it("renders the calm empty state when there are no occasions", async () => {
     render(<MemoryRouter><CelebrationsPage /></MemoryRouter>);
-    expect(await screen.findByText("Nothing in the readiness window")).toBeInTheDocument();
-    expect(screen.getByText("Nothing stored yet")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Gifts & Celebrations" })).toBeInTheDocument();
+    expect(await screen.findByText("No upcoming celebrations yet")).toBeInTheDocument();
+    expect(screen.getByText("No celebrations added yet")).toBeInTheDocument();
+    expect(screen.getAllByText("Add birthdays, Christmas plans or family occasions when you are ready.").length).toBeGreaterThan(0);
+  });
+
+  it("shows an occasion with no gift plans in plain English", async () => {
+    await createCelebration({ householdId: "household_lawrence", title: "School leavers gift", occasionType: "school", date: addDaysToDateKey(currentDateKey(), 5), recurrence: "none", ownerAdultIds: ["member_phil"], status: "planned" });
+
+    render(<MemoryRouter><CelebrationsPage /></MemoryRouter>);
+
+    expect(await screen.findByText("School leavers gift")).toBeInTheDocument();
+    expect(screen.getByText("No gift plans yet for this occasion.")).toBeInTheDocument();
   });
 
   it("creates a celebration and a gift plan through the page flow", async () => {
@@ -45,7 +56,7 @@ describe("Celebrations page", () => {
     expect((await db.giftPlans.toCollection().first())?.recipientName).toBe("Alex");
   });
 
-  it("generates prep tasks for a saved gift plan", async () => {
+  it("refreshes prep tasks for a saved gift plan", async () => {
     render(<MemoryRouter><CelebrationsPage /></MemoryRouter>);
 
     fireEvent.change(await screen.findByLabelText("Occasion title"), { target: { value: "School party" } });
@@ -61,35 +72,20 @@ describe("Celebrations page", () => {
     await screen.findByText("Gift plan created.");
     await waitFor(async () => expect(await db.giftPlans.count()).toBe(1));
 
-    fireEvent.click(screen.getAllByRole("button", { name: "Generate/update prep tasks" })[0]);
+    fireEvent.click(screen.getAllByRole("button", { name: "Refresh prep tasks" })[0]);
     await waitFor(async () => expect((await db.giftPlans.toCollection().first())?.linkedEventId).toBeTruthy());
     const savedPlan = await db.giftPlans.toCollection().first();
     await waitFor(async () => expect((await getEventById(savedPlan!.linkedEventId!))?.prepTasks.length).toBeGreaterThan(0));
   });
 
-  it("shows celebration readiness badges and overview counts", async () => {
-    const riskDate = addDaysToDateKey(currentDateKey(), 5);
+  it("renders the realistic birthday and christmas fixtures with consistent badge wording", async () => {
+    await seedCelebrationFixtureSet(currentDateKey());
+
     render(<MemoryRouter><CelebrationsPage /></MemoryRouter>);
 
-    fireEvent.change(await screen.findByLabelText("Occasion title"), { target: { value: "Alex birthday" } });
-    fireEvent.change((await screen.findAllByLabelText("Occasion type"))[0], { target: { value: "birthday_party" } });
-    fireEvent.change(screen.getByLabelText("Date"), { target: { value: riskDate } });
-    fireEvent.click(screen.getByRole("button", { name: "Create celebration" }));
-    await screen.findByText("Celebration created.");
-
-    const occasionSelect = screen.getByLabelText("Occasion") as HTMLSelectElement;
-    await waitFor(() => expect([...occasionSelect.options].some((option) => option.textContent?.includes("Alex birthday"))).toBe(true));
-    fireEvent.change(occasionSelect, { target: { value: [...occasionSelect.options].find((option) => option.textContent?.includes("Alex birthday"))?.value } });
-    const recipientFields = await screen.findAllByLabelText("Recipient name");
-    fireEvent.change(recipientFields[1], { target: { value: "Alex" } });
-    fireEvent.change(screen.getByLabelText("Gift status"), { target: { value: "to_buy" } });
-    fireEvent.change(screen.getByLabelText("Occasion date"), { target: { value: riskDate } });
-    fireEvent.change(screen.getByLabelText("Buy by"), { target: { value: riskDate } });
-    fireEvent.click(screen.getByRole("button", { name: "Create gift plan" }));
-
-    expect(await screen.findByText("Gift plan created.")).toBeInTheDocument();
-    expect(screen.getByText("Readiness overview")).toBeInTheDocument();
-    expect(screen.getByText("Start with the highest-risk celebration work")).toBeInTheDocument();
-    expect(screen.getByText("Add a gift plan for this occasion.")).toBeInTheDocument();
+    expect((await screen.findAllByText("Seb birthday party for Oliver Theodore-Smythe")).length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Nanna June birthday lunch").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("The occasion is tomorrow and gift work is still open.").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("At risk").length).toBeGreaterThan(1);
   });
 });

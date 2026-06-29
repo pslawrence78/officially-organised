@@ -10,7 +10,8 @@ function toneForLevel(level: CelebrationReadinessLevel) {
 }
 
 export function CelebrationReadinessBadge({ level }: { level: CelebrationReadinessLevel }) {
-  return <Badge tone={toneForLevel(level)}>{CELEBRATION_READYNESS_LEVEL_LABELS[level]}</Badge>;
+  const label = CELEBRATION_READYNESS_LEVEL_LABELS[level];
+  return <Badge ariaLabel={`Celebration readiness: ${label}`} title={`Celebration readiness: ${label}`} tone={toneForLevel(level)}>{label}</Badge>;
 }
 
 export function celebrationReadinessTone(level: CelebrationReadinessLevel) {

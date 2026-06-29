@@ -33,7 +33,7 @@ import {
   setPrepTaskStatus,
 } from "../data/repositories";
 import { useRepositoryQuery } from "../hooks/useRepositoryQuery";
-import { addDaysToDateKey, currentDateKey, dateKeyToIsoStart, getWeekStartDateKey, isoToDateKey } from "../utils/dates";
+import { addDaysToDateKey, currentDateKey, dateKeyToIsoStart, formatLongDate, getWeekStartDateKey, isoToDateKey } from "../utils/dates";
 import { prepSummary, prepTaskGroup } from "../utils/prepTasks";
 import { carNeedGroup, carSummary } from "../utils/resourceNeeds";
 import { calculateConflicts, conflictsForEvent } from "../services/conflictService";
@@ -141,7 +141,7 @@ export function DashboardPage() {
           </section>
 
           <section className="section-block" data-dashboard-section="celebrations">
-            <div className="section-heading"><div><p className="eyebrow">Celebrations to check</p><h2>{celebrationReadiness.length ? "Only the urgent celebration work" : "Celebrations are under control"}</h2></div><Link className="back-link" to="/celebrations">Open Gifts &amp; Celebrations</Link></div>
+            <div className="section-heading"><div><p className="eyebrow">Celebration prep</p><h2>{celebrationReadiness.length ? "Only the urgent celebration work" : "Nothing urgent for celebrations"}</h2></div><Link className="back-link" to="/celebrations">Open Gifts &amp; Celebrations</Link></div>
             {celebrationReadiness.length ? <div className="celebration-issue-list">{celebrationReadiness.map((summary) => (
               <article className={`celebration-issue-card celebration-issue-card--${summary.level === "overdue" ? "critical" : "warning"}`} key={summary.occasionId}>
                 <div className="celebration-issue-card__top">
@@ -149,7 +149,7 @@ export function DashboardPage() {
                     <CelebrationReadinessBadge level={summary.level} />
                     <Badge tone="accent">{summary.occasionTitle}</Badge>
                   </div>
-                  {summary.occasionDate ? <small>{summary.occasionDate}</small> : null}
+                  {summary.occasionDate ? <small>{formatLongDate(summary.occasionDate)}</small> : null}
                 </div>
                 <strong>{summary.issues[0]?.message ?? "Gift or celebration work needs attention."}</strong>
                 <p>{summary.issues[0]?.suggestedAction ?? "Open the celebration and update the plan or prep tasks."}</p>

@@ -168,7 +168,7 @@ describe("Dashboard operational readiness", () => {
 
     renderDashboard();
 
-    expect(await screen.findByText("Celebrations to check")).toBeInTheDocument();
+    expect(await screen.findByText("Celebration prep")).toBeInTheDocument();
     expect(screen.getByText("Urgent party")).toBeInTheDocument();
     expect(screen.queryByText("Far away party")).not.toBeInTheDocument();
   });

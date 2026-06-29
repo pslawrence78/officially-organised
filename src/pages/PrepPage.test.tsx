@@ -81,4 +81,11 @@ describe("Prep view", () => {
     expect(await screen.findByText("Buy present")).toBeInTheDocument();
     expect(screen.getByText("RSVP to party")).toBeInTheDocument();
   });
+
+  it("shows a calm empty state when celebration prep is filtered but nothing is open", async () => {
+    render(<MemoryRouter><PrepPage /></MemoryRouter>);
+
+    fireEvent.change(await screen.findByLabelText("Source"), { target: { value: "celebrations" } });
+    expect(await screen.findByText("No celebration prep due right now")).toBeInTheDocument();
+  });
 });

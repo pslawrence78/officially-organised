@@ -27,7 +27,7 @@ describe("Today page celebration readiness", () => {
 
     render(<MemoryRouter><TodayPage /></MemoryRouter>);
 
-    expect(await screen.findByText("Celebration readiness")).toBeInTheDocument();
-    expect(screen.getByText("Tomorrow party")).toBeInTheDocument();
+    expect(await screen.findByText("Celebration prep")).toBeInTheDocument();
+    expect(await screen.findByText("Present or card still needs packing for tomorrow.")).toBeInTheDocument();
   });
 });

@@ -362,6 +362,36 @@ h1, h2, h3 { line-height: 1.12; }
   gap: var(--space-2);
   padding: var(--space-4);
 }
+.celebration-card,
+.gift-plan-card {
+  gap: var(--space-3);
+}
+.celebration-card__header,
+.gift-plan-card__header {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--space-3);
+  justify-content: space-between;
+}
+.celebration-card__header > div,
+.gift-plan-card__header > div {
+  min-width: 0;
+}
+.celebration-card__header h3,
+.gift-plan-card__header h3 {
+  font-family: var(--font-display);
+  font-size: 1.28rem;
+  font-weight: 500;
+  margin-bottom: 0;
+  overflow-wrap: anywhere;
+}
+.celebration-card__header small,
+.gift-plan-card__header small {
+  color: var(--color-muted);
+  flex: 0 0 auto;
+  font-size: .76rem;
+  text-align: right;
+}
 .celebration-issue-card--warning {
   background: #fff8ef;
   border-color: #e7cfad;
@@ -596,7 +626,7 @@ h1, h2, h3 { line-height: 1.12; }
 .prep-summary-grid strong { font-family: var(--font-display); font-size: 1.75rem; font-weight: 500; }
 .prep-summary-grid .is-alert strong { color: var(--color-critical); }
 .prep-summary-grid span { color: var(--color-muted); font-size: .62rem; }
-.prep-owner-filter { align-items: center; display: flex; gap: var(--space-2); justify-self: start; }
+.prep-owner-filter { align-items: center; display: flex; flex-wrap: wrap; gap: var(--space-2); justify-self: start; }
 .prep-owner-filter > span { color: var(--color-muted); font-size: .72rem; font-weight: 750; }
 .prep-owner-filter select { appearance: none; background: var(--color-card); border: 1px solid var(--color-border); border-radius: var(--radius-pill); color: var(--color-text); min-height: 2.6rem; padding: .55rem 2rem .55rem .9rem; }
 .prep-group { display: grid; gap: var(--space-3); }
@@ -1280,6 +1310,22 @@ h1, h2, h3 { line-height: 1.12; }
 }
 
 @media (max-width: 27rem) {
+  .section-block { padding: var(--space-4); }
+  .section-heading { flex-direction: column; }
+  .section-heading h2 { margin-bottom: var(--space-2); }
+  .event-detail__badges { margin-bottom: var(--space-3); }
+  .celebration-card__header,
+  .gift-plan-card__header,
+  .celebration-issue-card__top { flex-direction: column; }
+  .celebration-card__header small,
+  .gift-plan-card__header small { text-align: left; }
+  .detail-actions,
+  .form-actions { align-items: stretch; }
+  .detail-actions .button,
+  .form-actions .button { width: 100%; }
+  .prep-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .prep-owner-filter { display: grid; width: 100%; }
+  .prep-owner-filter label { display: grid; gap: .4rem; width: 100%; }
   .weather-card__heading { flex-wrap: wrap; }
   .weather-suggestion-list li { grid-template-columns: 1fr; }
   .weather-settings .form-actions { align-items: stretch; flex-direction: column; }

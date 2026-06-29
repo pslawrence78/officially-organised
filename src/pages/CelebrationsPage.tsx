@@ -194,10 +194,11 @@ function readinessCounts(summaries: CelebrationReadinessSummary[]) {
 function readinessSummaryCopy(summary: CelebrationReadinessSummary) {
   const issue = topIssue(summary);
   if (issue) return issue.message;
+  if (summary.giftPlanCount === 0) return "No gift plans yet for this occasion.";
   if (summary.openPrepTaskCount) return `${summary.openPrepTaskCount} celebration prep task${summary.openPrepTaskCount === 1 ? "" : "s"} still open.`;
-  if (summary.giftPlanCount && summary.readyGiftPlanCount === summary.giftPlanCount) return "All gift prep is complete.";
-  if (summary.giftPlanCount) return `${summary.giftPlanCount} gift plan${summary.giftPlanCount === 1 ? "" : "s"} linked and on track.`;
-  return "No celebration readiness issues right now.";
+  if (summary.giftPlanCount && summary.readyGiftPlanCount === summary.giftPlanCount) return "Ready for the day.";
+  if (summary.giftPlanCount) return `${summary.giftPlanCount} gift plan${summary.giftPlanCount === 1 ? "" : "s"} in place.`;
+  return "Everything currently looks ready.";
 }
 
 function planReadinessCopy(planSummary: {
@@ -208,9 +209,9 @@ function planReadinessCopy(planSummary: {
 }) {
   const issue = topIssue(planSummary);
   if (issue) return issue.message;
-  if (planSummary.prepTaskCount) return planSummary.openPrepTaskCount ? `${planSummary.openPrepTaskCount} generated prep task${planSummary.openPrepTaskCount === 1 ? "" : "s"} still open.` : "Generated prep is complete.";
-  if (planSummary.level === "ready") return "This gift plan is ready.";
-  return "This gift plan is on track.";
+  if (planSummary.prepTaskCount) return planSummary.openPrepTaskCount ? `${planSummary.openPrepTaskCount} linked prep task${planSummary.openPrepTaskCount === 1 ? "" : "s"} still open.` : "Wrapped and ready.";
+  if (planSummary.level === "ready") return "Wrapped and ready.";
+  return "Partly ready.";
 }
 
 export function CelebrationsPage() {
@@ -263,7 +264,6 @@ export function CelebrationsPage() {
       includeOutsideRangeWithOverdue: true,
     })
     : [], [state.data, today, upcomingTo]);
-  const readinessById = useMemo(() => new Map(readiness.map((item) => [item.occasionId, item])), [readiness]);
   const overview = readinessCounts(readiness.filter((summary) => summary.level !== "not_applicable"));
   const attentionItems = useMemo(() => readiness
     .filter((summary) => ["needs_attention", "at_risk", "overdue"].includes(summary.level))
@@ -287,7 +287,7 @@ export function CelebrationsPage() {
       planSummary: CelebrationReadinessSummary["giftPlans"][number];
       celebrationSummary: CelebrationReadinessSummary;
       plan: GiftPlan;
-    } => Boolean(item.plan))
+    } => Boolean(item.plan) && item.planSummary.level !== "ready" && item.planSummary.level !== "not_applicable")
     .sort((left, right) =>
       (left.planSummary.level === right.planSummary.level ? 0 : ["overdue", "at_risk", "needs_attention", "on_track", "ready", "not_applicable"].indexOf(left.planSummary.level) - ["overdue", "at_risk", "needs_attention", "on_track", "ready", "not_applicable"].indexOf(right.planSummary.level))
       || (left.planSummary.daysUntil ?? 9999) - (right.planSummary.daysUntil ?? 9999)
@@ -408,13 +408,13 @@ export function CelebrationsPage() {
   return (
     <div className="page-stack page-stack--form">
       <PageHeader eyebrow="Secondary operational module" title="Gifts & Celebrations">
-        Practical birthdays, cards, presents, RSVPs, wrapping and take-it actions that feed the shared family operating layer.
+        Keep birthdays, Christmas plans and family gift prep in one calm place, then let the practical tasks flow into the rest of the app.
       </PageHeader>
 
       {state.data.linkedEvent ? (
         <div className="notice notice--success">
           <strong>Linked from event</strong>
-          <span>{state.data.linkedEvent.title} is preselected so you can connect the practical gift prep without retyping.</span>
+          <span>{state.data.linkedEvent.title} is already linked so you can add the practical gift prep without retyping.</span>
         </div>
       ) : null}
       {message ? <div className="notice notice--success" role="status"><strong>Saved</strong><span>{message}</span></div> : null}
@@ -423,22 +423,22 @@ export function CelebrationsPage() {
         <div className="section-heading">
           <div>
             <p className="eyebrow">Readiness overview</p>
-            <h2>{upcoming.length ? `${upcoming.length} celebration${upcoming.length === 1 ? "" : "s"} in the next 90 days` : "Nothing in the readiness window"}</h2>
+            <h2>{upcoming.length ? `${upcoming.length} celebration${upcoming.length === 1 ? "" : "s"} in the next 90 days` : "No upcoming celebrations yet"}</h2>
           </div>
         </div>
         {upcoming.length ? <div className="celebration-readiness-grid" aria-label="Celebration readiness overview">
           <article className="celebration-readiness-stat"><strong>{overview.ready}</strong><span>Ready</span></article>
-          <article className="celebration-readiness-stat"><strong>{overview.onTrack}</strong><span>On track</span></article>
+          <article className="celebration-readiness-stat"><strong>{overview.onTrack}</strong><span>Partly ready</span></article>
           <article className="celebration-readiness-stat celebration-readiness-stat--warning"><strong>{overview.needsAttention}</strong><span>Needs attention</span></article>
           <article className="celebration-readiness-stat celebration-readiness-stat--critical"><strong>{overview.atRisk}</strong><span>At risk or overdue</span></article>
-        </div> : <p className="section-empty-copy">No celebrations yet. Add one only when there is a real practical risk around remembering a gift, card, RSVP or take-it task.</p>}
+        </div> : <p className="section-empty-copy">Add birthdays, Christmas plans or family occasions when you are ready.</p>}
       </section>
 
       <section className="section-block">
         <div className="section-heading">
           <div>
             <p className="eyebrow">Needs attention</p>
-            <h2>{attentionItems.length ? "Start with the highest-risk celebration work" : "Everything in this window is calm"}</h2>
+            <h2>{attentionItems.length ? "Start with the most urgent celebration prep" : "Nothing urgent for celebrations"}</h2>
           </div>
         </div>
         {attentionItems.length ? <div className="celebration-issue-list">{attentionItems.map(({ summary, issue }) => (
@@ -453,73 +453,80 @@ export function CelebrationsPage() {
             <strong>{issue.message}</strong>
             {issue.suggestedAction ? <p>{issue.suggestedAction}</p> : null}
           </article>
-        ))}</div> : <p className="section-empty-copy">No celebration or gift issues need immediate attention.</p>}
+        ))}</div> : <p className="section-empty-copy">Everything currently looks ready.</p>}
       </section>
 
       <section className="section-block">
         <div className="section-heading">
           <div>
             <p className="eyebrow">Upcoming celebrations</p>
-            <h2>{upcoming.length ? `${upcoming.length} active occasion${upcoming.length === 1 ? "" : "s"}` : "Nothing stored yet"}</h2>
+            <h2>{upcoming.length ? `${upcoming.length} active occasion${upcoming.length === 1 ? "" : "s"}` : "No celebrations added yet"}</h2>
           </div>
         </div>
         {upcoming.length ? upcoming.map((summary) => {
           const item = celebrationById.get(summary.occasionId);
           if (!item) return null;
           return (
-            <article className="section-block" key={item.id}>
-            <div className="event-detail__badges">
-              <Badge tone="accent">{CELEBRATION_OCCASION_LABELS[item.occasionType]}</Badge>
-              <CelebrationReadinessBadge level={summary.level} />
-              <Badge tone="neutral">{CELEBRATION_STATUS_LABELS[item.status]}</Badge>
-              <Badge tone="neutral">{CELEBRATION_RECURRENCE_LABELS[item.recurrence]}</Badge>
-            </div>
-            <h3>{item.title}</h3>
-            <p className="supporting-copy">
-              {summary.occasionDate ? formatLongDate(summary.occasionDate) : "Date still needed"}
-              {item.linkedEventId ? ` · ${eventById.get(item.linkedEventId)?.title ?? "Linked event unavailable"}` : ""}
-            </p>
-            <p className="celebration-readiness-copy">{readinessSummaryCopy(summary)}</p>
-            <div className="detail-actions">
-              <button className="button button--secondary" onClick={() => { setEditingCelebrationId(item.id); setCelebrationDraft(celebrationToDraft(item)); }} type="button"><Icon name="edit" /> Edit</button>
-              <button className="button button--secondary" onClick={() => { setEditingGiftId(null); setGiftDraft((current) => current ? { ...current, celebrationId: item.id, draftCelebrationTitle: item.title, draftCelebrationDate: item.date, draftCelebrationType: item.occasionType } : current); }} type="button"><Icon name="plus" /> Add gift plan</button>
-              <button className="button button--secondary" onClick={() => void archiveCelebration(item.id).then(() => setRefreshVersion((value) => value + 1))} type="button"><Icon name="trash" /> Archive</button>
-            </div>
-          </article>
+            <article className="section-block celebration-card" key={item.id}>
+              <div className="celebration-card__header">
+                <div>
+                  <div className="event-detail__badges">
+                    <Badge tone="accent">{CELEBRATION_OCCASION_LABELS[item.occasionType]}</Badge>
+                    <CelebrationReadinessBadge level={summary.level} />
+                    <Badge tone="neutral">{CELEBRATION_STATUS_LABELS[item.status]}</Badge>
+                    <Badge tone="neutral">{CELEBRATION_RECURRENCE_LABELS[item.recurrence]}</Badge>
+                  </div>
+                  <h3>{item.title}</h3>
+                </div>
+                <small>{summary.occasionDate ? formatLongDate(summary.occasionDate) : "Date still needed"}</small>
+              </div>
+              <p className="supporting-copy">{item.linkedEventId ? `Linked event: ${eventById.get(item.linkedEventId)?.title ?? "Unavailable"}` : "No linked event yet"}</p>
+              <p className="celebration-readiness-copy">{readinessSummaryCopy(summary)}</p>
+              <div className="detail-actions">
+                <button className="button button--secondary" onClick={() => { setEditingCelebrationId(item.id); setCelebrationDraft(celebrationToDraft(item)); }} type="button"><Icon name="edit" /> Edit</button>
+                <button className="button button--secondary" onClick={() => { setEditingGiftId(null); setGiftDraft((current) => current ? { ...current, celebrationId: item.id, draftCelebrationTitle: item.title, draftCelebrationDate: item.date, draftCelebrationType: item.occasionType } : current); }} type="button"><Icon name="plus" /> Add gift plan</button>
+                <button className="button button--secondary" onClick={() => void archiveCelebration(item.id).then(() => setRefreshVersion((value) => value + 1))} type="button"><Icon name="trash" /> Archive</button>
+              </div>
+            </article>
           );
-        }) : <p className="section-empty-copy">No celebrations yet. Add one only when there is a real practical risk around remembering a gift, card, RSVP or take-it task.</p>}
+        }) : <p className="section-empty-copy">Add birthdays, Christmas plans or family occasions when you are ready.</p>}
       </section>
 
       <section className="section-block">
         <div className="section-heading">
           <div>
             <p className="eyebrow">Gift plans</p>
-            <h2>{visibleGiftPlans.length ? `${visibleGiftPlans.length} linked plan${visibleGiftPlans.length === 1 ? "" : "s"}` : "Everything quiet"}</h2>
+            <h2>{visibleGiftPlans.length ? `${visibleGiftPlans.length} open plan${visibleGiftPlans.length === 1 ? "" : "s"}` : "No gift plans needing attention"}</h2>
           </div>
         </div>
         {visibleGiftPlans.length ? visibleGiftPlans.map(({ plan, planSummary, celebrationSummary }) => {
           const celebration = celebrationById.get(plan.celebrationId);
           const linkedEvent = plan.linkedEventId ? eventById.get(plan.linkedEventId) : undefined;
           return (
-            <article className="section-block" key={plan.id}>
-              <div className="event-detail__badges">
-                <CelebrationReadinessBadge level={planSummary.level} />
-                <Badge tone="accent">{celebrationSummary.occasionTitle}</Badge>
-                <Badge tone="neutral">Gift {GIFT_STATUS_LABELS[plan.giftStatus]}</Badge>
-                <Badge tone="neutral">Card {CARD_STATUS_LABELS[plan.cardStatus]}</Badge>
-                <Badge tone="neutral">RSVP {RSVP_STATUS_LABELS[plan.rsvpStatus]}</Badge>
+            <article className="section-block gift-plan-card" key={plan.id}>
+              <div className="gift-plan-card__header">
+                <div>
+                  <div className="event-detail__badges">
+                    <CelebrationReadinessBadge level={planSummary.level} />
+                    <Badge tone="accent">{celebrationSummary.occasionTitle}</Badge>
+                    <Badge tone="neutral">Present {GIFT_STATUS_LABELS[plan.giftStatus]}</Badge>
+                    <Badge tone="neutral">Card {CARD_STATUS_LABELS[plan.cardStatus]}</Badge>
+                    <Badge tone="neutral">RSVP {RSVP_STATUS_LABELS[plan.rsvpStatus]}</Badge>
+                  </div>
+                  <h3>{plan.recipientName}</h3>
+                </div>
+                {plan.targetDate ? <small>{formatLongDate(plan.targetDate)}</small> : null}
               </div>
-              <h3>{plan.recipientName}</h3>
               <p className="supporting-copy">{linkedEvent ? `Linked event: ${linkedEvent.title}` : plan.linkedEventId ? "Linked event unavailable" : "No event linked yet"}</p>
               <p className="celebration-readiness-copy">{planReadinessCopy(planSummary)}</p>
               <div className="detail-actions">
                 <button className="button button--secondary" onClick={() => { setEditingGiftId(plan.id); setGiftDraft(giftToDraft(plan, celebration)); }} type="button"><Icon name="edit" /> Edit</button>
-                <button className="button button--secondary" onClick={() => void generateTasks(plan.id)} type="button"><Icon name="prep" /> Generate/update prep tasks</button>
+                <button className="button button--secondary" onClick={() => void generateTasks(plan.id)} type="button"><Icon name="prep" /> Refresh prep tasks</button>
                 <button className="button button--secondary" onClick={() => void archiveGiftPlan(plan.id).then(() => setRefreshVersion((value) => value + 1))} type="button"><Icon name="trash" /> Archive</button>
               </div>
             </article>
           );
-        }) : <p className="section-empty-copy">No active gift plans are linked to celebrations in the next 90 days.</p>}
+        }) : <p className="section-empty-copy">Everything currently looks ready.</p>}
       </section>
 
       <section className="section-block">
@@ -534,7 +541,7 @@ export function CelebrationsPage() {
             {archivedCelebrations.map((item) => <p className="supporting-copy" key={item.id}>{item.title} · archived celebration</p>)}
             {archivedGiftPlans.map((item) => <p className="supporting-copy" key={item.id}>{item.recipientName} · archived gift plan</p>)}
           </>
-        ) : <p className="section-empty-copy">Archived celebrations and plans will appear here.</p>}
+        ) : <p className="section-empty-copy">Completed or archived items will appear here when you need to look back.</p>}
       </section>
 
       <section className="section-block">
@@ -613,7 +620,7 @@ export function CelebrationsPage() {
           <label className="form-field"><span>Practical notes</span><textarea onChange={(event) => setGiftDraft({ ...giftDraft, notes: event.target.value })} rows={3} value={giftDraft.notes} /></label>
           <div className="form-actions">
             <button className="button button--secondary" onClick={resetDrafts} type="button">Clear</button>
-            {editingGiftId ? <button className="button button--secondary" onClick={() => void generateTasks(editingGiftId)} type="button"><Icon name="prep" /> Generate/update prep tasks</button> : null}
+            {editingGiftId ? <button className="button button--secondary" onClick={() => void generateTasks(editingGiftId)} type="button"><Icon name="prep" /> Refresh prep tasks</button> : null}
             <button className="button button--primary" disabled={savingGift} type="submit">{savingGift ? "Saving..." : editingGiftId ? "Save gift plan" : "Create gift plan"}</button>
           </div>
         </form>

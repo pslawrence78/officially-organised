@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { CelebrationOccasion, FamilyEvent, GiftPlan, PrepTask } from "../domain/types";
 import { localDateTimeToIso } from "../utils/dates";
+import { buildCelebrationFixtureSet } from "../test/celebrationFixtures";
 import {
   deriveCelebrationReadiness,
   deriveCelebrationReadinessForRange,
@@ -313,5 +314,21 @@ describe("celebration readiness service", () => {
 
     expect(summaries.map((item) => item.occasionId)).toContain("celebration_overdue");
     expect(summaries.map((item) => item.occasionId)).toContain("celebration_in_range");
+  });
+
+  it("handles the realistic christmas fixture with mixed readiness states", () => {
+    const fixtures = buildCelebrationFixtureSet();
+    const christmas = fixtures.occasions.find((item) => item.id === "celebration_christmas_2026")!;
+    const christmasPlans = fixtures.giftPlans.filter((item) => item.celebrationId === christmas.id);
+    const summary = deriveCelebrationReadiness({
+      occasion: christmas,
+      giftPlans: christmasPlans,
+      events: fixtures.events,
+      now: NOW,
+    });
+
+    expect(summary.giftPlanCount).toBe(4);
+    expect(summary.readyGiftPlanCount).toBe(2);
+    expect(summary.level).toBe("on_track");
   });
 });
