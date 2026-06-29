@@ -163,8 +163,12 @@ export async function runManualSync(): Promise<SyncRunResult> {
 
   await replaceSyncQueue(queueItems);
 
+  const remainingQueueItems: typeof queueItems = [];
   for (const item of queueItems) {
-    if (await getSyncConflictById(`conflict:${item.entityType}:${item.entityId}`)) continue;
+    if (await getSyncConflictById(`conflict:${item.entityType}:${item.entityId}`)) {
+      remainingQueueItems.push(item);
+      continue;
+    }
     if (item.operation === "upsert") {
       const localRecord = localByKey.get(`${item.entityType}:${item.entityId}`);
       if (!localRecord) continue;
@@ -211,6 +215,7 @@ export async function runManualSync(): Promise<SyncRunResult> {
     });
     pushed += 1;
   }
+  await replaceSyncQueue(remainingQueueItems);
 
   const queueCount = await getSyncQueueCount();
   const conflictCount = await getOpenSyncConflictCount();

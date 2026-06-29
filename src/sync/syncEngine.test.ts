@@ -59,6 +59,8 @@ describe("syncEngine", () => {
     const result = await runManualSync();
     expect(result.ok).toBe(true);
     expect(result.stats.pushed).toBeGreaterThan(0);
+    expect(result.stats.queueCount).toBe(0);
+    expect((await getSyncSettings()).queueCount).toBe(0);
     expect(remoteState.entities.some((item) => item.entity_type === "places")).toBe(true);
   });
 

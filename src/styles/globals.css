@@ -582,8 +582,10 @@ h1, h2, h3 { line-height: 1.12; }
 .routine-card__details div { display: grid; gap: .2rem; grid-template-columns: 6rem 1fr; }
 .routine-card__details dt { color: var(--color-muted); font-size: .7rem; }
 .routine-card__details dd { font-size: .78rem; font-weight: 700; margin: 0; }
-.check-row { align-items: center; background: var(--color-card-strong); border: 1px solid var(--color-border); border-radius: var(--radius-sm); cursor: pointer; display: flex; gap: var(--space-3); min-height: 3.5rem; padding: var(--space-3); }
+.check-row { align-items: flex-start; background: var(--color-card-strong); border: 1px solid var(--color-border); border-radius: var(--radius-sm); cursor: pointer; display: flex; gap: var(--space-3); min-height: 3.5rem; padding: var(--space-3); }
 .check-row input { height: 1.2rem; width: 1.2rem; }
+.check-row__content { display: grid; gap: .2rem; min-width: 0; }
+.check-row__content small { color: var(--color-muted); font-size: .72rem; line-height: 1.35; }
 .routine-prep-add, .routine-prep-row { display: grid; gap: var(--space-2); grid-template-columns: minmax(0, 1fr) auto; margin-top: var(--space-2); }
 .routine-prep-row { grid-template-columns: minmax(0, 1fr) minmax(7rem, auto) auto; }
 .routine-prep-add input, .routine-prep-row input, .routine-prep-row select { background: var(--color-card); border: 1px solid var(--color-border); border-radius: var(--radius-sm); min-height: 2.8rem; padding: .6rem .75rem; width: 100%; }

@@ -182,7 +182,10 @@ export function SyncSettingsPanel({ env }: SyncSettingsPanelProps = {}) {
           onChange={(event) => togglePrepared(event.target.checked)}
           type="checkbox"
         />
-        <span><strong>Prepare this device for sync</strong><small>This stores local sync metadata and conflict state on this device.</small></span>
+        <span className="check-row__content">
+          <strong>Prepare this device for sync</strong>
+          <small>This stores local sync metadata and conflict state on this device.</small>
+        </span>
       </label>
 
       {availability.configured && !query.data?.session ? (
