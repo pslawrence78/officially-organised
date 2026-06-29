@@ -52,6 +52,6 @@ If documents disagree, prefer the later document for its area of authority:
 
 ## Current implementation boundary
 
-The application is implemented through **Tranche 8B**, including versioned local backup, validated transactional restore, protected reset, the landscape-first read-only Hub display polish, the optional Supabase foundation, and the first manual local-first sync engine. See documents 07, 07F, 08A and 08B for the current boundary.
+The application is implemented through **Tranche 8B**, including versioned local backup, validated transactional restore, protected reset, the landscape-first read-only Hub display polish, the optional Supabase foundation, and the first manual local-first sync engine. The Supabase setup notes now include the corrected authenticated household bootstrap, private RLS helper functions, and schema-cache troubleshooting. See documents 07, 07F, 08A and 08B for the current boundary.
 
 When adding a document, retain the numeric prefix, include its version in the filename, and update this index with its purpose, status, and authority.

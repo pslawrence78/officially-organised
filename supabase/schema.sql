@@ -1,5 +1,11 @@
 -- Officially Organised Tranche 8A sync foundation.
 -- Run manually in the Supabase SQL Editor.
+--
+-- Household bootstrap:
+-- 1. User signs in through Supabase Auth.
+-- 2. User inserts public.households with owner_user_id = auth.uid().
+-- 3. User inserts their own public.household_members row with role = owner.
+-- 4. User can then read/write public.sync_entities for that household through RLS.
 
 create extension if not exists pgcrypto;
 

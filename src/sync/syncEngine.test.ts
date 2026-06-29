@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { db } from "../data/db";
 import { createPlace, getSyncSettings, saveSetting, seedInitialDataIfNeeded } from "../data/repositories";
-import { runManualSync } from "./syncEngine";
+import { createCloudHouseholdFromThisDevice, runManualSync } from "./syncEngine";
 import { hashPayload } from "./syncHasher";
 import { putSyncState } from "./syncStateRepository";
 
@@ -51,6 +51,14 @@ describe("syncEngine", () => {
     const result = await runManualSync();
     expect(result.ok).toBe(false);
     expect(result.message).toMatch(/Sign in/i);
+  });
+
+  it("requires a current Supabase user before creating a cloud household", async () => {
+    const auth = await import("./authService");
+    vi.mocked(auth.getCurrentSession).mockResolvedValueOnce({ ok: true, value: null });
+    const result = await createCloudHouseholdFromThisDevice();
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.message).toMatch(/Sign in before creating/i);
   });
 
   it("pushes a local-only record", async () => {

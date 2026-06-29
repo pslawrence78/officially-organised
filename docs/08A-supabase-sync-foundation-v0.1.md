@@ -41,7 +41,8 @@ When either value is missing or invalid, the app boots normally, the Sync panel 
 3. Copy the project URL and publishable key into local `.env` or GitHub repository secrets.
 4. Run `supabase/schema.sql` in the SQL Editor.
 5. Run `supabase/rls.sql` in the SQL Editor.
-6. Use `supabase/seed-dev.sql` only as a manual development note.
+6. Run `notify pgrst, 'reload schema';` if the Data API reports stale schema metadata.
+7. Use `supabase/seed-dev.sql` only as a manual development note.
 
 ### Supabase Auth URL configuration
 
@@ -55,7 +56,22 @@ Under **Authentication -> URL Configuration**, include:
 
 ## RLS Intent
 
-Authenticated users can read only households they belong to. Owners can update household metadata and manage membership. Members can read sync envelopes. Adults and owners can insert or update sync envelopes. Audit rows are scoped to the actor's household.
+Authenticated users can create a household only with `owner_user_id = auth.uid()`, then insert their own owner membership row. Owners can update/delete household metadata and manage membership. Members can read sync envelopes. Adults and owners can insert, update or delete sync envelopes. Audit rows are scoped to household members and an explicit `actor_user_id` must be null or the current user.
+
+The RLS script uses `SECURITY DEFINER` helper functions in a non-exposed `private` schema for membership checks. This avoids recursive RLS evaluation when policies on `household_members` need to check whether the current user belongs to a household.
+
+Live Supabase validation reached successful manual sync after applying this corrected SQL/RLS design. To reconcile a clean project, run `supabase/schema.sql`, then `supabase/rls.sql`, then refresh the schema cache if needed:
+
+```sql
+notify pgrst, 'reload schema';
+```
+
+## Troubleshooting
+
+- `Could not find the table 'public.households' in the schema cache`: check that `supabase/schema.sql` ran in the correct project, then run `supabase/rls.sql` and `notify pgrst, 'reload schema';`.
+- `permission denied for table households`: ensure `supabase/rls.sql` granted the minimum table privileges to `authenticated`; do not grant sync table access to `anon`.
+- `new row violates row-level security policy for table "households"`: confirm the bootstrap insert policy exists and the app inserts `owner_user_id = auth.uid()`.
+- `infinite recursion detected in policy for relation "household_members"`: ensure membership checks use the `private.oo_*` `SECURITY DEFINER` helpers rather than direct self-queries in `household_members` policy bodies.
 
 ## Local-First Safety
 

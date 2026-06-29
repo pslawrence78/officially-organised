@@ -12,10 +12,13 @@ The application now includes local data safety tools and a cautious manual Supab
 - atomic reset and baseline reseed protected by `RESET OFFICIALLY ORGANISED`
 - optional Supabase configuration via `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`
 - local-only sync metadata, conflict review, household linking, derived auth redirect handling, and a manual `Sync now` flow in Settings
+- corrected Supabase SQL/RLS setup for authenticated household bootstrap and manual sync
 - clear local-only and private-data warnings
 - audit entries for export, restore and reset
 
 Event CRUD, places, preparation, car needs, conflicts, routines, School Calendar and Family Countdown remain intact. IndexedDB is still the live source of truth. Realtime sync, background sync, merge import, external upload and encrypted exports remain out of scope.
+
+Live Supabase validation reached successful manual sync after applying the corrected SQL/RLS design in `supabase/schema.sql` and `supabase/rls.sql`. Run both scripts and refresh the schema cache with `notify pgrst, 'reload schema';` if the Supabase Data API reports stale schema metadata.
 
 ## Run and verify
 
@@ -34,5 +37,5 @@ See [Tranche 8B documentation](docs/08B-local-first-supabase-sync-engine-v0.1.md
 ## Suggested commit
 
 ```text
-Add local-first Supabase sync engine
+Fix Supabase RLS bootstrap and sync grants
 ```

@@ -44,6 +44,16 @@ Tranche 8B adds the first manual sync engine while keeping Officially Organised 
 8. Push queued upserts and tombstones.
 9. Update local sync state, queue counts and conflict counts.
 
+## Supabase RLS setup
+
+Manual sync depends on the corrected Supabase SQL/RLS setup in `supabase/schema.sql` and `supabase/rls.sql`:
+
+1. Signed-in user creates a household with `owner_user_id = auth.uid()`.
+2. The same user inserts their own `household_members` row with `role = 'owner'`.
+3. RLS allows `sync_entities` access only for authorised household members.
+
+Run `notify pgrst, 'reload schema';` after SQL changes if PostgREST reports stale schema metadata.
+
 ## Auth redirect handling
 
 - Magic-link sign-in now derives its callback URL from the current origin plus `import.meta.env.BASE_URL`.
@@ -93,6 +103,13 @@ There is no field-level merge or raw JSON editor in this tranche.
 - Conflict handling is record-level only.
 - Sync still uses one linked household per device.
 - Audit history is not synced.
+
+## Troubleshooting
+
+- `Could not find the table 'public.households' in the schema cache`: run `supabase/schema.sql`, run `supabase/rls.sql`, confirm the configured project is correct, then run `notify pgrst, 'reload schema';`.
+- `permission denied for table households`: rerun `supabase/rls.sql` so `authenticated` has the required table grants. `anon` remains blocked.
+- `new row violates row-level security policy for table "households"`: confirm the household insert includes `owner_user_id = auth.uid()` and uses the database column name `owner_user_id`.
+- `infinite recursion detected in policy for relation "household_members"`: use the current `supabase/rls.sql`, which moves membership checks into `private.oo_*` `SECURITY DEFINER` helper functions.
 
 ## Manual testing checklist
 
