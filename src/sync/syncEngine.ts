@@ -9,7 +9,7 @@ import { listLocalSyncRecords, toRemoteSyncEntity } from "./syncSerialiser";
 import { getAllSyncState, getSyncStateByEntity, putSyncState } from "./syncStateRepository";
 import { getSyncEntityDefinition, getSyncEntityTitle } from "./syncEntityRegistry";
 import { hashPayload } from "./syncHasher";
-import type { RemoteSyncEntity, SyncRunResult } from "./syncTypes";
+import type { RemoteSyncEntity, SyncErrorCode, SyncRunResult } from "./syncTypes";
 
 function normaliseTimestamp(value?: string | null) {
   return value && !Number.isNaN(Date.parse(value)) ? value : undefined;
@@ -55,13 +55,29 @@ export async function linkFirstRemoteHousehold(): Promise<{ ok: true } | { ok: f
 }
 
 export async function runManualSync(): Promise<SyncRunResult> {
+  const attemptStartedAt = new Date();
   const emptyStats = { pulled: 0, pushed: 0, conflicts: 0, queueCount: await getSyncQueueCount() };
   const settings = await getSyncSettings();
-  if (!settings.supabaseConfigured) return { ok: false, message: "Sync is unavailable until Supabase is configured.", stats: emptyStats };
+  const fail = async (code: SyncErrorCode, message: string, stats = emptyStats): Promise<SyncRunResult> => {
+    await updateSyncSettings({
+      lastSyncAttemptAt: attemptStartedAt.toISOString(),
+      lastSyncStatus: code === "conflict_detected" || code === "partial_sync" ? "warning" : "error",
+      lastSyncMessage: message,
+      lastSyncErrorCode: code,
+      lastSyncErrorMessage: message,
+      queueCount: stats.queueCount,
+      conflictCount: stats.conflicts || await getOpenSyncConflictCount(),
+    });
+    return { ok: false, message, stats };
+  };
+  if (!settings.supabaseConfigured) return fail("sync_not_configured", "Supabase is not configured. Add the Vite environment variables, rebuild, then reopen Settings.");
+  if (!settings.enabled || settings.paused) return fail("sync_not_enabled", "Sync is paused on this device. Resume sync before running Sync now.");
+  if (!settings.firstSyncConfirmed) return fail("first_sync_not_confirmed", "Confirm the first sync guidance before pushing local records to Supabase.");
   const sessionResult = await getCurrentSession();
-  if (!sessionResult.ok || !sessionResult.value?.user) return { ok: false, message: "Sign in to sync this device.", stats: emptyStats };
-  if (!settings.householdId) return { ok: false, message: "Link a cloud household before syncing.", stats: emptyStats };
-  if (typeof navigator !== "undefined" && navigator.onLine === false) return { ok: false, message: "Sync is unavailable while this device is offline.", stats: emptyStats };
+  if (!sessionResult.ok) return fail("not_signed_in", sessionResult.message || "Sign in to Supabase before syncing this device.");
+  if (!sessionResult.value?.user) return fail("not_signed_in", "Sign in to Supabase before syncing this device.");
+  if (!settings.householdId) return fail("household_not_linked", "Create or link a cloud household before syncing.");
+  if (typeof navigator !== "undefined" && navigator.onLine === false) return fail("offline", "Offline - local app still available. Sync now is disabled until the network returns.");
 
   await ensureSyncDevice();
 
@@ -70,7 +86,12 @@ export async function runManualSync(): Promise<SyncRunResult> {
   const localByKey = new Map(localRecords.map((item) => [`${item.entityType}:${item.entityId}`, item]));
   const previousState = await getAllSyncState();
   const stateByKey = new Map(previousState.map((item) => [`${item.entityType}:${item.entityId}`, item]));
-  const remoteEntities = await listRemoteSyncEntities(settings.householdId);
+  let remoteEntities: RemoteSyncEntity[];
+  try {
+    remoteEntities = await listRemoteSyncEntities(settings.householdId);
+  } catch (error) {
+    return fail(classifySyncError(error), humanSyncErrorMessage(error));
+  }
   const remoteByKey = new Map(remoteEntities.map((item) => [`${item.entity_type}:${item.entity_id}`, item]));
 
   const queueItems: Array<{ entityType: string; entityId: string; operation: "upsert" | "delete" }> = [];
@@ -173,7 +194,11 @@ export async function runManualSync(): Promise<SyncRunResult> {
       const localRecord = localByKey.get(`${item.entityType}:${item.entityId}`);
       if (!localRecord) continue;
       const remote = await toRemoteSyncEntity(settings.householdId, localRecord);
-      await upsertRemoteSyncEntity(remote);
+      try {
+        await upsertRemoteSyncEntity(remote);
+      } catch (error) {
+        return fail(classifySyncError(error), humanSyncErrorMessage(error), { pulled, pushed, conflicts, queueCount: queueItems.length });
+      }
       await putSyncState({
         entityType: item.entityType,
         entityId: item.entityId,
@@ -190,7 +215,8 @@ export async function runManualSync(): Promise<SyncRunResult> {
     }
     const existingState = await getSyncStateByEntity(item.entityType, item.entityId);
     const remote = remoteByKey.get(`${item.entityType}:${item.entityId}`);
-    await upsertRemoteSyncEntity({
+    try {
+      await upsertRemoteSyncEntity({
       household_id: settings.householdId,
       entity_type: item.entityType,
       entity_id: item.entityId,
@@ -201,7 +227,10 @@ export async function runManualSync(): Promise<SyncRunResult> {
       server_updated_at: now,
       deleted_at: now,
       updated_by: sessionResult.value.user.id,
-    });
+      });
+    } catch (error) {
+      return fail(classifySyncError(error), humanSyncErrorMessage(error), { pulled, pushed, conflicts, queueCount: queueItems.length });
+    }
     await putSyncState({
       entityType: item.entityType,
       entityId: item.entityId,
@@ -230,15 +259,41 @@ export async function runManualSync(): Promise<SyncRunResult> {
     enabled: true,
     userId: sessionResult.value.user.id,
     lastAuthCheckAt: now,
+    lastSyncAttemptAt: attemptStartedAt.toISOString(),
     lastSyncAt: now,
+    lastSyncDurationMs: Date.now() - attemptStartedAt.getTime(),
     lastSyncStatus: ok ? "success" : "warning",
     lastSyncMessage: message,
+    lastSyncErrorCode: ok ? undefined : "conflict_detected",
+    lastSyncErrorMessage: ok ? undefined : message,
+    lastPullCount: pulled,
+    lastPushCount: pushed,
     queueCount,
     conflictCount,
     restoredSinceLastSync: false,
   });
 
   return { ok, message, stats: { pulled, pushed, conflicts, queueCount } };
+}
+
+export function classifySyncError(error: unknown): SyncErrorCode {
+  const message = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
+  if (message.includes("jwt") || message.includes("session")) return "not_signed_in";
+  if (message.includes("permission") || message.includes("rls") || message.includes("row-level")) return "permission_denied";
+  if (message.includes("relation") || message.includes("schema") || message.includes("table")) return "remote_schema_missing";
+  if (message.includes("payload") || message.includes("validation")) return "payload_validation_failed";
+  if (message.includes("network") || message.includes("fetch") || message.includes("offline")) return "offline";
+  return "unknown";
+}
+
+export function humanSyncErrorMessage(error: unknown): string {
+  const code = classifySyncError(error);
+  if (code === "not_signed_in") return "Your Supabase session may have expired. Sign in again, then run Sync now.";
+  if (code === "permission_denied") return "Supabase blocked access for this account. Check household membership and RLS policies.";
+  if (code === "remote_schema_missing") return "Supabase sync tables or policies appear to be missing. Run the schema and RLS SQL from the setup guide.";
+  if (code === "payload_validation_failed") return "A record could not be safely prepared for cloud sync. Export a backup, then check the console details.";
+  if (code === "offline") return "Offline - local app still available. Sync now is disabled until the network returns.";
+  return "Sync did not complete. Local data was kept unchanged; check configuration and try again.";
 }
 
 async function applyRemoteUpsert(entityType: string, remote: RemoteSyncEntity, syncedAt: string) {

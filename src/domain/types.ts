@@ -118,6 +118,8 @@ export type SyncStatus = "never" | "success" | "warning" | "error";
 export interface SyncSettings {
   id: "sync_settings";
   enabled: boolean;
+  paused?: boolean;
+  firstSyncConfirmed?: boolean;
   supabaseConfigured: boolean;
   householdId?: string;
   userId?: string;
@@ -125,8 +127,14 @@ export interface SyncSettings {
   deviceLabel?: string;
   lastAuthCheckAt?: string;
   lastSyncAt?: string;
+  lastSyncAttemptAt?: string;
+  lastSyncDurationMs?: number;
   lastSyncStatus: SyncStatus;
   lastSyncMessage?: string;
+  lastSyncErrorCode?: string;
+  lastSyncErrorMessage?: string;
+  lastPullCount?: number;
+  lastPushCount?: number;
   queueCount?: number;
   conflictCount?: number;
   restoredSinceLastSync?: boolean;

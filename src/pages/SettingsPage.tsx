@@ -80,6 +80,7 @@ export function SettingsPage() {
         <div className="notice notice--warning">
           <strong>This affects only this browser/device</strong>
           <span>Reset removes current local data and restores the baseline Officially Organised records. Export a backup first if you may need the current data.</span>
+          <span>If sync is configured, local reset does not delete cloud data. This device is unlinked from sync metadata during reset.</span>
         </div>
         <p>Type <code>{RESET_PHRASE}</code> exactly to enable reset.</p>
         <label className="form-field">
@@ -92,7 +93,7 @@ export function SettingsPage() {
         {resetDone ? (
           <div className="notice notice--success" role="status">
             <strong>Reset complete</strong>
-            <span>Baseline records have been restored without duplicates.</span>
+            <span>Baseline records have been restored without duplicates. Sync metadata was cleared for this device.</span>
           </div>
         ) : null}
       </details>

@@ -39,12 +39,16 @@ export function SyncConflictsPage() {
           </div>
           <p>{conflict.reason}</p>
           <dl>
+            <div><dt>Entity type</dt><dd>{conflict.entityType}</dd></div>
+            <div><dt>Record title</dt><dd>{describeSyncConflict(conflict)}</dd></div>
             <div><dt>Local updated</dt><dd>{conflict.localUpdatedAt ? new Date(conflict.localUpdatedAt).toLocaleString() : "Unknown"}</dd></div>
             <div><dt>Cloud updated</dt><dd>{conflict.remoteUpdatedAt ? new Date(conflict.remoteUpdatedAt).toLocaleString() : "Unknown"}</dd></div>
           </dl>
+          <div className="notice notice--warning"><strong>Choose one version for this record</strong><span>Choosing one version will replace the other version for this record only.</span></div>
           <div className="form-actions">
             <button className="button button--primary" disabled={busyId === conflict.id} onClick={() => void resolve(conflict.id, "local")} type="button">Keep local</button>
             <button className="button button--secondary" disabled={busyId === conflict.id} onClick={() => void resolve(conflict.id, "cloud")} type="button">Keep cloud</button>
+            <Link className="button button--secondary" to="/settings">Leave unresolved</Link>
           </div>
         </section>
       )) : <div className="notice notice--success"><strong>No open sync conflicts</strong><span>Everything is currently aligned or safely queued.</span></div>}

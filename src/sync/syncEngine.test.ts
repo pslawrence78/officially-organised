@@ -34,6 +34,16 @@ describe("syncEngine", () => {
     await saveSetting("weather_settings", { enabled: true }, "Weather");
   });
 
+  async function prepareSyncSettings() {
+    await db.syncSettings.update("sync_settings", {
+      enabled: true,
+      paused: false,
+      firstSyncConfirmed: true,
+      supabaseConfigured: true,
+      householdId: "remote-household-1",
+    });
+  }
+
   it("blocks safely when Supabase is not configured", async () => {
     const syncRepository = await import("../data/repositories/syncRepository");
     vi.spyOn(syncRepository, "getSyncSettings").mockResolvedValueOnce({
@@ -42,10 +52,11 @@ describe("syncEngine", () => {
     });
     const result = await runManualSync();
     expect(result.ok).toBe(false);
-    expect(result.message).toMatch(/unavailable until Supabase is configured/i);
+    expect(result.message).toMatch(/Supabase is not configured/i);
   });
 
   it("blocks safely when no user session exists", async () => {
+    await prepareSyncSettings();
     const auth = await import("./authService");
     vi.mocked(auth.getCurrentSession).mockResolvedValueOnce({ ok: true, value: null });
     const result = await runManualSync();
@@ -62,7 +73,7 @@ describe("syncEngine", () => {
   });
 
   it("pushes a local-only record", async () => {
-    await db.syncSettings.update("sync_settings", { supabaseConfigured: true, householdId: "remote-household-1" });
+    await prepareSyncSettings();
     await createPlace({ name: "Library", placeType: "other" });
     const result = await runManualSync();
     expect(result.ok).toBe(true);
@@ -73,7 +84,7 @@ describe("syncEngine", () => {
   });
 
   it("pulls a remote-only record", async () => {
-    await db.syncSettings.update("sync_settings", { supabaseConfigured: true, householdId: "remote-household-1" });
+    await prepareSyncSettings();
     remoteState.entities.push({
       household_id: "remote-household-1",
       entity_type: "places",
@@ -93,7 +104,7 @@ describe("syncEngine", () => {
   });
 
   it("does nothing when hashes already match", async () => {
-    await db.syncSettings.update("sync_settings", { supabaseConfigured: true, householdId: "remote-household-1" });
+    await prepareSyncSettings();
     await createPlace({ name: "Cinema", placeType: "other" });
     await runManualSync();
     const beforeCount = remoteState.entities.length;
@@ -104,7 +115,7 @@ describe("syncEngine", () => {
   });
 
   it("creates a conflict when local and remote changed differently", async () => {
-    await db.syncSettings.update("sync_settings", { supabaseConfigured: true, householdId: "remote-household-1" });
+    await prepareSyncSettings();
     const place = await createPlace({ name: "Playgroup", placeType: "other" });
     await putSyncState({
       entityType: "places",
@@ -136,7 +147,7 @@ describe("syncEngine", () => {
   });
 
   it("marks remote tombstones as deleted locally", async () => {
-    await db.syncSettings.update("sync_settings", { supabaseConfigured: true, householdId: "remote-household-1" });
+    await prepareSyncSettings();
     const place = await createPlace({ name: "Old Hall", placeType: "other" });
     const payloadHash = await hashPayload(place);
     await putSyncState({

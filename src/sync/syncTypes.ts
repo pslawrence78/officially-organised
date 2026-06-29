@@ -18,6 +18,20 @@ export interface SyncRunStats {
   queueCount: number;
 }
 
+export type SyncErrorCode =
+  | "sync_not_configured"
+  | "sync_not_enabled"
+  | "first_sync_not_confirmed"
+  | "not_signed_in"
+  | "household_not_linked"
+  | "offline"
+  | "permission_denied"
+  | "remote_schema_missing"
+  | "payload_validation_failed"
+  | "conflict_detected"
+  | "partial_sync"
+  | "unknown";
+
 export type SyncRunResult =
   | { ok: true; message: string; stats: SyncRunStats }
   | { ok: false; message: string; stats: SyncRunStats };
