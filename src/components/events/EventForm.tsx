@@ -10,7 +10,7 @@ import {
   FAMILY_CAR_RESOURCE_ID,
 } from "../../domain/constants";
 import { validateEventInput, type ValidationErrors } from "../../domain/validation/eventValidation";
-import type { FamilyEvent, FamilyEventInput, FamilyMember, Place, Resource } from "../../domain/types";
+import type { EventSeriesInput, FamilyEvent, FamilyEventInput, FamilyMember, Place, Resource, Weekday } from "../../domain/types";
 import { createEvent, createPlace, updateEvent } from "../../data/repositories";
 import {
   allDayEndIso,
@@ -22,6 +22,7 @@ import {
   isoToDateTimeLocal,
   localDateTimeToIso,
 } from "../../utils/dates";
+import { createId } from "../../utils/ids";
 import { MemberSelector } from "./MemberSelector";
 import { PrepTaskEditor } from "../prep/PrepTaskEditor";
 import { CarNeedEditor } from "../resources/CarNeedEditor";
@@ -31,6 +32,20 @@ interface EventFormProps {
   familyMembers: FamilyMember[];
   places: Place[];
   resources: Resource[];
+}
+
+type RoutinePrefill = Omit<Partial<EventSeriesInput>, "recurrence"> & { recurrence?: Partial<EventSeriesInput["recurrence"]> };
+
+const WEEKDAYS: Weekday[] = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+
+function weekdayFromDateKey(dateKey: string): Weekday {
+  return WEEKDAYS[new Date(`${dateKey}T12:00:00Z`).getUTCDay()];
+}
+
+function durationMinutesBetween(start: string, end: string) {
+  const diff = new Date(`${end}:00`).getTime() - new Date(`${start}:00`).getTime();
+  if (!Number.isFinite(diff) || diff <= 0) return undefined;
+  return Math.round(diff / 60000);
 }
 
 export function EventForm({ event, familyMembers, places, resources }: EventFormProps) {
@@ -62,6 +77,49 @@ export function EventForm({ event, familyMembers, places, resources }: EventForm
   const adults = familyMembers.filter((member) => member.memberType === "adult");
   const familyCar = resources.find((resource) => resource.id === FAMILY_CAR_RESOURCE_ID);
   const carNeed = resourceNeeds.find((need) => need.resourceId === FAMILY_CAR_RESOURCE_ID);
+
+  const openRoutineCreator = () => {
+    const recurrencePrefill: Partial<EventSeriesInput["recurrence"]> = allDay
+      ? {
+          startDate,
+          dayOfWeek: weekdayFromDateKey(startDate),
+        }
+      : {
+          startDate: startLocal.slice(0, 10),
+          startTime: startLocal.slice(11, 16),
+          durationMinutes: durationMinutesBetween(startLocal, endLocal),
+          dayOfWeek: weekdayFromDateKey(startLocal.slice(0, 10)),
+        };
+    const routinePrefill: RoutinePrefill = {
+      title: title.trim(),
+      category,
+      defaultPlaceId: placeId || undefined,
+      defaultParticipants: [...participants],
+      defaultResponsibleAdults: [...responsibleAdults],
+      defaultPrepTasks: prepTasks
+        .map((task) => task.title.trim())
+        .filter(Boolean)
+        .map((taskTitle) => ({
+          id: createId("prep_template"),
+          title: taskTitle,
+          ownerIds: [],
+          dueOffsetMinutes: -60,
+          priority: "normal" as const,
+          blocksEvent: false,
+        })),
+      defaultResourceNeeds: carNeed
+        ? [{
+            id: createId("need_template"),
+            resourceId: carNeed.resourceId,
+            needStatus: carNeed.needStatus,
+            beforeStartMinutes: 15,
+            afterEndMinutes: 15,
+          }]
+        : [],
+      recurrence: recurrencePrefill,
+    };
+    navigate("/routines", { state: { openRoutineCreator: true, routinePrefill } });
+  };
 
   const onSubmit = async (formEvent: FormEvent) => {
     formEvent.preventDefault();
@@ -163,6 +221,17 @@ export function EventForm({ event, familyMembers, places, resources }: EventForm
           <label className={`form-field${errors.endAt ? " has-error" : ""}`}><span>Ends</span><input onChange={(e) => setEndLocal(e.target.value)} type="datetime-local" value={endLocal} />{errors.endAt ? <span className="field-error">{errors.endAt}</span> : null}</label>
         </div>
       )}
+
+      {!event ? (
+        <section className="section-block event-routine-bridge" aria-label="Routine creation help">
+          <div>
+            <p className="eyebrow">Repeats regularly?</p>
+            <h2>Create a routine instead</h2>
+          </div>
+          <p className="supporting-copy">Use events for one-off plans. Use routines for clubs, lessons, weekly checks or repeat commitments.</p>
+          <button className="button button--secondary" onClick={openRoutineCreator} type="button">Create routine</button>
+        </section>
+      ) : null}
 
       <MemberSelector error={errors.participants} label="Who is involved?" members={familyMembers} onChange={setParticipants} selectedIds={participants} />
       <MemberSelector error={errors.responsibleAdults} label="Responsible adult (optional)" members={adults} onChange={setResponsibleAdults} selectedIds={responsibleAdults} />
