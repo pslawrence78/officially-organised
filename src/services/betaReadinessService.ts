@@ -169,7 +169,7 @@ export async function getBetaReadinessReport(): Promise<BetaReadinessReport> {
 
 export function createBetaDiagnosticsText(report: BetaReadinessReport) {
   return [
-    "Officially Organised beta diagnostics",
+    "Officially Organised release readiness diagnostics",
     `Generated: ${new Date().toISOString()}`,
     `App version: ${report.appVersion}`,
     `Dexie schema: ${report.dexieSchemaVersion}`,

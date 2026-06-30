@@ -50,13 +50,13 @@ export function BetaReadinessPage() {
   const copyDiagnostics = async () => {
     if (!state.data) return;
     await navigator.clipboard?.writeText(createBetaDiagnosticsText(state.data));
-    setMessage("Beta diagnostics copied without private schedule content or sync secrets.");
+    setMessage("Readiness diagnostics copied without private schedule content or sync secrets.");
   };
 
   return (
     <div className="page-stack data-safety-page">
-      <PageHeader eyebrow="Quiet confidence" title="Beta readiness">
-        Safe technical diagnostics, local soak checkpoints, and practical signals for real family beta use on this device.
+      <PageHeader eyebrow="Quiet confidence" title="Release readiness">
+        Safe technical diagnostics, local rehearsal checkpoints, and practical signals for final RC1 confidence on this device.
       </PageHeader>
 
       <div className="notice">
@@ -64,8 +64,8 @@ export function BetaReadinessPage() {
         <span>Copied diagnostics exclude schedule titles, notes, places, family activity detail, auth tokens, Supabase keys, and cloud credentials.</span>
       </div>
 
-      {state.loading ? <LoadingState label="Checking beta readiness…" /> : null}
-      {state.error ? <ErrorState>Beta readiness could not be checked right now. Local planning is still available.</ErrorState> : null}
+      {state.loading ? <LoadingState label="Checking release readiness..." /> : null}
+      {state.error ? <ErrorState>Release readiness could not be checked right now. Local planning is still available.</ErrorState> : null}
 
       {state.data ? (
         <>
@@ -127,10 +127,10 @@ export function BetaReadinessPage() {
             <div className="section-heading">
               <div>
                 <p className="eyebrow">Manual checks</p>
-                <h2>Beta soak checkpoints</h2>
+                <h2>Release rehearsal checkpoints</h2>
               </div>
             </div>
-            <p className="supporting-copy">Use these lightweight checks to record whether real-device rehearsal has happened on this installation. The full step-by-step runbooks live in the tranche 10D documentation.</p>
+            <p className="supporting-copy">Use these lightweight checks to record whether real-device rehearsal has happened on this installation. The fuller runbooks live in the tranche 10D and RC1 documentation.</p>
             <div className="beta-checklist">
               {betaChecklistItems.map((item) => (
                 <label className="check-row" key={item.key}>
@@ -150,7 +150,7 @@ export function BetaReadinessPage() {
           </section>
 
           <div className="form-actions">
-            <button className="button button--secondary" onClick={() => void copyDiagnostics()} type="button">Copy beta diagnostics</button>
+            <button className="button button--secondary" onClick={() => void copyDiagnostics()} type="button">Copy readiness diagnostics</button>
             <Link className="button button--secondary" to="/settings/export">Export backup</Link>
             <Link className="button button--secondary" to="/settings/import">Restore rehearsal</Link>
             <Link className="button button--secondary" to="/settings/sync">Sync review</Link>

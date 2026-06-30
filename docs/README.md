@@ -4,6 +4,7 @@ The documents in this folder define **Officially Organised**, a private, mobile-
 
 ## Start here
 
+- **To understand release status:** read [RC1 Release Candidate v1.0](RC1-officially-organised-release-candidate-v1.0.md).
 - **To understand the product:** read [Product Specification v0.2](03-product-specification-v0.2.md).
 - **To understand how it should be built:** read [Technical Architecture v0.1](04-technical-architecture-v0.1.md).
 - **To begin implementation:** follow [Build Plan v0.1](05-build-plan-v0.1.md), starting with Tranche 0 (formerly Milestone A).
@@ -31,6 +32,7 @@ The documents in this folder define **Officially Organised**, a private, mobile-
 | 10B.2 | [Tranche 10B.2: Event and Routine Entry Bridge v0.1](10B.2-event-and-routine-entry-bridge-v0.1.md) | Records the safe Add Event to Create Routine bridge, transient prefill, and explicit non-goals that preserve the separate data models. | Implemented |
 | 10C | [Tranche 10C: Mobile Capture and Daily Use Friction Pass v0.1](10C-mobile-capture-and-daily-use-friction-pass-v0.1.md) | Records the shared quick-capture flow, lighter event and routine entry, dashboard scanability updates, and mobile interaction polish. | Implemented |
 | 10D | [Tranche 10D: Real Family Beta Hardening v0.1](10D-real-family-beta-hardening-v0.1.md) | Records beta-readiness diagnostics, dense-week guardrails, route smoke coverage, safer backup/sync guidance, and RC1-facing hardening work. | Implemented |
+| RC1 | [RC1: Officially Organised Release Candidate v1.0](RC1-officially-organised-release-candidate-v1.0.md) | Records the final release-candidate polish pass, route audit, validation results, known limitations, and final v1-readiness statement. | Current release status |
 | 08 Setup | [Supabase Configuration Guide v0.1](08-supabase-configuration-guide-v0.1.md) | Operator guide for Supabase Auth URLs, SQL/RLS, local env, GitHub Pages variables and safe first sync. | Current setup guide |
 
 ## Reading order
@@ -62,6 +64,12 @@ If documents disagree, prefer the later document for its area of authority:
 
 ## Current implementation boundary
 
-The application is implemented through **Tranche 10D**, including versioned local backup, validated transactional restore, protected reset, the landscape-first read-only Hub display polish, the optional Supabase foundation, the manual local-first sync engine and hardening UX, the bounded Gifts and Celebrations operational module, the dedicated School Hub consolidation surface, the bounded Household Admin and Renewals foundation, the safe Add Event to Create Routine bridge, the shared mobile quick-capture and daily-use friction pass, and the real-family beta hardening layer for diagnostics, dense-week testing, route smoke coverage, and backup/sync rehearsal confidence. Household Admin now covers practical due-date tracking for services and renewals without expanding into chores, budgeting, or document storage, capture remains available as a lighter shell-level workflow across Event, Routine and Admin/Renewal, and 10D adds readiness evidence rather than new product modules. See documents 07, 07F, 08A, 08B, 08C, 09A, 09B, 09C, 10A, 10B, 10B.2, 10C, 10D and the Supabase configuration guide for the current boundary.
+The application is implemented through **RC1**, including versioned local backup, validated transactional restore, protected reset, the landscape-first read-only Hub and wallboard, the optional Supabase foundation and manual sync UX, the bounded Gifts and Celebrations module, the dedicated School Hub, Household Admin and Renewals, the safe Add Event to Create Routine bridge, the shared mobile quick-capture flow, dense-week hardening, and the final release-candidate polish pass across naming, copy, routes, empty states, validation coverage, and deployment readiness. See the tranche documents, the Supabase guide, and the RC1 report for the current boundary and release status.
+
+The current user-facing release label is `1.0.0-rc.1`.
+
+## Release note
+
+The current release note is [RC1: Officially Organised Release Candidate v1.0](RC1-officially-organised-release-candidate-v1.0.md).
 
 When adding a document, retain the numeric prefix, include its version in the filename, and update this index with its purpose, status, and authority.

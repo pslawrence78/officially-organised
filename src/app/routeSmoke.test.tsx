@@ -41,10 +41,12 @@ describe("route smoke coverage with dense beta-week data", () => {
     "/routines",
     "/school",
     "/celebrations",
+    "/household",
     "/household-admin",
     "/settings",
     "/settings/import",
     "/settings/export",
+    "/settings/release-readiness",
     "/settings/sync",
     "/settings/beta-readiness",
   ])("renders %s inside the app shell without crashing", async (path) => {

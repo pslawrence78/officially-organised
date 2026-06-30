@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { APP_VERSION } from "../config/appVersion";
+import { PRODUCT_NAME } from "../config/productIdentity";
 import { ErrorState, LoadingState } from "../components/common/AsyncState";
 import { Icon } from "../components/common/Icon";
 import { PageHeader } from "../components/layout/PageHeader";
@@ -47,6 +49,8 @@ export function SettingsPage() {
           <dl>
             <div><dt>Household</dt><dd>{state.data.household?.name ?? "Not available"}</dd></div>
             <div><dt>Timezone</dt><dd>{state.data.household?.timezone ?? "Not available"}</dd></div>
+            <div><dt>App</dt><dd>{PRODUCT_NAME}</dd></div>
+            <div><dt>App version</dt><dd>{APP_VERSION}</dd></div>
             <div><dt>Local records</dt><dd>{Object.values(state.data.counts).reduce((sum, count) => sum + count, 0)}</dd></div>
             <div><dt>Database version</dt><dd>{databaseMetadata.schemaVersion}</dd></div>
             <div><dt>Backup schema</dt><dd><code>{EXPORT_DATA_SCHEMA}</code></dd></div>
@@ -62,9 +66,9 @@ export function SettingsPage() {
           </div>
         </div>
         <div className="settings-links" aria-label="Local data safety tools">
-          <Link to="/settings/beta-readiness">
+          <Link to="/settings/release-readiness">
             <span className="secondary-navigation__icon"><Icon name="check" /></span>
-            <span><strong>Beta readiness</strong><small>Diagnostics, soak checks and safe beta confidence notes</small></span>
+            <span><strong>Release readiness</strong><small>RC1 diagnostics, local checks and final confidence notes</small></span>
             <Icon className="secondary-navigation__chevron" name="chevron" />
           </Link>
           <Link to="/settings/export">

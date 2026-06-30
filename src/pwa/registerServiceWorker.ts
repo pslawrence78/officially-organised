@@ -7,7 +7,7 @@ export function registerServiceWorker() {
     immediate: true,
     onNeedRefresh() {
       window.dispatchEvent(
-        new CustomEvent("lawrence-loop:update-available", {
+        new CustomEvent("officially-organised:update-available", {
           detail: { updateServiceWorker },
         }),
       );

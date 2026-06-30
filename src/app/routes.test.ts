@@ -19,6 +19,7 @@ describe("Tranche 0 route contract", () => {
       "/prep",
       "/school",
       "/celebrations",
+      "/household",
       "/household-admin",
       "/people",
       "/people/:memberId",
@@ -28,6 +29,7 @@ describe("Tranche 0 route contract", () => {
       "/settings",
       "/settings/import",
       "/settings/export",
+      "/settings/release-readiness",
       "/settings/sync",
       "/settings/beta-readiness",
       "/settings/school-calendar",
@@ -58,6 +60,7 @@ describe("Tranche 0 route contract", () => {
     ["/officially-organised/hub", true],
     ["/officially-organised/hub/wallboard", "wallboard"],
     ["/officially-organised/car", "car"],
+    ["/officially-organised/household", "household"],
     ["/officially-organised/unknown", "*"],
   ])("resolves %s within the deployed base path", (path, expectedRoute) => {
     const testRouter = createMemoryRouter(appRoutes, {
@@ -122,7 +125,7 @@ describe("Tranche 0 route contract", () => {
     expect(screen.getByRole("button", { name: "More" })).toBeInTheDocument();
   });
 
-  it.each(["/", "/today", "/week", "/car", "/prep", "/school", "/celebrations", "/household-admin", "/settings"])("renders %s through the normal application shell", async (path) => {
+  it.each(["/", "/today", "/week", "/car", "/prep", "/school", "/celebrations", "/household", "/household-admin", "/settings", "/settings/release-readiness"])("renders %s through the normal application shell", async (path) => {
     const testRouter = createMemoryRouter(appRoutes, {
       basename: "/officially-organised",
       initialEntries: [`/officially-organised${path === "/" ? "/" : path}`],

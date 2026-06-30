@@ -1,50 +1,55 @@
 # Officially Organised
 
-A private, mobile-first, local-first family logistics PWA for the Lawrence family.
+Officially Organised is a private, mobile-first, local-first family logistics PWA for the Lawrence household.
 
-## Current implementation: Tranche 10B
+Version: `1.0.0-rc.1`
 
-The application now includes local data safety tools, a cautious manual Supabase sync engine, a dedicated School Hub, and a bounded Household Admin and Renewals module alongside recurring routines, one-off events, and Gifts and Celebrations readiness:
+## What it covers
 
-- versioned JSON export of all persistent family data
-- file and pasted-JSON import with validation and preview
-- atomic restore protected by `RESTORE MY DATA`
-- atomic reset and baseline reseed protected by `RESET OFFICIALLY ORGANISED`
-- optional Supabase configuration via `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`
-- local-only sync metadata, conflict review, household linking, derived auth redirect handling, first-sync confirmation, pause/resume, disconnect-device, diagnostics, and a manual `Sync now` flow in Settings
-- corrected Supabase SQL/RLS setup for authenticated household bootstrap and manual sync
-- secondary `/celebrations` route for compact celebration occasions and gift plans
-- deterministic gift-plan prep-task generation flowing into the existing Prep system
-- deterministic celebration-readiness scoring and issue derivation from existing occasion, gift-plan, event, and prep-task records
-- bounded celebration-readiness surfacing on `/celebrations`, Dashboard, Today, and Week
-- `Celebrations` labelling/filtering for generated gift and celebration prep work
-- event-detail linking for Gifts and Celebrations context with safe fallback rendering
-- secondary `/household-admin` route for renewals, services, cover reviews, and practical household checks
-- deterministic household-admin due-state derivation with completion, renewal, booking, and archive flows
-- bounded Household Admin Watch surfacing on Dashboard, Today, and Week
-- clear local-only and private-data warnings
-- audit entries for export, restore and reset
+The app is focused on practical family coordination:
 
-Event CRUD, places, preparation, car needs, conflicts, routines, School Calendar and Family Countdown remain intact. IndexedDB is still the live source of truth. Household Admin adds a new durable store, export payload coverage, and sync registration, but remains intentionally narrow: no chores, no shopping, no document storage, and no payments. Realtime sync, background sync, merge import, external upload, invitations, cloud wipe and encrypted exports remain out of scope.
+- dashboard, today and week planning
+- events, people, places, routines and templates
+- prep tasks and family car visibility
+- school readiness, school calendar support and weather-aware suggestions
+- gifts, celebrations and household admin / renewals
+- private local backup, restore and reset
+- optional manual Supabase sync
+- read-only Hub and wallboard routes for household display use
 
-Live Supabase validation reached successful manual sync after applying the corrected SQL/RLS design in `supabase/schema.sql` and `supabase/rls.sql`. Run both scripts and refresh the schema cache with `notify pgrst, 'reload schema';` if the Supabase Data API reports stale schema metadata.
+IndexedDB remains the live source of truth. Supabase sync stays optional. No analytics, telemetry, or public data-sharing services are included.
 
-## Run and verify
+## Run
 
 ```bash
-pnpm install
-pnpm dev
-pnpm typecheck
-pnpm test
-pnpm build
+corepack pnpm install
+corepack pnpm typecheck
+corepack pnpm test
+corepack pnpm build
+corepack pnpm dev
 ```
 
-Static hosts must serve `index.html` as the fallback for client-side deep routes. Installable PWA hosting also requires HTTPS.
+## Deployment
 
-See [Tranche 10B documentation](docs/10B-household-admin-and-renewals-foundation-v0.1.md), [Tranche 10A documentation](docs/10A-school-hub-consolidation-v0.1.md), [Tranche 9B documentation](docs/09B-gifts-and-celebrations-readiness-v0.1.md), and the [Supabase configuration guide](docs/08-supabase-configuration-guide-v0.1.md).
-
-## Suggested commit
+The hosted base path is:
 
 ```text
-Add household admin and renewals foundation
+https://www.lawnetcloud.uk/officially-organised/
 ```
+
+The app is configured for `/officially-organised/` in Vite and the PWA manifest. Static hosting still needs HTTPS and an `index.html` fallback for client-side routes.
+
+## Release candidate status
+
+RC1 is the final polish and readiness pass before real-device acceptance. See:
+
+- [RC1 release candidate report](docs/RC1-officially-organised-release-candidate-v1.0.md)
+- [Documentation index](docs/README.md)
+- [Supabase configuration guide](docs/08-supabase-configuration-guide-v0.1.md)
+- [Tranche 10D beta hardening](docs/10D-real-family-beta-hardening-v0.1.md)
+
+## Known limits
+
+- Real iPhone home-screen and install checks still need final acceptance on device.
+- Live two-device Supabase rehearsal was not repeated in this RC1 pass.
+- The production build still emits a large-chunk warning for the main application bundle.

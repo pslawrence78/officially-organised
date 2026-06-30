@@ -29,7 +29,7 @@ async function startApplication() {
     root.render(
       <main className="startup-error" role="alert">
         <p className="eyebrow">{PRODUCT_NAME}</p>
-        <h1>We couldn’t open the app.</h1>
+        <h1>We couldn't open the app.</h1>
         <p>Your local data has not been changed. Browser storage may be unavailable or blocked, so please reload the app and try again.</p>
         <button onClick={() => window.location.reload()} type="button">Reload app</button>
       </main>,

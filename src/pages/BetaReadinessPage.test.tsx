@@ -21,9 +21,9 @@ describe("BetaReadinessPage", () => {
 
   it("renders safe diagnostics and checklist controls", async () => {
     render(<MemoryRouter><BetaReadinessPage /></MemoryRouter>);
-    expect(await screen.findByRole("heading", { name: "Beta readiness" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Release readiness" })).toBeInTheDocument();
     expect(screen.getByText("Private and technical only")).toBeInTheDocument();
-    expect(await screen.findByRole("button", { name: "Copy beta diagnostics" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Copy readiness diagnostics" })).toBeInTheDocument();
     expect(await screen.findByRole("checkbox", { name: /Installed on iPhone/i })).toBeInTheDocument();
   });
 
@@ -32,11 +32,11 @@ describe("BetaReadinessPage", () => {
     Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
     render(<MemoryRouter><BetaReadinessPage /></MemoryRouter>);
 
-    fireEvent.click(await screen.findByRole("button", { name: "Copy beta diagnostics" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Copy readiness diagnostics" }));
 
     await waitFor(() => expect(writeText).toHaveBeenCalled());
     const copied = writeText.mock.calls[0][0] as string;
-    expect(copied).toContain("Officially Organised beta diagnostics");
+    expect(copied).toContain("Officially Organised release readiness diagnostics");
     expect(copied).not.toContain("Seb swimming");
     expect(copied).not.toContain("resource_family_car");
   });
