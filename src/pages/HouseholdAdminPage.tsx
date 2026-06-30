@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { ErrorState, LoadingState } from "../components/common/AsyncState";
 import { Badge } from "../components/common/Badge";
 import { Icon } from "../components/common/Icon";
@@ -27,6 +27,7 @@ import {
 } from "../data/repositories";
 import { useRepositoryQuery } from "../hooks/useRepositoryQuery";
 import { completeHouseholdAdminItem, deriveHouseholdAdminSignal, sortHouseholdAdminSignals, type HouseholdAdminDueState, type HouseholdAdminSignal } from "../services/householdAdminService";
+import type { HouseholdAdminPrefill } from "../services/quickCaptureService";
 import { currentDateKey } from "../utils/dates";
 
 const VIEW_FILTERS = ["active", "archived", "all"] as const;
@@ -89,6 +90,7 @@ function allowsRenewed(signal: HouseholdAdminSignal) {
 }
 
 export function HouseholdAdminPage() {
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [refreshVersion, setRefreshVersion] = useState(0);
   const [draft, setDraft] = useState<HouseholdAdminItemInput>(defaultDraft());
@@ -111,6 +113,7 @@ export function HouseholdAdminPage() {
   const data = state.data;
   const adults = data?.familyMembers.filter((member) => member.memberType === "adult") ?? [];
   const signals = useMemo(() => sortHouseholdAdminSignals((data?.items ?? []).map((item) => deriveHouseholdAdminSignal(item))), [data?.items]);
+  const quickCapturePrefill = (location.state as { quickCapturePrefill?: HouseholdAdminPrefill } | null)?.quickCapturePrefill;
 
   useEffect(() => {
     const editId = searchParams.get("edit");
@@ -139,6 +142,20 @@ export function HouseholdAdminPage() {
       notes: existing.notes,
     });
   }, [data, searchParams]);
+
+  useEffect(() => {
+    if (!quickCapturePrefill) return;
+    setEditingId(undefined);
+    setDraft((current) => ({
+      ...current,
+      ...quickCapturePrefill,
+      title: quickCapturePrefill.title ?? current.title,
+      category: quickCapturePrefill.category ?? current.category,
+      adminType: quickCapturePrefill.adminType ?? current.adminType,
+      status: quickCapturePrefill.status ?? current.status,
+      renewalCycle: quickCapturePrefill.renewalCycle ?? current.renewalCycle,
+    }));
+  }, [quickCapturePrefill]);
 
   const filtered = signals.filter((signal) => {
     if (viewFilter === "active" && signal.item.status === "archived") return false;
@@ -214,7 +231,7 @@ export function HouseholdAdminPage() {
   return (
     <div className="page-stack household-admin-page">
       <div className="page-title-row">
-        <PageHeader eyebrow="Practical household memory" title="Household admin">Renewals, services and practical household checks.</PageHeader>
+        <PageHeader eyebrow="Practical household memory" title="Household admin">Renewals, services and practical checks that are painful to miss.</PageHeader>
         <button className="compact-action" onClick={() => { clearDraft(); setMessage(""); }} type="button"><Icon name="plus" /> Add item</button>
       </div>
 
@@ -249,10 +266,10 @@ export function HouseholdAdminPage() {
         <div className="section-heading">
           <div>
             <p className="eyebrow">{editingId ? "Update item" : "Add item"}</p>
-            <h2>{editingId ? "Edit household admin item" : "Keep only the meaningful ones"}</h2>
+            <h2>{editingId ? "Edit household admin item" : "Admin and renewals, without the clutter"}</h2>
           </div>
         </div>
-        <p className="section-empty-copy">Add the renewals and services that are easy to forget but painful to miss.</p>
+        <p className="section-empty-copy">Use this for things like MOT, insurance, boiler service and breakdown cover. One-off plans still belong in Events.</p>
         <div className="data-form household-admin-form">
           <div className="form-grid">
             <label className="form-field"><span>Title</span><input onChange={(event) => setDraft({ ...draft, title: event.target.value })} value={draft.title} /></label>

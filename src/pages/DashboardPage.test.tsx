@@ -61,10 +61,10 @@ describe("Dashboard operational readiness", () => {
   it("shows reassuring empty states on a no-events day", async () => {
     renderDashboard();
     expect(await screen.findByText("Nothing needs attention")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Add an event" })).toHaveAttribute("href", "/events/new");
+    expect(screen.getByRole("link", { name: "Quick capture" })).toHaveAttribute("href", "/?capture=1");
     expect(screen.getByRole("link", { name: "Household admin" })).toHaveAttribute("href", "/household-admin");
     expect(screen.getByRole("link", { name: "Open Hub" })).toHaveAttribute("href", "/hub");
-    expect(screen.getByText("Capture plans, appointments and commitments.")).toBeInTheDocument();
+    expect(screen.getByText("Save a rough event, routine or admin item without opening a full form.")).toBeInTheDocument();
     expect(screen.getByText("Track renewals, services and household checks.")).toBeInTheDocument();
     expect(screen.getByText("Launch the read-only family display.")).toBeInTheDocument();
     expect(screen.queryByText("Open household Hub")).not.toBeInTheDocument();

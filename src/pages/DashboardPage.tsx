@@ -133,15 +133,20 @@ export function DashboardPage() {
           <p className="eyebrow">Home base</p>
           <h1>Family plans,<br /><em>held together.</em></h1>
           <p className="hero-card__copy">Start with what needs attention, then move through today and the days ahead.</p>
+          <div className="hero-card__summary-chips" aria-label="At a glance">
+            <span className="hero-card__summary-chip">{conflicts.length ? `${conflicts.length} attention item${conflicts.length === 1 ? "" : "s"}` : "No urgent gaps"}</span>
+            <span className="hero-card__summary-chip">{todayEvents.length ? `${todayEvents.length} event${todayEvents.length === 1 ? "" : "s"} today` : "Clear today"}</span>
+            <span className="hero-card__summary-chip">{householdAdminWatch.length ? `${householdAdminWatch.length} admin item${householdAdminWatch.length === 1 ? "" : "s"} close` : "Admin under control"}</span>
+          </div>
         </div>
         <div className="hero-card__action-panel" aria-label="Quick actions">
           <p className="hero-card__action-label">Quick actions</p>
           <div className="hero-card__action-deck">
-            <Link aria-describedby="dashboard-add-event-copy" aria-label="Add an event" className="hero-card__action-card hero-card__action-card--primary" to="/events/new">
+            <Link aria-describedby="dashboard-capture-copy" aria-label="Quick capture" className="hero-card__action-card hero-card__action-card--primary" to="/?capture=1">
               <span className="hero-card__action-card-icon"><Icon name="plus" /></span>
               <span className="hero-card__action-card-copy">
-                <strong>Add an event</strong>
-                <small id="dashboard-add-event-copy">Capture plans, appointments and commitments.</small>
+                <strong>Quick capture</strong>
+                <small id="dashboard-capture-copy">Save a rough event, routine or admin item without opening a full form.</small>
               </span>
               <Icon className="hero-card__action-card-chevron" name="chevron" />
             </Link>

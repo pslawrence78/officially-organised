@@ -44,4 +44,28 @@ describe("event form routine bridge", () => {
     expect((await getEvents())).toHaveLength(0);
     expect((await getSeries())).toHaveLength(0);
   });
+
+  it("prefills a new event from quick capture state", async () => {
+    const router = createMemoryRouter(appRoutes, {
+      initialEntries: [{
+        pathname: "/events/new",
+        state: {
+          quickCapturePrefill: {
+            title: "Quick dentist",
+            allDay: true,
+            startAt: "2026-06-30T00:00:00.000Z",
+            endAt: "2026-06-30T23:59:59.999Z",
+            participants: ["member_seb"],
+            responsibleAdults: ["member_phil"],
+            prepTasks: [],
+            resourceNeeds: [],
+          },
+        },
+      }],
+    });
+    render(<RouterProvider router={router} />);
+
+    expect(await screen.findByDisplayValue("Quick dentist")).toBeInTheDocument();
+    expect(screen.getByLabelText("Start date")).toHaveValue("2026-06-30");
+  });
 });

@@ -1,7 +1,18 @@
 import { useEffect, useState } from "react";
-import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { QuickCaptureSheet } from "../components/capture/QuickCaptureSheet";
 import { Icon, type IconName } from "../components/common/Icon";
 import { PRODUCT_NAME, PRODUCT_SHORT_NAME, PRODUCT_TAGLINE } from "../config/productIdentity";
+import { getFamilyMembers } from "../data/repositories";
+import { useRepositoryQuery } from "../hooks/useRepositoryQuery";
+import {
+  buildQuickCaptureAdminPrefill,
+  buildQuickCaptureEventPrefill,
+  buildQuickCaptureRoutinePrefill,
+  saveQuickCaptureAdmin,
+  saveQuickCaptureEvent,
+  type QuickCaptureDraft,
+} from "../services/quickCaptureService";
 
 interface NavItem {
   label: string;
@@ -36,9 +47,18 @@ function navigationClass({ isActive }: { isActive: boolean }) {
 
 export function AppShell() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [captureOpen, setCaptureOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const familyState = useRepositoryQuery(() => getFamilyMembers(), []);
 
-  useEffect(() => setMenuOpen(false), [location.pathname]);
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    setCaptureOpen(new URLSearchParams(location.search).get("capture") === "1");
+  }, [location.search]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -48,6 +68,40 @@ export function AppShell() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [menuOpen]);
+
+  const closeCapture = () => {
+    setCaptureOpen(false);
+    const params = new URLSearchParams(location.search);
+    if (params.get("capture") === "1") {
+      params.delete("capture");
+      navigate({ pathname: location.pathname, search: params.toString() ? `?${params.toString()}` : "" }, { replace: true });
+    }
+  };
+
+  const continueCapture = (draft: QuickCaptureDraft) => {
+    closeCapture();
+    if (draft.kind === "event") {
+      navigate("/events/new", { state: { quickCapturePrefill: buildQuickCaptureEventPrefill(draft) } });
+      return;
+    }
+    if (draft.kind === "routine") {
+      navigate("/routines", { state: { openRoutineCreator: true, routinePrefill: buildQuickCaptureRoutinePrefill(draft) } });
+      return;
+    }
+    navigate("/household-admin", { state: { quickCapturePrefill: buildQuickCaptureAdminPrefill(draft) } });
+  };
+
+  const saveCapture = async (draft: QuickCaptureDraft) => {
+    if (draft.kind === "event") {
+      const event = await saveQuickCaptureEvent(draft);
+      closeCapture();
+      navigate(`/events/${event.id}`);
+      return;
+    }
+    const item = await saveQuickCaptureAdmin(draft);
+    closeCapture();
+    navigate(`/household-admin?edit=${encodeURIComponent(item.id)}`);
+  };
 
   return (
     <div className="app-frame">
@@ -74,6 +128,16 @@ export function AppShell() {
       <main className="app-content" id="main-content">
         <Outlet />
       </main>
+
+      <button
+        aria-label="Quick capture"
+        className="quick-capture-fab"
+        onClick={() => setCaptureOpen(true)}
+        type="button"
+      >
+        <Icon name="plus" />
+        <span>Add</span>
+      </button>
 
       <nav aria-label="Primary" className="bottom-navigation">
         {primaryNavigation.map((item) => (
@@ -113,6 +177,15 @@ export function AppShell() {
             </nav>
           </section>
         </div>
+      ) : null}
+
+      {captureOpen && familyState.data ? (
+        <QuickCaptureSheet
+          familyMembers={familyState.data}
+          onClose={closeCapture}
+          onContinue={continueCapture}
+          onSave={saveCapture}
+        />
       ) : null}
     </div>
   );

@@ -4,13 +4,13 @@ import {
   CATEGORY_LABELS,
   EVENT_CATEGORIES,
   EVENT_STATUSES,
+  FAMILY_CAR_RESOURCE_ID,
   PLACE_TYPES,
   PLACE_TYPE_LABELS,
   STATUS_LABELS,
-  FAMILY_CAR_RESOURCE_ID,
 } from "../../domain/constants";
-import { validateEventInput, type ValidationErrors } from "../../domain/validation/eventValidation";
 import type { EventSeriesInput, FamilyEvent, FamilyEventInput, FamilyMember, Place, Resource, Weekday } from "../../domain/types";
+import { validateEventInput, type ValidationErrors } from "../../domain/validation/eventValidation";
 import { createEvent, createPlace, updateEvent } from "../../data/repositories";
 import {
   allDayEndIso,
@@ -23,6 +23,7 @@ import {
   localDateTimeToIso,
 } from "../../utils/dates";
 import { createId } from "../../utils/ids";
+import type { EventFormPrefill } from "../../services/quickCaptureService";
 import { MemberSelector } from "./MemberSelector";
 import { PrepTaskEditor } from "../prep/PrepTaskEditor";
 import { CarNeedEditor } from "../resources/CarNeedEditor";
@@ -31,6 +32,7 @@ interface EventFormProps {
   event?: FamilyEvent;
   familyMembers: FamilyMember[];
   places: Place[];
+  prefill?: EventFormPrefill;
   resources: Resource[];
 }
 
@@ -48,28 +50,34 @@ function durationMinutesBetween(start: string, end: string) {
   return Math.round(diff / 60000);
 }
 
-export function EventForm({ event, familyMembers, places, resources }: EventFormProps) {
+function sectionOpen(hasSavedValue: boolean, editingExisting: boolean) {
+  return hasSavedValue || editingExisting;
+}
+
+export function EventForm({ event, familyMembers, places, prefill, resources }: EventFormProps) {
   const navigate = useNavigate();
   const defaults = defaultEventTimes();
-  const [title, setTitle] = useState(event?.title ?? "");
-  const [category, setCategory] = useState<FamilyEventInput["category"]>(event?.category ?? "family_social");
-  const [status, setStatus] = useState<FamilyEventInput["status"]>(event?.status ?? "confirmed");
-  const [allDay, setAllDay] = useState(event?.allDay ?? false);
-  const [startLocal, setStartLocal] = useState(event ? isoToDateTimeLocal(event.startAt) : defaults.start);
-  const [endLocal, setEndLocal] = useState(event ? isoToDateTimeLocal(event.endAt) : defaults.end);
-  const [startDate, setStartDate] = useState(event ? isoToDateKey(event.startAt) : currentDateKey());
-  const [endDate, setEndDate] = useState(event ? inclusiveAllDayEndDateKey(event.endAt) : currentDateKey());
-  const [placeId, setPlaceId] = useState(event?.placeId ?? "");
+  const initialStartAt = prefill?.startAt;
+  const initialEndAt = prefill?.endAt;
+  const [title, setTitle] = useState(event?.title ?? prefill?.title ?? "");
+  const [category, setCategory] = useState<FamilyEventInput["category"]>(event?.category ?? prefill?.category ?? "family_social");
+  const [status, setStatus] = useState<FamilyEventInput["status"]>(event?.status ?? prefill?.status ?? "confirmed");
+  const [allDay, setAllDay] = useState(event?.allDay ?? prefill?.allDay ?? false);
+  const [startLocal, setStartLocal] = useState(event ? isoToDateTimeLocal(event.startAt) : initialStartAt ? isoToDateTimeLocal(initialStartAt) : defaults.start);
+  const [endLocal, setEndLocal] = useState(event ? isoToDateTimeLocal(event.endAt) : initialEndAt ? isoToDateTimeLocal(initialEndAt) : defaults.end);
+  const [startDate, setStartDate] = useState(event ? isoToDateKey(event.startAt) : initialStartAt ? isoToDateKey(initialStartAt) : currentDateKey());
+  const [endDate, setEndDate] = useState(event ? inclusiveAllDayEndDateKey(event.endAt) : initialEndAt ? inclusiveAllDayEndDateKey(initialEndAt) : currentDateKey());
+  const [placeId, setPlaceId] = useState(event?.placeId ?? prefill?.placeId ?? "");
   const [availablePlaces, setAvailablePlaces] = useState(places);
   const [addingPlace, setAddingPlace] = useState(false);
   const [newPlaceName, setNewPlaceName] = useState("");
   const [newPlaceType, setNewPlaceType] = useState<(typeof PLACE_TYPES)[number]>("other");
   const [placeSaveError, setPlaceSaveError] = useState("");
-  const [participants, setParticipants] = useState(event?.participants ?? []);
-  const [responsibleAdults, setResponsibleAdults] = useState(event?.responsibleAdults ?? []);
-  const [prepTasks, setPrepTasks] = useState(event?.prepTasks ?? []);
-  const [resourceNeeds, setResourceNeeds] = useState(event?.resourceNeeds ?? []);
-  const [notes, setNotes] = useState(event?.notes ?? "");
+  const [participants, setParticipants] = useState(event?.participants ?? prefill?.participants ?? []);
+  const [responsibleAdults, setResponsibleAdults] = useState(event?.responsibleAdults ?? prefill?.responsibleAdults ?? []);
+  const [prepTasks, setPrepTasks] = useState(event?.prepTasks ?? prefill?.prepTasks ?? []);
+  const [resourceNeeds, setResourceNeeds] = useState(event?.resourceNeeds ?? prefill?.resourceNeeds ?? []);
+  const [notes, setNotes] = useState(event?.notes ?? prefill?.notes ?? "");
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [saveError, setSaveError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -77,13 +85,14 @@ export function EventForm({ event, familyMembers, places, resources }: EventForm
   const adults = familyMembers.filter((member) => member.memberType === "adult");
   const familyCar = resources.find((resource) => resource.id === FAMILY_CAR_RESOURCE_ID);
   const carNeed = resourceNeeds.find((need) => need.resourceId === FAMILY_CAR_RESOURCE_ID);
+  const showPlaceSection = sectionOpen(Boolean(placeId || placeSaveError), Boolean(event));
+  const showCarSection = sectionOpen(Boolean(carNeed), Boolean(event));
+  const showPrepSection = sectionOpen(prepTasks.length > 0, Boolean(event));
+  const showNotesSection = sectionOpen(Boolean(notes.trim()), Boolean(event));
 
   const openRoutineCreator = () => {
     const recurrencePrefill: Partial<EventSeriesInput["recurrence"]> = allDay
-      ? {
-          startDate,
-          dayOfWeek: weekdayFromDateKey(startDate),
-        }
+      ? { startDate, dayOfWeek: weekdayFromDateKey(startDate) }
       : {
           startDate: startLocal.slice(0, 10),
           startTime: startLocal.slice(11, 16),
@@ -107,15 +116,13 @@ export function EventForm({ event, familyMembers, places, resources }: EventForm
           priority: "normal" as const,
           blocksEvent: false,
         })),
-      defaultResourceNeeds: carNeed
-        ? [{
-            id: createId("need_template"),
-            resourceId: carNeed.resourceId,
-            needStatus: carNeed.needStatus,
-            beforeStartMinutes: 15,
-            afterEndMinutes: 15,
-          }]
-        : [],
+      defaultResourceNeeds: carNeed ? [{
+        id: createId("need_template"),
+        resourceId: carNeed.resourceId,
+        needStatus: carNeed.needStatus,
+        beforeStartMinutes: 15,
+        afterEndMinutes: 15,
+      }] : [],
       recurrence: recurrencePrefill,
     };
     navigate("/routines", { state: { openRoutineCreator: true, routinePrefill } });
@@ -171,7 +178,7 @@ export function EventForm({ event, familyMembers, places, resources }: EventForm
     }
     try {
       const place = await createPlace({ name: newPlaceName, placeType: newPlaceType });
-      setAvailablePlaces((current) => [...current, place].sort((a, b) => a.name.localeCompare(b.name)));
+      setAvailablePlaces((current) => [...current, place].sort((left, right) => left.name.localeCompare(right.name)));
       setPlaceId(place.id);
       setAddingPlace(false);
       setNewPlaceName("");
@@ -182,45 +189,56 @@ export function EventForm({ event, familyMembers, places, resources }: EventForm
   };
 
   return (
-    <form className="data-form" noValidate onSubmit={onSubmit}>
+    <form className="data-form event-form" noValidate onSubmit={onSubmit}>
       {saveError ? <div className="notice notice--error" role="alert">{saveError}</div> : null}
-      <label className={`form-field${errors.title ? " has-error" : ""}`}>
-        <span>Event title</span>
-        <input autoFocus maxLength={120} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Seb swimming" value={title} />
-        {errors.title ? <span className="field-error">{errors.title}</span> : null}
-      </label>
 
-      <div className="form-grid">
-        <label className={`form-field${errors.category ? " has-error" : ""}`}>
-          <span>Category</span>
-          <select onChange={(e) => setCategory(e.target.value as FamilyEventInput["category"])} value={category}>
-            {EVENT_CATEGORIES.map((value) => <option key={value} value={value}>{CATEGORY_LABELS[value]}</option>)}
-          </select>
-        </label>
-        <label className={`form-field${errors.status ? " has-error" : ""}`}>
-          <span>Status</span>
-          <select onChange={(e) => setStatus(e.target.value as FamilyEventInput["status"])} value={status}>
-            {EVENT_STATUSES.map((value) => <option key={value} value={value}>{STATUS_LABELS[value]}</option>)}
-          </select>
-        </label>
-      </div>
-
-      <label className="toggle-field">
-        <input checked={allDay} onChange={(e) => setAllDay(e.target.checked)} type="checkbox" />
-        <span><strong>All-day event</strong><small>Use dates rather than exact times</small></span>
-      </label>
-
-      {allDay ? (
-        <div className="form-grid">
-          <label className={`form-field${errors.startAt ? " has-error" : ""}`}><span>Start date</span><input onChange={(e) => setStartDate(e.target.value)} type="date" value={startDate} />{errors.startAt ? <span className="field-error">{errors.startAt}</span> : null}</label>
-          <label className={`form-field${errors.endAt ? " has-error" : ""}`}><span>End date</span><input min={startDate} onChange={(e) => setEndDate(e.target.value)} type="date" value={endDate} />{errors.endAt ? <span className="field-error">{errors.endAt}</span> : null}</label>
+      <section className="form-section">
+        <div className="form-section__heading">
+          <div>
+            <p className="eyebrow">Essentials</p>
+            <h2>What is it and when is it?</h2>
+          </div>
+          {!event ? <span className="form-section__hint">Start light. Add detail only if it helps.</span> : null}
         </div>
-      ) : (
+
+        <label className={`form-field${errors.title ? " has-error" : ""}`}>
+          <span>Event title</span>
+          <input autoFocus maxLength={120} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Seb swimming" value={title} />
+          {errors.title ? <span className="field-error">{errors.title}</span> : null}
+        </label>
+
         <div className="form-grid">
-          <label className={`form-field${errors.startAt ? " has-error" : ""}`}><span>Starts</span><input onChange={(e) => setStartLocal(e.target.value)} type="datetime-local" value={startLocal} />{errors.startAt ? <span className="field-error">{errors.startAt}</span> : null}</label>
-          <label className={`form-field${errors.endAt ? " has-error" : ""}`}><span>Ends</span><input onChange={(e) => setEndLocal(e.target.value)} type="datetime-local" value={endLocal} />{errors.endAt ? <span className="field-error">{errors.endAt}</span> : null}</label>
+          <label className={`form-field${errors.category ? " has-error" : ""}`}>
+            <span>Category</span>
+            <select onChange={(e) => setCategory(e.target.value as FamilyEventInput["category"])} value={category}>
+              {EVENT_CATEGORIES.map((value) => <option key={value} value={value}>{CATEGORY_LABELS[value]}</option>)}
+            </select>
+          </label>
+          <label className={`form-field${errors.status ? " has-error" : ""}`}>
+            <span>Status</span>
+            <select onChange={(e) => setStatus(e.target.value as FamilyEventInput["status"])} value={status}>
+              {EVENT_STATUSES.map((value) => <option key={value} value={value}>{STATUS_LABELS[value]}</option>)}
+            </select>
+          </label>
         </div>
-      )}
+
+        <label className="toggle-field">
+          <input checked={allDay} onChange={(e) => setAllDay(e.target.checked)} type="checkbox" />
+          <span><strong>All-day event</strong><small>Use this when dates matter more than exact times.</small></span>
+        </label>
+
+        {allDay ? (
+          <div className="form-grid">
+            <label className={`form-field${errors.startAt ? " has-error" : ""}`}><span>Start date</span><input onChange={(e) => setStartDate(e.target.value)} type="date" value={startDate} />{errors.startAt ? <span className="field-error">{errors.startAt}</span> : null}</label>
+            <label className={`form-field${errors.endAt ? " has-error" : ""}`}><span>End date</span><input min={startDate} onChange={(e) => setEndDate(e.target.value)} type="date" value={endDate} />{errors.endAt ? <span className="field-error">{errors.endAt}</span> : null}</label>
+          </div>
+        ) : (
+          <div className="form-grid">
+            <label className={`form-field${errors.startAt ? " has-error" : ""}`}><span>Starts</span><input onChange={(e) => setStartLocal(e.target.value)} type="datetime-local" value={startLocal} />{errors.startAt ? <span className="field-error">{errors.startAt}</span> : null}</label>
+            <label className={`form-field${errors.endAt ? " has-error" : ""}`}><span>Ends</span><input onChange={(e) => setEndLocal(e.target.value)} type="datetime-local" value={endLocal} />{errors.endAt ? <span className="field-error">{errors.endAt}</span> : null}</label>
+          </div>
+        )}
+      </section>
 
       {!event ? (
         <section className="section-block event-routine-bridge" aria-label="Routine creation help">
@@ -228,38 +246,66 @@ export function EventForm({ event, familyMembers, places, resources }: EventForm
             <p className="eyebrow">Repeats regularly?</p>
             <h2>Create a routine instead</h2>
           </div>
-          <p className="supporting-copy">Use events for one-off plans. Use routines for clubs, lessons, weekly checks or repeat commitments.</p>
+          <p className="supporting-copy">Use events for one-off plans. Use routines for clubs, lessons, school patterns and regular care.</p>
           <button className="button button--secondary" onClick={openRoutineCreator} type="button">Create routine</button>
         </section>
       ) : null}
 
-      <MemberSelector error={errors.participants} label="Who is involved?" members={familyMembers} onChange={setParticipants} selectedIds={participants} />
-      <MemberSelector error={errors.responsibleAdults} label="Responsible adult (optional)" members={adults} onChange={setResponsibleAdults} selectedIds={responsibleAdults} />
+      <section className="form-section">
+        <div className="form-section__heading">
+          <div>
+            <p className="eyebrow">People and responsibility</p>
+            <h2>Who is involved?</h2>
+          </div>
+        </div>
+        <MemberSelector error={errors.participants} label="Who is involved?" members={familyMembers} onChange={setParticipants} selectedIds={participants} />
+        <MemberSelector error={errors.responsibleAdults} label="Responsible adult (optional)" members={adults} onChange={setResponsibleAdults} selectedIds={responsibleAdults} />
+      </section>
 
-      <label className={`form-field${errors.placeId ? " has-error" : ""}`}>
-        <span>Place (optional)</span>
-        <select onChange={(e) => setPlaceId(e.target.value)} value={placeId}>
-          <option value="">No place selected</option>
-          {availablePlaces.map((place) => <option key={place.id} value={place.id}>{place.name}</option>)}
-        </select>
-        <button className="inline-link-button" onClick={() => setAddingPlace((value) => !value)} type="button">{addingPlace ? "Cancel new place" : "+ Add a new place here"}</button>
-        {errors.placeId ? <span className="field-error">{errors.placeId}</span> : null}
-      </label>
+      <details className="form-disclosure" open={showPlaceSection}>
+        <summary>Place and travel</summary>
+        <div className="form-disclosure__body">
+          <label className={`form-field${errors.placeId ? " has-error" : ""}`}>
+            <span>Place (optional)</span>
+            <select onChange={(e) => setPlaceId(e.target.value)} value={placeId}>
+              <option value="">No place selected</option>
+              {availablePlaces.map((place) => <option key={place.id} value={place.id}>{place.name}</option>)}
+            </select>
+            <button className="inline-link-button" onClick={() => setAddingPlace((value) => !value)} type="button">{addingPlace ? "Cancel new place" : "+ Add a new place here"}</button>
+            {errors.placeId ? <span className="field-error">{errors.placeId}</span> : null}
+          </label>
 
-      {addingPlace ? <section className="inline-create" aria-label="Add a new place"><div className="form-grid"><label className="form-field"><span>New place name</span><input onChange={(e) => setNewPlaceName(e.target.value)} placeholder="e.g. Beavers HQ" value={newPlaceName} /></label><label className="form-field"><span>Type</span><select onChange={(e) => setNewPlaceType(e.target.value as (typeof PLACE_TYPES)[number])} value={newPlaceType}>{PLACE_TYPES.map((value) => <option key={value} value={value}>{PLACE_TYPE_LABELS[value]}</option>)}</select></label></div>{placeSaveError ? <span className="field-error">{placeSaveError}</span> : null}<button className="button button--secondary" onClick={addPlaceInline} type="button">Add and select place</button></section> : null}
+          {addingPlace ? <section className="inline-create" aria-label="Add a new place"><div className="form-grid"><label className="form-field"><span>New place name</span><input onChange={(e) => setNewPlaceName(e.target.value)} placeholder="e.g. Beavers HQ" value={newPlaceName} /></label><label className="form-field"><span>Type</span><select onChange={(e) => setNewPlaceType(e.target.value as (typeof PLACE_TYPES)[number])} value={newPlaceType}>{PLACE_TYPES.map((value) => <option key={value} value={value}>{PLACE_TYPE_LABELS[value]}</option>)}</select></label></div>{placeSaveError ? <span className="field-error">{placeSaveError}</span> : null}<button className="button button--secondary" onClick={addPlaceInline} type="button">Add and select place</button></section> : null}
+        </div>
+      </details>
 
-      <PrepTaskEditor adults={adults} error={errors.prepTasks} onChange={setPrepTasks} tasks={prepTasks} />
+      <details className="form-disclosure" open={showCarSection}>
+        <summary>Car</summary>
+        <div className="form-disclosure__body">
+          {familyCar ? <CarNeedEditor adults={adults} defaultFrom={allDay ? `${startDate}T08:00` : startLocal} defaultUntil={allDay ? `${endDate}T18:00` : endLocal} error={errors.resourceNeeds} need={carNeed} onChange={(need) => setResourceNeeds((current) => [...current.filter((item) => item.resourceId !== familyCar.id), ...(need ? [need] : [])])} resource={familyCar} /> : null}
+        </div>
+      </details>
 
-      {familyCar ? <CarNeedEditor adults={adults} defaultFrom={allDay ? `${startDate}T08:00` : startLocal} defaultUntil={allDay ? `${endDate}T18:00` : endLocal} error={errors.resourceNeeds} need={carNeed} onChange={(need) => setResourceNeeds((current) => [...current.filter((item) => item.resourceId !== familyCar.id), ...(need ? [need] : [])])} resource={familyCar} /> : null}
+      <details className="form-disclosure" open={showPrepSection}>
+        <summary>Prep</summary>
+        <div className="form-disclosure__body">
+          <PrepTaskEditor adults={adults} error={errors.prepTasks} onChange={setPrepTasks} tasks={prepTasks} />
+        </div>
+      </details>
 
-      <label className="form-field">
-        <span>Notes (optional)</span>
-        <textarea maxLength={2000} onChange={(e) => setNotes(e.target.value)} placeholder="Anything useful to remember about the event" rows={4} value={notes} />
-      </label>
+      <details className="form-disclosure" open={showNotesSection}>
+        <summary>Notes and status</summary>
+        <div className="form-disclosure__body">
+          <label className="form-field">
+            <span>Notes (optional)</span>
+            <textarea maxLength={2000} onChange={(e) => setNotes(e.target.value)} placeholder="Anything useful to remember about the event" rows={4} value={notes} />
+          </label>
+        </div>
+      </details>
 
       <div className="form-actions">
         <Link className="button button--secondary" to={event ? `/events/${event.id}` : "/today"}>Cancel</Link>
-        <button className="button button--primary" disabled={saving} type="submit">{saving ? "Saving…" : event ? "Save changes" : "Create event"}</button>
+        <button className="button button--primary" disabled={saving} type="submit">{saving ? "Saving..." : event ? "Save changes" : "Create event"}</button>
       </div>
     </form>
   );

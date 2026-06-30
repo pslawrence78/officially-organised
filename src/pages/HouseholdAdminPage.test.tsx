@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { db } from "../data/db";
 import { createHouseholdAdminItem, seedInitialDataIfNeeded } from "../data/repositories";
@@ -18,12 +18,14 @@ describe("Household admin page", () => {
   });
 
   it("renders the empty state", async () => {
-    render(<MemoryRouter><HouseholdAdminPage /></MemoryRouter>);
+    const router = createMemoryRouter([{ path: "/", element: <HouseholdAdminPage /> }], { initialEntries: ["/"] });
+    render(<RouterProvider router={router} />);
     expect(await screen.findByText("No household admin items here")).toBeInTheDocument();
   });
 
   it("creates, updates and archives an item", async () => {
-    render(<MemoryRouter><HouseholdAdminPage /></MemoryRouter>);
+    const router = createMemoryRouter([{ path: "/", element: <HouseholdAdminPage /> }], { initialEntries: ["/"] });
+    render(<RouterProvider router={router} />);
     fireEvent.change(await screen.findByLabelText("Title"), { target: { value: "Boiler service" } });
     fireEvent.click(screen.getByRole("button", { name: "Save item" }));
     expect(await screen.findByText("Household admin item added.")).toBeInTheDocument();
@@ -38,9 +40,29 @@ describe("Household admin page", () => {
 
   it("marks completed and calculates the next due date", async () => {
     await createHouseholdAdminItem({ title: "Home insurance", category: "insurance", adminType: "home_insurance", status: "active", dueDate: "2026-07-01", renewalCycle: "annual", ownerMemberId: "member_phil", reminderDaysBefore: [30, 14, 7] });
-    render(<MemoryRouter><HouseholdAdminPage /></MemoryRouter>);
+    const router = createMemoryRouter([{ path: "/", element: <HouseholdAdminPage /> }], { initialEntries: ["/"] });
+    render(<RouterProvider router={router} />);
     fireEvent.click(await screen.findByRole("button", { name: "Mark completed" }));
     await screen.findByText("Item marked completed.");
-    expect(await screen.findByText("2027-06-29")).toBeInTheDocument();
+    expect(await screen.findByText("2027-06-30")).toBeInTheDocument();
+  });
+
+  it("prefills the form from quick capture state", async () => {
+    const router = createMemoryRouter([{ path: "/", element: <HouseholdAdminPage /> }], {
+      initialEntries: [{
+        pathname: "/",
+        state: {
+          quickCapturePrefill: {
+            title: "Boiler service",
+            dueDate: "2026-08-01",
+            ownerMemberId: "member_phil",
+          },
+        },
+      }],
+    });
+    render(<RouterProvider router={router} />);
+
+    expect(await screen.findByDisplayValue("Boiler service")).toBeInTheDocument();
+    expect(screen.getByLabelText("Due date")).toHaveValue("2026-08-01");
   });
 });
