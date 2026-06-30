@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { APP_VERSION } from "../../config/appVersion";
 import { ErrorState, LoadingState } from "../common/AsyncState";
 import { confirmFirstSync, disconnectSyncDevice, ensureSyncDevice, getSyncSettings, pauseSync, resumeSync, setSyncPrepared } from "../../data/repositories";
 import { databaseMetadata } from "../../data/db";
@@ -199,13 +200,12 @@ export function SyncSettingsPanel({ env }: SyncSettingsPanelProps = {}) {
     if (!query.data) return;
     const text = [
       "Officially Organised sync diagnostics",
-      `App version: ${import.meta.env.VITE_APP_VERSION ?? "local-build"}`,
+      `App version: ${APP_VERSION}`,
       `Export schema: ${EXPORT_DATA_SCHEMA}`,
       `Dexie schema version: ${databaseMetadata.schemaVersion}`,
-      `Device ID: ${query.data.device.id}`,
-      `Remote household ID: ${syncSettings?.householdId ?? "not linked"}`,
       `User: ${maskedEmail ?? "not signed in"}`,
       `Sync enabled: ${syncSettings?.enabled && !syncSettings.paused ? "yes" : "no"}`,
+      `Supabase configured: ${availability.configured ? "yes" : "no"}`,
       `Last sync: ${syncSettings?.lastSyncAt ?? "never"}`,
       `Last attempt: ${syncSettings?.lastSyncAttemptAt ?? "never"}`,
       `Last duration ms: ${syncSettings?.lastSyncDurationMs ?? "not tracked"}`,
@@ -351,7 +351,7 @@ export function SyncSettingsPanel({ env }: SyncSettingsPanelProps = {}) {
       <details className="section-block">
         <summary>Sync diagnostics</summary>
         <dl>
-          <div><dt>App version</dt><dd>{import.meta.env.VITE_APP_VERSION ?? "local-build"}</dd></div>
+          <div><dt>App version</dt><dd>{APP_VERSION}</dd></div>
           <div><dt>Export schema</dt><dd><code>{EXPORT_DATA_SCHEMA}</code></dd></div>
           <div><dt>Dexie schema</dt><dd>{databaseMetadata.schemaVersion}</dd></div>
           <div><dt>Last pull / push</dt><dd>{syncSettings?.lastPullCount ?? 0} / {syncSettings?.lastPushCount ?? 0}</dd></div>

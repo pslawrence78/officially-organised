@@ -48,6 +48,7 @@ function navigationClass({ isActive }: { isActive: boolean }) {
 export function AppShell() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [captureOpen, setCaptureOpen] = useState(false);
+  const [online, setOnline] = useState(typeof navigator === "undefined" ? true : navigator.onLine !== false);
   const location = useLocation();
   const navigate = useNavigate();
   const familyState = useRepositoryQuery(() => getFamilyMembers(), []);
@@ -68,6 +69,16 @@ export function AppShell() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [menuOpen]);
+
+  useEffect(() => {
+    const syncOnlineState = () => setOnline(typeof navigator === "undefined" ? true : navigator.onLine !== false);
+    window.addEventListener("online", syncOnlineState);
+    window.addEventListener("offline", syncOnlineState);
+    return () => {
+      window.removeEventListener("online", syncOnlineState);
+      window.removeEventListener("offline", syncOnlineState);
+    };
+  }, []);
 
   const closeCapture = () => {
     setCaptureOpen(false);
@@ -126,6 +137,12 @@ export function AppShell() {
       </header>
 
       <main className="app-content" id="main-content">
+        {!online ? (
+          <div className="notice notice--warning app-runtime-banner" role="status">
+            <strong>Offline</strong>
+            <span>Local plans are still available on this device. Sync and live weather updates will wait until the connection returns.</span>
+          </div>
+        ) : null}
         <Outlet />
       </main>
 

@@ -1,3 +1,4 @@
+import { APP_VERSION } from "../config/appVersion";
 import { db, databaseMetadata } from "../data/db";
 import {
   seedCountdownTargets, seedFamilyMembers, seedHousehold, seedResources,
@@ -22,8 +23,7 @@ import {
 import type { ExportEnvelope, ExportDataPayload, ImportPreview, ImportRecordCounts, ImportValidationIssue, ImportValidationResult, ParseImportResult, RestoreResult } from "../types/importExport";
 import { EXPORT_STORE_NAMES } from "../types/importExport";
 import { validDateKey } from "../utils/celebrations";
-
-const APP_VERSION = "0.4.0";
+import { LAST_EXPORT_SETTING_ID } from "./betaReadinessService";
 const MEMBER_TYPES = ["adult", "child", "pet"];
 const RESOURCE_TYPES = ["car", "equipment", "room", "other"];
 const SERIES_STATUSES = ["active", "paused", "archived"];
@@ -81,7 +81,10 @@ export function downloadExportFile(payload: ExportEnvelope) {
 
 export async function recordExportCompleted(exportId: string): Promise<void> {
   const timestamp = new Date().toISOString();
-  await db.auditLog.put({ id: `audit_export_${Date.now()}`, entityType: "system", entityId: exportId, action: "exported", timestamp, summary: "Exported local Officially Organised backup" });
+  await db.transaction("rw", [db.auditLog, db.settings], async () => {
+    await db.auditLog.put({ id: `audit_export_${Date.now()}`, entityType: "system", entityId: exportId, action: "exported", timestamp, summary: "Exported local Officially Organised backup" });
+    await db.settings.put({ id: LAST_EXPORT_SETTING_ID, value: timestamp, description: "Timestamp of the last completed local backup export" });
+  });
 }
 
 export function parseImportJson(input: string): ParseImportResult {

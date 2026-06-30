@@ -73,6 +73,7 @@ describe("SyncSettingsPanel", () => {
     const copied = writeText.mock.calls[0][0] as string;
     expect(copied).toContain("ph***@example.com");
     expect(copied).not.toContain("secret-publishable-key");
+    expect(copied).not.toContain("household_1");
   });
 
   it("requires typed confirmation before disconnecting this device", async () => {

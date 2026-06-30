@@ -7,6 +7,7 @@ import { DashboardPage } from "../pages/DashboardPage";
 import { EventDetailPage } from "../pages/EventDetailPage";
 import { EventFormPage } from "../pages/EventFormPage";
 import { ExportPage } from "../pages/ExportPage";
+import { BetaReadinessPage } from "../pages/BetaReadinessPage";
 import { HubPage } from "../pages/HubPage";
 import { HubWallboardPage } from "../pages/HubWallboardPage";
 import { HouseholdAdminPage } from "../pages/HouseholdAdminPage";
@@ -49,6 +50,7 @@ export const requiredRoutePaths = [
   "/settings/import",
   "/settings/export",
   "/settings/sync",
+  "/settings/beta-readiness",
   "/settings/school-calendar",
   "/settings/school-half-terms",
   "/settings/countdowns",
@@ -106,6 +108,7 @@ export const appRoutes: RouteObject[] = [
       { path: "settings/import", element: <ImportPage /> },
       { path: "settings/export", element: <ExportPage /> },
       { path: "settings/sync", element: <SyncConflictsPage /> },
+      { path: "settings/beta-readiness", element: <BetaReadinessPage /> },
       { path: "settings/school-calendar", element: <SchoolCalendarPage /> },
       { path: "settings/school-half-terms", element: <SchoolHalfTermPage /> },
       { path: "settings/countdowns", element: <CountdownsPage /> },

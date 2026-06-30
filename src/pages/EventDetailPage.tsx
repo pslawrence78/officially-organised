@@ -70,7 +70,7 @@ export function EventDetailPage() {
   const generated = Boolean(event.seriesId && event.occurrenceDate && series);
   const conflicts = conflictsForEvent(calculateConflicts(allEvents), event.id);
   const celebrationById = new Map(celebrations.filter((item): item is NonNullable<typeof item> => Boolean(item)).map((item) => [item.id, item]));
-  const names = (ids: string[]) => ids.map((id) => familyMembers.find((member) => member.id === id)?.displayName ?? "Unknown");
+  const names = (ids: string[]) => ids.map((id) => familyMembers.find((member) => member.id === id)?.displayName ?? "Unknown family member");
   const place = places.find((item) => item.id === event.placeId);
   const carNeed = event.resourceNeeds.find((need) => need.resourceId === FAMILY_CAR_RESOURCE_ID && need.needStatus !== "not_required");
   const familyCar = resources.find((resource) => resource.id === FAMILY_CAR_RESOURCE_ID);
@@ -105,7 +105,7 @@ export function EventDetailPage() {
         <dl className="detail-list">
           <div><dt>Participants</dt><dd>{names(event.participants).join(", ") || "None"}</dd></div>
           <div><dt>Responsible</dt><dd>{names(event.responsibleAdults).join(", ") || "Not assigned"}</dd></div>
-          <div><dt>Place</dt><dd>{event.placeId ? place?.name ?? "Place unavailable" : "No place selected"}</dd></div>
+          <div><dt>Place</dt><dd>{event.placeId ? place?.name ?? "This event still works, but its saved place is no longer available." : "No place selected"}</dd></div>
           {generated ? <div><dt>Routine</dt><dd>{series?.title} · occurrence changes apply only to this date</dd></div> : null}
           {event.notes ? <div><dt>Notes</dt><dd className="detail-list__notes">{event.notes}</dd></div> : null}
         </dl>
@@ -184,7 +184,7 @@ export function EventDetailPage() {
           </div>
           {!generated ? <Link className="button button--secondary" to={`/events/${event.id}/edit`}><Icon name="edit" /> Edit car need</Link> : null}
         </div>
-        {carNeed && familyCar ? <CarNeedCard familyMembers={familyMembers} item={{ need: carNeed, event, resource: familyCar }} /> : <p className="section-empty-copy">The family car is not needed for this event.</p>}
+        {carNeed && familyCar ? <CarNeedCard familyMembers={familyMembers} item={{ need: carNeed, event, resource: familyCar }} /> : carNeed ? <p className="section-empty-copy">This event still has a saved car requirement, but the family car record is no longer available.</p> : <p className="section-empty-copy">The family car is not needed for this event.</p>}
       </section>
 
       {managing && generated && series ? (

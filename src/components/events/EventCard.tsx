@@ -14,7 +14,7 @@ interface EventCardProps {
 }
 
 export function EventCard({ event, familyMembers, place, conflicts = [] }: EventCardProps) {
-  const namesFor = (ids: string[]) => ids.map((id) => familyMembers.find((member) => member.id === id)?.displayName ?? "Unknown");
+  const namesFor = (ids: string[]) => ids.map((id) => familyMembers.find((member) => member.id === id)?.displayName ?? "Unknown family member");
   const participantNames = namesFor(event.participants);
   const responsibleNames = namesFor(event.responsibleAdults);
   const openPrep = event.prepTasks.filter((task) => task.status === "open");

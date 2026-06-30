@@ -1049,6 +1049,7 @@ h1, h2, h3 { line-height: 1.12; }
 .import-preview dd { font-weight: 700; margin: 0; text-align: right; overflow-wrap: anywhere; }
 .comparison-grid { display: grid; grid-template-columns: minmax(0, 1fr) 4rem 4rem; margin: var(--space-5) 0; }
 .comparison-grid > strong { border-bottom: 1px solid var(--color-border); font-size: .72rem; padding: var(--space-2); }
+.beta-readiness-grid { margin-top: var(--space-3); }
 .comparison-row { display: contents; }
 .comparison-row span { border-bottom: 1px solid var(--color-border); font-size: .78rem; padding: var(--space-2); }
 .comparison-row span:not(:first-child) { text-align: right; }
@@ -1058,6 +1059,12 @@ h1, h2, h3 { line-height: 1.12; }
 .notice--error li + li { margin-top: var(--space-2); }
 .danger-zone summary { cursor: pointer; font-weight: 800; }
 .danger-zone[open] { display: grid; gap: var(--space-4); }
+.app-runtime-banner { margin-bottom: var(--space-4); }
+.readiness-status { font-weight: 800; }
+.readiness-status--success { color: var(--color-success); }
+.readiness-status--warning { color: var(--color-warning); }
+.readiness-status--neutral { color: var(--color-muted); }
+.beta-checklist { display: grid; gap: var(--space-3); }
 
 .bottom-navigation {
   align-items: stretch;

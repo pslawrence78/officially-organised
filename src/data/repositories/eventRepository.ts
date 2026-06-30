@@ -175,9 +175,9 @@ export async function getEventById(id: string) {
 
 export async function getEvents() {
   const today = currentDateKey();
-  // Unbounded stored-event consumers use a restrained operational horizon for
-  // virtual series; visible date-range screens request their exact own window.
-  return getEventsForDateRange(dateKeyToIsoStart(addDaysToDateKey(today, -7)), dateKeyToIsoStart(addDaysToDateKey(today, 90)));
+  // Unbounded consumers still use a bounded operational horizon for generated
+  // series, but keep enough recent history for dense-week and overdue-task views.
+  return getEventsForDateRange(dateKeyToIsoStart(addDaysToDateKey(today, -30)), dateKeyToIsoStart(addDaysToDateKey(today, 90)));
 }
 
 function dateKeyFromInput(date: Date | string) {

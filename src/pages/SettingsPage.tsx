@@ -62,6 +62,11 @@ export function SettingsPage() {
           </div>
         </div>
         <div className="settings-links" aria-label="Local data safety tools">
+          <Link to="/settings/beta-readiness">
+            <span className="secondary-navigation__icon"><Icon name="check" /></span>
+            <span><strong>Beta readiness</strong><small>Diagnostics, soak checks and safe beta confidence notes</small></span>
+            <Icon className="secondary-navigation__chevron" name="chevron" />
+          </Link>
           <Link to="/settings/export">
             <span className="secondary-navigation__icon"><Icon name="template" /></span>
             <span><strong>Export backup</strong><small>Download a private, versioned JSON copy</small></span>
